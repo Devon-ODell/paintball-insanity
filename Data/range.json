@@ -1,0 +1,78 @@
+{
+  "_comment": "The Range is the aim trainer with the costume off. Free, no payout, always open. Every drill scores on exactly one telemetry axis so the post-match prescription can point at one drill and mean it.",
+
+  "payout": 0,
+  "bounds": { "widthMetres": 40, "lengthMetres": 90, "heightMetres": 12 },
+  "ground": { "colorKey": "concrete", "thicknessMetres": 1 },
+  "firingLine": { "position": [0, 0, -40], "lookAt": [0, 0, 0] },
+
+  "drillOrder": ["popup", "strafe", "switch", "holdover", "peek"],
+
+  "drills": {
+    "popup": {
+      "displayName": "Pop-Up",
+      "fundamental": "reactivity",
+      "secondaryFundamental": "flicking",
+      "scoredOn": ["timeToAcquireMs", "angularErrorDeg"],
+      "durationSeconds": 60,
+      "targetLifetimeSeconds": 1.6,
+      "spawnIntervalSeconds": { "min": 0.7, "max": 1.9 },
+      "distanceMetres": { "min": 12, "max": 30 },
+      "bearingSpreadDeg": 75,
+      "scoring": { "hitPoints": 100, "acquireBonusMs": 400, "acquirePenaltyPerMs": 0.12, "missPenalty": 40 }
+    },
+    "strafe": {
+      "displayName": "Strafe",
+      "fundamental": "leadAndDrop",
+      "secondaryFundamental": "tracking",
+      "scoredOn": ["leadErrorM"],
+      "durationSeconds": 75,
+      "waves": [
+        { "distanceMetres": 18, "lateralSpeedMps": 3.5, "seconds": 15 },
+        { "distanceMetres": 26, "lateralSpeedMps": 4.5, "seconds": 15 },
+        { "distanceMetres": 34, "lateralSpeedMps": 5.5, "seconds": 15 },
+        { "distanceMetres": 45, "lateralSpeedMps": 6.0, "seconds": 15 },
+        { "distanceMetres": 58, "lateralSpeedMps": 6.5, "seconds": 15 }
+      ],
+      "trackWidthMetres": 16,
+      "scoring": { "hitPoints": 120, "leadErrorPenaltyPerMetre": 55, "missPenalty": 30 }
+    },
+    "switch": {
+      "displayName": "Switch",
+      "fundamental": "targetSwitching",
+      "scoredOn": ["timeBetweenEliminationsMs"],
+      "durationSeconds": 60,
+      "simultaneousTargets": 3,
+      "distanceMetres": { "min": 14, "max": 28 },
+      "minSeparationDeg": 22,
+      "respawnDelaySeconds": 0.35,
+      "scoring": { "hitPoints": 100, "switchBonusMs": 700, "switchPenaltyPerMs": 0.09, "missPenalty": 40 }
+    },
+    "holdover": {
+      "displayName": "Holdover",
+      "fundamental": "leadAndDrop",
+      "scoredOn": ["holdoverErrorM"],
+      "durationSeconds": 60,
+      "staticDistancesMetres": [20, 35, 50],
+      "targetRadiusMetres": 0.3,
+      "roundsPerDistance": 8,
+      "scoring": { "hitPoints": 140, "verticalErrorPenaltyPerMetre": 90, "missPenalty": 30 }
+    },
+    "peek": {
+      "displayName": "Peek",
+      "fundamental": "crosshairPlacement",
+      "scoredOn": ["crosshairOffsetDegAtReveal", "timeToAcquireMs"],
+      "durationSeconds": 60,
+      "revealDelaySeconds": { "min": 1.2, "max": 4.5 },
+      "targetLifetimeSeconds": 0.9,
+      "knownAngleCount": 3,
+      "distanceMetres": { "min": 16, "max": 32 },
+      "scoring": { "hitPoints": 150, "placementBonusDeg": 3.0, "placementPenaltyPerDeg": 12, "missPenalty": 50 }
+    }
+  },
+
+  "grading": {
+    "_note": "Drill score maps to a 0-100 fundamental rating with the same curve the match aggregator uses, so a drill score and a match score are directly comparable. That comparability is the product.",
+    "curve": { "floor": 0, "ceiling": 100, "referenceScorePerMinute": 4200 }
+  }
+}

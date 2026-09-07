@@ -1,0 +1,90 @@
+{
+  "_comment": "FIELD MARSHALS. The boss fight, built without a health bar -- because there is no health anywhere in this game and adding one here would break the single rule everything else rests on.",
+
+  "_howABossWorks": "A marshal is padded head to foot and paint on the body does not count. Only the HOPPER counts, and a hopper is about eighteen centimetres across. So a boss is still one hit -- it is just a very small hit, at range, on someone who is better than you and who has an escort. That makes the boss fight a precision test, which is exactly what this game exists to train. A boss with three thousand health would have been a bullet sponge in an aim trainer.",
+
+  "common": {
+    "hopperRadiusMetres": 0.18,
+    "hopperHeightMetres": 1.62,
+    "_hopperNote": "Sits just above and behind the shoulder, which means the shot is available when they lean out and gone when they square up. Learning that timing IS the fight.",
+    "bodyAbsorbs": true,
+    "escortRespawnSeconds": 14,
+    "announceSeconds": 4
+  },
+
+  "bosses": {
+    "marshal": {
+      "displayName": "The Field Marshal",
+      "subtitle": "White armband. Does not talk.",
+      "tier": "pro",
+      "marker": "pump",
+      "escortCount": 3,
+      "escortTier": "semipro",
+      "hopperRadiusMetres": 0.18,
+      "moveStyle": "anchorHold",
+      "_moveStyle": "Holds long angles and rotates on a timer. She will not push you; she will make you come to her and she will be pre-aimed when you do.",
+      "repositionEverySeconds": 18,
+      "peekDiscipline": 0.97,
+      "dropTier": "red",
+      "intro": "Somebody in a white armband walks out to the fifty and does not look at you.",
+      "defeat": "She checks her hopper, nods once at the paint on it, and walks off the field."
+    },
+
+    "quartermaster": {
+      "displayName": "The Quartermaster",
+      "subtitle": "Runs the crate. Objects to you taking things out of it.",
+      "tier": "semipro",
+      "marker": "electronic",
+      "escortCount": 4,
+      "escortTier": "amateur",
+      "hopperRadiusMetres": 0.22,
+      "moveStyle": "pressure",
+      "_moveStyle": "Walks at you behind a wall of paint. Bigger hopper, closer range, much less patient -- the opposite exam to the Marshal.",
+      "repositionEverySeconds": 7,
+      "peekDiscipline": 0.55,
+      "dropTier": "red",
+      "intro": "A very large man puts down a crate, picks up a marker, and sighs.",
+      "defeat": "\"Fine. Take it. Take the whole crate.\""
+    },
+
+    "twins": {
+      "displayName": "The Bramwell Twins",
+      "subtitle": "Two of them. Both count.",
+      "tier": "semipro",
+      "marker": "mechanical",
+      "escortCount": 2,
+      "escortTier": "semipro",
+      "hopperRadiusMetres": 0.20,
+      "count": 2,
+      "moveStyle": "crossfire",
+      "_moveStyle": "They set a crossfire on purpose and hold it. Both hoppers have to be marked and the second one relocates the moment the first goes out.",
+      "repositionEverySeconds": 12,
+      "peekDiscipline": 0.85,
+      "dropTier": "red",
+      "intro": "Two of them walk out to opposite corners without discussing it.",
+      "defeat": "The second one looks at the first one's jersey for a while."
+    },
+
+    "aurumMarshal": {
+      "displayName": "The Aurum Marshal",
+      "subtitle": "Gold marker. Wave forty.",
+      "tier": "pro",
+      "marker": "aurumKompressor",
+      "escortCount": 5,
+      "escortTier": "pro",
+      "hopperRadiusMetres": 0.14,
+      "moveStyle": "anchorHold",
+      "repositionEverySeconds": 15,
+      "peekDiscipline": 0.99,
+      "dropTier": "gold",
+      "intro": "Forty waves in, someone walks out carrying the marker from behind the counter.",
+      "defeat": "She hands it to you barrel-first, which is the polite way, and walks back toward the barn."
+    }
+  },
+
+  "schedule": {
+    "_note": "Which boss shows up where. The gauntlet's boss chapter is always the Marshal; horde cycles.",
+    "gauntlet": { "theMarshal": "marshal" },
+    "hordeCycle": ["marshal", "quartermaster", "twins", "marshal", "aurumMarshal"]
+  }
+}

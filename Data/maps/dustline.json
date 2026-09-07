@@ -1,0 +1,221 @@
+{
+  "id": "dustline",
+  "displayName": "Dustline",
+  "curriculumIndex": 4,
+  "teaches": ["crosshairPlacement", "targetSwitching", "tracking"],
+  "_intent": "A dead freight yard in the desert. Tactical shells, jackknifed semi trailers and three gutted school buses, all of it at hard angles to everything else. The skill this map exists for is CROSSHAIR PLACEMENT in a place with too many angles to hold: every container corner is a lane, and you cannot pre-aim all of them, so you learn to pre-aim the one that matters.",
+
+  "engagementBand": { "minMetres": 6, "targetMedianMetres": 21, "maxMetres": 46 },
+
+  "bounds": { "widthMetres": 84, "lengthMetres": 96, "heightMetres": 26 },
+  "ground": { "colorKey": "sand", "thicknessMetres": 1 },
+  "walls": { "colorKey": "rust", "heightMetres": 11, "transparency": 0 },
+  "navLinkRadiusMetres": 19,
+
+  "geometry": [
+    { "id": "compound_a", "shape": "box", "position": [-24, 3.0, 26], "size": [16, 6, 13], "colorKey": "sand", "cover": true },
+    { "id": "compound_a_up", "shape": "box", "position": [-24, 8.0, 28], "size": [16, 4, 9], "colorKey": "concrete", "cover": true },
+    { "id": "compound_a_lip", "shape": "box", "position": [-24, 6.3, 19.6], "size": [16, 0.7, 0.9], "colorKey": "concrete", "cover": true },
+
+    { "id": "compound_b", "shape": "box", "position": [22, 3.5, 30], "size": [18, 7, 15], "colorKey": "concrete", "cover": true },
+    { "id": "compound_b_lip", "shape": "box", "position": [22, 7.3, 22.6], "size": [18, 0.7, 0.9], "colorKey": "sand", "cover": true },
+
+    { "id": "tower", "shape": "box", "position": [0, 5.0, 38], "size": [7, 10, 7], "colorKey": "concrete", "cover": true },
+    { "id": "tower_deck", "shape": "box", "position": [0, 10.2, 38], "size": [9, 0.4, 9], "colorKey": "rust", "cover": true, "walkable": true },
+    { "id": "tower_rail", "shape": "box", "position": [0, 10.9, 33.6], "size": [9, 1.0, 0.3], "colorKey": "rust", "cover": true },
+
+    { "id": "depot", "shape": "box", "position": [-30, 2.5, -8], "size": [14, 5, 18], "colorKey": "concrete", "cover": true },
+    { "id": "depot_lip", "shape": "box", "position": [-30, 5.3, 0.6], "size": [14, 0.7, 0.9], "colorKey": "rust", "cover": true },
+
+    { "id": "office", "shape": "box", "position": [30, 2.2, -14], "size": [12, 4.4, 12], "rotationY": 14, "colorKey": "sand", "cover": true },
+
+    { "id": "trailer_a", "shape": "box", "position": [-12, 1.9, 8], "size": [2.6, 3.0, 15], "rotationY": 8, "colorKey": "sheetMetal", "cover": true },
+    { "id": "trailer_a_cab", "shape": "box", "position": [-12.9, 1.6, -1.2], "size": [2.5, 2.4, 3.4], "rotationY": 26, "colorKey": "rust", "cover": true },
+    { "id": "trailer_b", "shape": "box", "position": [10, 1.9, 4], "size": [2.6, 3.0, 15], "rotationY": -34, "colorKey": "rust", "cover": true },
+    { "id": "trailer_c", "shape": "box", "position": [-4, 1.9, -20], "size": [2.6, 3.0, 15], "rotationY": 78, "colorKey": "sheetMetal", "cover": true },
+    { "id": "trailer_d", "shape": "box", "position": [24, 1.9, 8], "size": [2.6, 3.0, 15], "rotationY": 62, "colorKey": "sheetMetal", "cover": true },
+    { "id": "trailer_stack", "shape": "box", "position": [-22, 4.6, 6], "size": [2.6, 2.6, 13], "rotationY": 4, "colorKey": "rust", "cover": true },
+
+    { "id": "bus_a", "shape": "box", "position": [14, 1.5, -26], "size": [2.8, 3.0, 11], "rotationY": 22, "colorKey": "bunkerC", "cover": true },
+    { "id": "bus_a_hood", "shape": "box", "position": [15.9, 1.0, -32.2], "size": [2.6, 1.6, 2.4], "rotationY": 22, "colorKey": "bunkerC", "cover": true },
+    { "id": "bus_b", "shape": "box", "position": [-18, 1.5, -30], "size": [2.8, 3.0, 11], "rotationY": -48, "colorKey": "bunkerC", "cover": true },
+    { "id": "bus_c", "shape": "box", "position": [2, 1.5, 20], "size": [2.8, 3.0, 11], "rotationY": 96, "colorKey": "bunkerC", "cover": true },
+
+    { "id": "container_a", "shape": "box", "position": [6, 1.3, -6], "size": [2.4, 2.6, 6.0], "rotationY": 12, "colorKey": "bunkerB", "cover": true },
+    { "id": "container_b", "shape": "box", "position": [-8, 1.3, -34], "size": [2.4, 2.6, 6.0], "rotationY": -20, "colorKey": "bunkerA", "cover": true },
+    { "id": "container_c", "shape": "box", "position": [20, 1.3, -2], "size": [2.4, 2.6, 6.0], "rotationY": 84, "colorKey": "bunkerA", "cover": true },
+    { "id": "container_d", "shape": "box", "position": [-26, 1.3, -26], "size": [2.4, 2.6, 6.0], "rotationY": 48, "colorKey": "bunkerB", "cover": true },
+
+    { "id": "barrier_a", "shape": "box", "position": [0, 0.55, -2], "size": [7.0, 1.1, 0.7], "rotationY": 18, "colorKey": "concrete", "cover": true },
+    { "id": "barrier_b", "shape": "box", "position": [-16, 0.55, -14], "size": [7.0, 1.1, 0.7], "rotationY": -32, "colorKey": "concrete", "cover": true },
+    { "id": "barrier_c", "shape": "box", "position": [16, 0.55, -18], "size": [7.0, 1.1, 0.7], "rotationY": 62, "colorKey": "concrete", "cover": true },
+    { "id": "barrier_d", "shape": "box", "position": [-6, 0.55, 30], "size": [7.0, 1.1, 0.7], "colorKey": "concrete", "cover": true },
+
+    { "id": "tyre_a", "shape": "cylinder", "position": [8, 0.6, 14], "size": [2.4, 1.2, 2.4], "colorKey": "netting", "cover": true },
+    { "id": "tyre_b", "shape": "cylinder", "position": [-14, 0.6, -4], "size": [2.4, 1.2, 2.4], "colorKey": "netting", "cover": true },
+
+    { "id": "ramp_a", "shape": "wedge", "position": [-16, 3.0, 22], "size": [4, 6, 9], "rotationY": 90, "colorKey": "rust", "cover": true, "walkable": true },
+    { "id": "ramp_b", "shape": "wedge", "position": [14, 3.5, 26], "size": [4, 7, 10], "rotationY": -90, "colorKey": "rust", "cover": true, "walkable": true },
+    { "id": "ramp_c", "shape": "wedge", "position": [-24, 2.5, -18], "size": [4, 5, 9], "rotationY": 0, "colorKey": "sand", "cover": true, "walkable": true }
+  ],
+
+  "playerSpawn": { "position": [0, 0, -40], "lookAt": [0, 0, 0] },
+  "playerRespawns": [
+    { "position": [0, 0, -40], "lookAt": [0, 0, 0] },
+    { "position": [-26, 0, -38], "lookAt": [0, 0, 0] },
+    { "position": [26, 0, -36], "lookAt": [0, 0, 0] }
+  ],
+
+  "botSpawns": [
+    { "position": [-24, 6.5, 28], "lookAt": [0, 0, 0] },
+    { "position": [22, 7.5, 30], "lookAt": [0, 0, 0] },
+    { "position": [0, 10.5, 38], "lookAt": [0, 0, 0] },
+    { "position": [-12, 0, 34], "lookAt": [0, 0, 0] },
+    { "position": [12, 0, 34], "lookAt": [0, 0, 0] },
+    { "position": [-34, 0, 16], "lookAt": [0, 0, 0] }
+  ],
+
+  "anchors": [
+    { "id": "an_tower", "position": [0, 10.5, 33.2], "faces": [0, -1], "roles": ["anchor"], "coverId": "tower_rail", "elevated": true, "_note": "Sees the whole yard down the middle. Everyone learns to check it and everyone forgets once." },
+    { "id": "an_roof_a", "position": [-24, 6.5, 19.2], "faces": [0.2, -1], "roles": ["anchor"], "coverId": "compound_a_lip", "elevated": true },
+    { "id": "an_roof_b", "position": [22, 7.5, 22.2], "faces": [-0.2, -1], "roles": ["anchor"], "coverId": "compound_b_lip", "elevated": true },
+    { "id": "an_depot", "position": [-30, 5.5, 0.2], "faces": [0.5, -1], "roles": ["anchor"], "coverId": "depot_lip", "elevated": true },
+    { "id": "an_trailer_a", "position": [-14.2, 0, 8], "faces": [0.4, -1], "roles": ["flanker"], "coverId": "trailer_a" },
+    { "id": "an_trailer_b", "position": [8.2, 0, 4], "faces": [-0.3, -1], "roles": ["flanker"], "coverId": "trailer_b" },
+    { "id": "an_trailer_c", "position": [-4, 0, -22.4], "faces": [0, -1], "roles": ["flanker"], "coverId": "trailer_c", "crouchOnly": true },
+    { "id": "an_trailer_d", "position": [22, 0, 8], "faces": [-0.5, -1], "roles": ["pressure"], "coverId": "trailer_d" },
+    { "id": "an_bus_a", "position": [11.6, 0, -26], "faces": [-0.3, -1], "roles": ["pressure"], "coverId": "bus_a" },
+    { "id": "an_bus_b", "position": [-20.6, 0, -30], "faces": [0.4, -1], "roles": ["flanker"], "coverId": "bus_b" },
+    { "id": "an_bus_c", "position": [2, 0, 17.4], "faces": [0, -1], "roles": ["pressure"], "coverId": "bus_c" },
+    { "id": "an_container_a", "position": [6, 0, -8.8], "faces": [0, -1], "roles": ["pressure"], "coverId": "container_a", "crouchOnly": true },
+    { "id": "an_container_c", "position": [17.6, 0, -2], "faces": [-0.6, -1], "roles": ["pressure"], "coverId": "container_c", "crouchOnly": true },
+    { "id": "an_office", "position": [30, 0, -18], "faces": [-0.4, -1], "roles": ["anchor", "flanker"], "coverId": "office" }
+  ],
+
+  "navNodes": [
+    [0, 10.5, 33.2], [-24, 6.5, 19.2], [22, 7.5, 22.2], [-30, 5.5, 0.2], [0, 0, 34],
+    [-12, 0, 34], [12, 0, 34], [-34, 0, 16], [34, 0, 18], [-15.15, 3, 22],
+    [12.15, 3.5, 26], [-24, 2.5, -18], [2, 0, 17.4], [-6, 0, 31.2], [10.05, 0, 14],
+    [-22, 0, 12], [-14.2, 0, 8], [8.2, 0, 4], [21.43, 0, 6.93], [26, 0, 0],
+    [0, 0, 2], [-11.95, 0, -4], [6.23, 0, -9.89], [16.14, 0, -1.85], [-22.15, 0, -8],
+    [30.72, 0, -20.88], [-15.36, 0, -12.98], [14.94, 0, -17.44], [-4, 0, -22.4], [11.6, 0, -26],
+    [-20.6, 0, -30], [-6.07, 0, -34.7], [0, 0, -30], [-26, 0, -38], [26, 0, -36],
+    [0, 0, -40], [-13, 0, -39], [13, 0, -38], [23.63, 0, -8.53]
+  ],
+
+  "navLinks": [[0, 4], [1, 9], [2, 10], [3, 11]],
+  "_navLinks": "Ladders and stair runs onto the tower, the two compound roofs and the depot. Zero-based indices into navNodes.",
+
+  "sightlines": [
+    { "from": "an_tower", "to": "an_trailer_c", "lengthMetres": 56.6, "_note": "The long one, straight down the yard. If you cross the middle without checking the tower you are giving it away." },
+    { "from": "an_roof_a", "to": "an_bus_a", "lengthMetres": 55.4 },
+    { "from": "an_roof_b", "to": "an_bus_b", "lengthMetres": 66.0 },
+    { "from": "an_depot", "to": "an_office", "lengthMetres": 62.6 },
+    { "from": "an_trailer_a", "to": "an_trailer_b", "lengthMetres": 22.8, "_note": "Trailer to trailer across the middle. The knife fight this map is really about." },
+    { "from": "an_container_a", "to": "an_bus_c", "lengthMetres": 26.6 }
+  ],
+
+  "prePlacementAngles": [
+    { "anchorId": "an_tower", "watch": [0, 1, -6], "priority": 1 },
+    { "anchorId": "an_roof_a", "watch": [-12, 1, -8], "priority": 1 },
+    { "anchorId": "an_roof_b", "watch": [12, 1, -10], "priority": 1 },
+    { "anchorId": "an_depot", "watch": [-16, 1, -20], "priority": 2 },
+    { "anchorId": "an_office", "watch": [16, 1, -24], "priority": 2 },
+    { "anchorId": "an_trailer_a", "watch": [0, 1, -12], "priority": 1 }
+  ],
+
+  "presentation": {
+    "theme": "freight",
+    "banner": "DUSTLINE / FREIGHT YARD",
+    "groundStripes": false,
+    "boundaryLines": false,
+    "groundDetails": [
+      {
+        "id": "FreightLane",
+        "points": [
+          [
+            0,
+            0,
+            -44
+          ],
+          [
+            0,
+            0,
+            -30
+          ],
+          [
+            5,
+            0,
+            -20
+          ],
+          [
+            0,
+            0,
+            -10
+          ],
+          [
+            4,
+            0,
+            4
+          ],
+          [
+            4,
+            0,
+            31
+          ]
+        ],
+        "widthMetres": 4,
+        "color": "gravel"
+      },
+      {
+        "id": "DepotApron",
+        "points": [
+          [
+            -29,
+            0,
+            -39
+          ],
+          [
+            -29,
+            0,
+            -22
+          ]
+        ],
+        "widthMetres": 8,
+        "color": "gravel"
+      }
+    ],
+    "facades": [
+      {
+        "piece": "depot",
+        "face": "Front",
+        "text": "01 / DEPOT",
+        "accent": "teal"
+      },
+      {
+        "piece": "office",
+        "face": "Front",
+        "text": "02 / DISPATCH",
+        "accent": "amber"
+      },
+      {
+        "piece": "tower",
+        "face": "Front",
+        "text": "03\nCONTROL",
+        "accent": "cream"
+      },
+      {
+        "piece": "compound_a",
+        "face": "Front",
+        "text": "NORTH FREIGHT",
+        "accent": "amber"
+      },
+      {
+        "piece": "compound_b",
+        "face": "Front",
+        "text": "LOADING BAY",
+        "accent": "teal"
+      }
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "PROJECT_LIVEROUND_TESTS",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": { "$path": "src/ReplicatedStorage/Shared" },
+      "Net": { "$path": "src/ReplicatedStorage/Net" },
+      "Data": { "$path": "Data" },
+      "Packages": { "$path": "Packages" },
+      "Tests": { "$path": "tests" }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Server": { "$path": "src/ServerScriptService" },
+      "TestRunner": { "$path": "tools/TestRunner.server.luau" }
+    }
+  }
+}

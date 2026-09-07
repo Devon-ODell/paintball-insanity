@@ -1,0 +1,714 @@
+{
+  "_comment": "The people at The Landing. Six of them, standing around a field on a Saturday. They carry the campaign: every chapter's brief and closer is delivered by somebody who has an opinion about it. Written as a design artifact, same as the enemy chatter bank.",
+  "_writingRules": [
+    "Nobody explains a mechanic. They have opinions about it, and the opinion contains the mechanic.",
+    "No profanity, no slurs, no threats. Roblox Mild, and it is funnier clean.",
+    "No firearm words, ever. Markers, hoppers, barrels, air, paint, fill.",
+    "Everyone wants something and nobody is a quest dispenser. Marge wants the field to survive another season. Tildy wants someone to let her test things.",
+    "The player never speaks aloud -- dialogue options are what you chose to say, not a voice. It keeps the walk quiet."
+  ],
+  "npcs": {
+    "marge": {
+      "displayName": "Marge Parsons",
+      "role": "Owns the field. Runs the counter.",
+      "position": [
+        2.5,
+        0,
+        -42
+      ],
+      "lookAt": [
+        2.5,
+        1.4,
+        -30
+      ],
+      "colorKey": "barnWood",
+      "accentKey": "sheetMetalRust",
+      "idlePose": "leaning",
+      "greeting": "You again.",
+      "voice": "Dry. Forty years of this. Has seen every kind of person walk through that door and has stopped being surprised by any of them.",
+      "unlocksChapters": true,
+      "sellsAt": "markers"
+    },
+    "tildy": {
+      "displayName": "Tildy",
+      "role": "Chrono, air, and the fun stuff.",
+      "position": [
+        6.5,
+        0,
+        -30
+      ],
+      "lookAt": [
+        0,
+        1.4,
+        -24
+      ],
+      "colorKey": "bunkerC",
+      "accentKey": "tarp",
+      "idlePose": "bouncing",
+      "greeting": "Okay so I have been thinking.",
+      "voice": "Nineteen, over-caffeinated, genuinely brilliant with a wrench, absolutely should not be allowed near the drone.",
+      "sellsAt": "paintAndAir"
+    },
+    "wheels": {
+      "displayName": "Wheels",
+      "role": "Marker tech. Lives in the truck bay.",
+      "position": [
+        -22,
+        0,
+        -35
+      ],
+      "lookAt": [
+        -14,
+        1.4,
+        -30
+      ],
+      "colorKey": "beam",
+      "accentKey": "brass",
+      "idlePose": "crouched",
+      "greeting": "Don't touch that, it's timed.",
+      "voice": "Obsessive. Will explain dwell to anyone who stands still. Has never once been wrong about a marker.",
+      "sellsAt": "markers"
+    },
+    "coachRuiz": {
+      "displayName": "Coach Ruiz",
+      "role": "Runs the range. Retired pro.",
+      "position": [
+        24,
+        0,
+        20
+      ],
+      "lookAt": [
+        30,
+        1.4,
+        26
+      ],
+      "colorKey": "trunk",
+      "accentKey": "signBoard",
+      "idlePose": "armsFolded",
+      "greeting": "Show me the last ten shots.",
+      "voice": "Was regional-level in the nineties. Quiet, precise, entirely uninterested in how you feel about your performance.",
+      "deliversPrescriptions": true
+    },
+    "denny": {
+      "displayName": "Denny",
+      "role": "Rec league. Around a lot.",
+      "position": [
+        13,
+        0,
+        13
+      ],
+      "lookAt": [
+        16,
+        1.4,
+        12
+      ],
+      "colorKey": "enemyJersey",
+      "accentKey": "bunkerB",
+      "idlePose": "sitting",
+      "greeting": "Hey. Hey. Did you see that?",
+      "voice": "One of the six you keep eliminating. Bears no grudge whatsoever. Delighted to be here. Comic relief and, occasionally, an accidentally excellent tip.",
+      "isFromEnemyRoster": true
+    },
+    "theMarshal": {
+      "displayName": "The Marshal",
+      "role": "White armband. Does not talk.",
+      "position": [
+        -24,
+        0,
+        -19
+      ],
+      "lookAt": [
+        -16,
+        1.4,
+        -14
+      ],
+      "colorKey": "signBoard",
+      "accentKey": "netting",
+      "idlePose": "standing",
+      "greeting": "...",
+      "voice": "Never speaks. Communicates entirely in gestures at the notice board. Unlocks horde by simply walking to the back gate and holding it open.",
+      "silent": true,
+      "unlocksHorde": true
+    }
+  },
+  "_dialogue": "Trees keyed by npc. Each node has lines, and options that either move to another node, fire an action, or end. `requires` gates a node or an option on campaign state, so the same NPC says different things as you progress -- which is the whole point of having them.",
+  "dialogue": {
+    "marge": {
+      "root": {
+        "lines": [
+          "You again.",
+          "Field's open. Same as it was yesterday."
+        ],
+        "options": [
+          {
+            "text": "What's the field like today?",
+            "goto": "brief"
+          },
+          {
+            "text": "What's in the case behind you?",
+            "goto": "case"
+          },
+          {
+            "text": "Anything for sale?",
+            "action": "openShop",
+            "arg": "markers"
+          },
+          {
+            "text": "Nothing. Just looking.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "brief": {
+        "lines": [
+          "{chapterBrief}"
+        ],
+        "options": [
+          {
+            "text": "I'll take it.",
+            "action": "acceptChapter",
+            "goto": "accepted"
+          },
+          {
+            "text": "Give me a minute.",
+            "goto": "root"
+          }
+        ]
+      },
+      "accepted": {
+        "lines": [
+          "Mm.",
+          "Gate's where it's always been."
+        ],
+        "options": [
+          {
+            "text": "Right.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "case": {
+        "lines": [
+          "That's not for sale.",
+          "It's a pump. Gold. Twelve in the hopper and a barrel somebody cut by hand in 2003.",
+          "I've had four people ask to buy it. I told all four the same thing."
+        ],
+        "options": [
+          {
+            "text": "Which is?",
+            "goto": "caseAnswer"
+          },
+          {
+            "text": "Fair enough.",
+            "goto": "root"
+          }
+        ]
+      },
+      "caseAnswer": {
+        "lines": [
+          "It's the worst marker on this field. One shot, then you work the pump, and if you missed, you missed.",
+          "Anyone who wants it because it's gold doesn't want it.",
+          "Come back when you don't need it."
+        ],
+        "options": [
+          {
+            "text": "...",
+            "goto": "root"
+          }
+        ]
+      },
+      "aurumOffer": {
+        "requires": {
+          "chapterComplete": "theLongAfternoon"
+        },
+        "lines": [
+          "Forty waves.",
+          "And a clean sweep at pro, on all three. No paint on you at all.",
+          "Right."
+        ],
+        "options": [
+          {
+            "text": "Open the case.",
+            "action": "claimAurum",
+            "goto": "aurumGiven"
+          },
+          {
+            "text": "Not yet.",
+            "goto": "root"
+          }
+        ],
+        "entry": true
+      },
+      "aurumGiven": {
+        "lines": [
+          "Twelve rounds. No hopper feed. You'll be dry constantly and you'll hate it for a week.",
+          "Then you won't.",
+          "Go on."
+        ],
+        "options": [
+          {
+            "text": "Thanks, Marge.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "exit": {
+        "lines": [
+          "Mm."
+        ],
+        "options": []
+      }
+    },
+    "tildy": {
+      "root": {
+        "lines": [
+          "Okay so I have been thinking."
+        ],
+        "options": [
+          {
+            "text": "About what?",
+            "goto": "pitch"
+          },
+          {
+            "text": "What have you got?",
+            "action": "openShop",
+            "arg": "paintAndAir"
+          },
+          {
+            "text": "Tell me about the drone.",
+            "goto": "drone",
+            "requires": {
+              "unlocked": "consumables"
+            }
+          },
+          {
+            "text": "Later, Tildy.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "pitch": {
+        "lines": [
+          "Pods. Everyone buys the six-pack, right? Six pods, never run dry, brilliant.",
+          "Except you're carrying a shelf. You sound like a shelf. They hear the shelf.",
+          "Get the racer harness. Three pods, mounted tight, and you reload like it's nothing."
+        ],
+        "options": [
+          {
+            "text": "Three doesn't sound like enough.",
+            "goto": "pitchTwo"
+          },
+          {
+            "text": "I'll think about it.",
+            "goto": "root"
+          }
+        ]
+      },
+      "pitchTwo": {
+        "lines": [
+          "It's not! That's the trade! You get fewer and you get them faster!",
+          "Nothing here is better than anything else, it's all just \u2014 differently annoying.",
+          "Marge says that's the whole business model."
+        ],
+        "options": [
+          {
+            "text": "She's not wrong.",
+            "goto": "root"
+          }
+        ]
+      },
+      "drone": {
+        "requires": {
+          "unlocked": "consumables"
+        },
+        "lines": [
+          "RIGHT. Okay. So it does not see through walls.",
+          "Everyone asks. It does not. I could build one that did and Marge would put me in the pond.",
+          "What it does is listen. Anyone who's fired in the last few seconds, it works out roughly where they are and puts a mark on it."
+        ],
+        "options": [
+          {
+            "text": "So it's just... ears.",
+            "goto": "droneTwo"
+          },
+          {
+            "text": "What's the catch?",
+            "goto": "droneThree"
+          }
+        ]
+      },
+      "droneTwo": {
+        "lines": [
+          "It's very good ears! On a stick! That flies!",
+          "And before you ask \u2014 yes, the shots you take while it's up get flagged.",
+          "Coach won't score them for crosshair placement. He was extremely clear about that."
+        ],
+        "options": [
+          {
+            "text": "Of course he was.",
+            "goto": "droneThree"
+          }
+        ]
+      },
+      "droneThree": {
+        "lines": [
+          "It is the loudest thing I have ever built.",
+          "Every single one of them knows exactly where you are the second it lifts.",
+          "So, you know. Use it somewhere you're about to leave."
+        ],
+        "options": [
+          {
+            "text": "Noted.",
+            "goto": "root"
+          }
+        ]
+      },
+      "exit": {
+        "lines": [
+          "Bye! Come back! I have ideas!"
+        ],
+        "options": []
+      }
+    },
+    "wheels": {
+      "root": {
+        "lines": [
+          "Don't touch that, it's timed."
+        ],
+        "options": [
+          {
+            "text": "What are you doing?",
+            "goto": "work"
+          },
+          {
+            "text": "Which marker should I run?",
+            "goto": "advice"
+          },
+          {
+            "text": "Show me what you've got.",
+            "action": "openShop",
+            "arg": "markers"
+          },
+          {
+            "text": "I'll leave you to it.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "work": {
+        "lines": [
+          "Dwell. Valve's open four milliseconds too long, so it's burning air and throwing hot.",
+          "Nobody notices. Everybody notices at forty metres."
+        ],
+        "options": [
+          {
+            "text": "What happens at forty metres?",
+            "goto": "forty"
+          },
+          {
+            "text": "Right.",
+            "goto": "root"
+          }
+        ]
+      },
+      "forty": {
+        "lines": [
+          "Ball's in the air over a third of a second. Drops the better part of a metre.",
+          "So you're not aiming at them, you're aiming at a spot above them, and if the velocity wanders you're aiming at a spot that moved.",
+          "Consistent air. That's the whole job."
+        ],
+        "options": [
+          {
+            "text": "That's the tank, then.",
+            "goto": "root"
+          }
+        ]
+      },
+      "advice": {
+        "lines": [
+          "Depends what you're bad at, and I've watched you.",
+          "Mech's honest. Electro wins rooms and loses treelines. Pump makes you commit and pays you for it.",
+          "None of them shoot straighter than the others. Anyone who tells you different is selling something."
+        ],
+        "options": [
+          {
+            "text": "Marge sells things.",
+            "goto": "margeJoke"
+          },
+          {
+            "text": "Understood.",
+            "goto": "root"
+          }
+        ]
+      },
+      "margeJoke": {
+        "lines": [
+          "Marge sells things and tells you they won't help.",
+          "That's why she's still here and the place down the road isn't."
+        ],
+        "options": [
+          {
+            "text": "Ha.",
+            "goto": "root"
+          }
+        ]
+      },
+      "exit": {
+        "lines": [
+          "Mm-hm. Timed."
+        ],
+        "options": []
+      }
+    },
+    "coachRuiz": {
+      "root": {
+        "lines": [
+          "Show me the last ten shots."
+        ],
+        "options": [
+          {
+            "text": "How am I doing?",
+            "action": "readPrescription",
+            "goto": "diagnosis"
+          },
+          {
+            "text": "What should I be practising?",
+            "action": "recommendDrill",
+            "goto": "diagnosis"
+          },
+          {
+            "text": "Not today.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "diagnosis": {
+        "lines": [
+          "{prescription}"
+        ],
+        "options": [
+          {
+            "text": "Set it up.",
+            "action": "startDrill",
+            "goto": "exit"
+          },
+          {
+            "text": "Why that one?",
+            "goto": "why"
+          },
+          {
+            "text": "Later.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "why": {
+        "lines": [
+          "Because missing and under-leading are not the same mistake and they do not have the same fix.",
+          "If your angle is good and your lead is short, you don't need to aim better. You need to aim somewhere else.",
+          "Most people spend a year not knowing which one they're doing."
+        ],
+        "options": [
+          {
+            "text": "How do you tell?",
+            "goto": "howTell"
+          },
+          {
+            "text": "Set it up.",
+            "action": "startDrill",
+            "goto": "exit"
+          }
+        ]
+      },
+      "howTell": {
+        "lines": [
+          "The sign. If your misses are all on the same side of them, that's lead \u2014 you're shooting where they were.",
+          "If they're scattered evenly, that's not lead, that's drop, and you want the holdover boards.",
+          "The range keeps the sign. That's the only reason it's worth anything."
+        ],
+        "options": [
+          {
+            "text": "Set it up.",
+            "action": "startDrill",
+            "goto": "exit"
+          }
+        ]
+      },
+      "exit": {
+        "lines": [
+          "Mm. Boards are open when you are."
+        ],
+        "options": []
+      }
+    },
+    "denny": {
+      "root": {
+        "lines": [
+          "Hey. Hey. Did you see that?"
+        ],
+        "options": [
+          {
+            "text": "See what?",
+            "goto": "what"
+          },
+          {
+            "text": "Aren't you on the other team?",
+            "goto": "team"
+          },
+          {
+            "text": "Hi, Denny.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "what": {
+        "lines": [
+          "Nothing. There was a heron. It's gone now.",
+          "Anyway \u2014 you got me in round three. Straight through the gap on the snake side.",
+          "I've been thinking about it a lot actually."
+        ],
+        "options": [
+          {
+            "text": "Sorry about that.",
+            "goto": "noWorries"
+          },
+          {
+            "text": "Thinking about what?",
+            "goto": "tip"
+          }
+        ]
+      },
+      "noWorries": {
+        "lines": [
+          "Oh, no, it was great! Genuinely!",
+          "I told everyone. Oz doesn't believe me."
+        ],
+        "options": [
+          {
+            "text": "Tell Oz I said hello.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "tip": {
+        "lines": [
+          "You waited. That's the thing. You waited until Marcus committed and then you took the angle he left.",
+          "We can't cover two lanes with the same guy. Nobody can. It just LOOKS like we can because there's six of us.",
+          "...I probably shouldn't have said that."
+        ],
+        "options": [
+          {
+            "text": "Probably not.",
+            "goto": "regret"
+          },
+          {
+            "text": "Thanks, Denny.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "regret": {
+        "lines": [
+          "Yeah.",
+          "Yeah, okay. See you out there. Please don't lead with the snake."
+        ],
+        "options": [
+          {
+            "text": "No promises.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "team": {
+        "lines": [
+          "Technically! Yeah!",
+          "But like \u2014 it's a Saturday, and you're here, and I'm here.",
+          "Coach says fraternising's fine as long as I don't tell you where the flanker sets up. Which I would never."
+        ],
+        "options": [
+          {
+            "text": "Where does the flanker set up?",
+            "goto": "tip"
+          },
+          {
+            "text": "Very professional.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "exit": {
+        "lines": [
+          "Cool. Cool cool cool. See you."
+        ],
+        "options": []
+      }
+    },
+    "theMarshal": {
+      "root": {
+        "lines": [
+          "She looks at you.",
+          "Then at the notice board.",
+          "Then back at you."
+        ],
+        "options": [
+          {
+            "text": "Look at the board.",
+            "action": "focusBoard",
+            "goto": "board"
+          },
+          {
+            "text": "Say nothing.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "board": {
+        "lines": [
+          "She taps the third column with one finger. Times. Full clears, all five rounds.",
+          "Then she shrugs, very slightly."
+        ],
+        "options": [
+          {
+            "text": "I'll get there.",
+            "goto": "exit"
+          },
+          {
+            "text": "Is there something past this?",
+            "goto": "gate",
+            "requires": {
+              "chapterComplete": "proCircuit"
+            }
+          }
+        ]
+      },
+      "gate": {
+        "requires": {
+          "chapterComplete": "proCircuit"
+        },
+        "lines": [
+          "She turns and walks to the back gate.",
+          "She holds it open.",
+          "There is no round counter on the sign above it."
+        ],
+        "options": [
+          {
+            "text": "Go through.",
+            "action": "startHorde",
+            "goto": "exit"
+          },
+          {
+            "text": "Not yet.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "exit": {
+        "lines": [
+          "She nods, once."
+        ],
+        "options": []
+      }
+    }
+  },
+  "_entryNote": "A node with entry:true is an alternate OPENING for that npc, chosen over root when its requires are met. A node with only `requires` is still just a gated sub-node reached from somewhere else -- Tildy's drone talk is gated but you still get to it by asking her about it."
+}

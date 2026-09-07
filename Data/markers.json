@@ -1,0 +1,655 @@
+{
+  "_comment": "Markers are SIDEGRADES. No marker may raise the ceiling on player accuracy; each changes WHAT you must be good at. muzzleVelocity is metres/second. Displayed FPS is game-tuned above real field velocity (300 fps) because 40 m engagements must be winnable -- see docs/PROGRESS.md.",
+  "order": [
+    "mechanical",
+    "electronic",
+    "pump",
+    "aurumKompressor",
+    "yardTeal",
+    "yardOchre",
+    "yardOlive",
+    "yardCobalt",
+    "yardCoral"
+  ],
+  "markers": {
+    "mechanical": {
+      "displayName": "Ridgeline Mech",
+      "archetype": "mechanical",
+      "cost": 0,
+      "unlockMap": null,
+      "muzzleVelocity": 130.0,
+      "dragK": 0.012,
+      "roundsPerMinute": 350,
+      "autoFire": true,
+      "firstShotSpreadDeg": 0.35,
+      "sustainedSpreadDeg": 1.5,
+      "spreadGrowthPerShotDeg": 0.16,
+      "spreadDecayPerSecondDeg": 2.2,
+      "movingSpreadMultiplier": 2.4,
+      "sprintingSpreadMultiplier": 9.0,
+      "crouchSpreadMultiplier": 0.72,
+      "hopperCapacity": 180,
+      "reloadSeconds": 2.4,
+      "loudness": 0.6,
+      "payoutMultiplier": 1.0,
+      "blurb": "Blowback mechanical. Cheap, honest, forgiving. Everything else is measured against it."
+    },
+    "electronic": {
+      "displayName": "Vex Series-E",
+      "archetype": "electronic",
+      "cost": 4200,
+      "unlockMap": "urban",
+      "muzzleVelocity": 124.0,
+      "dragK": 0.0125,
+      "roundsPerMinute": 780,
+      "autoFire": true,
+      "firstShotSpreadDeg": 0.5,
+      "sustainedSpreadDeg": 2.6,
+      "spreadGrowthPerShotDeg": 0.19,
+      "spreadDecayPerSecondDeg": 1.6,
+      "movingSpreadMultiplier": 2.1,
+      "sprintingSpreadMultiplier": 9.0,
+      "crouchSpreadMultiplier": 0.78,
+      "hopperCapacity": 220,
+      "reloadSeconds": 2.9,
+      "loudness": 1.0,
+      "payoutMultiplier": 0.85,
+      "blurb": "Board-fed, force-fed, obnoxiously loud. Wins the room. Loses the treeline."
+    },
+    "pump": {
+      "displayName": "Cardinal Pump",
+      "archetype": "pump",
+      "cost": 7500,
+      "unlockMap": "woods",
+      "muzzleVelocity": 148.0,
+      "dragK": 0.01,
+      "roundsPerMinute": 95,
+      "autoFire": false,
+      "requiresManualCycle": true,
+      "cycleSeconds": 0.63,
+      "firstShotSpreadDeg": 0.12,
+      "sustainedSpreadDeg": 0.12,
+      "spreadGrowthPerShotDeg": 0.0,
+      "spreadDecayPerSecondDeg": 0.0,
+      "movingSpreadMultiplier": 2.9,
+      "sprintingSpreadMultiplier": 12.0,
+      "crouchSpreadMultiplier": 0.62,
+      "hopperCapacity": 60,
+      "reloadSeconds": 3.4,
+      "loudness": 0.35,
+      "payoutMultiplier": 1.75,
+      "blurb": "One ball, one cycle, one chance. Flattest arc on the field. Punishes every single thing you get wrong."
+    },
+    "aurumKompressor": {
+      "displayName": "Aurum Kompressor",
+      "archetype": "pump",
+      "cost": null,
+      "purchasable": false,
+      "unlockChapter": "aurum",
+      "muzzleVelocity": 152.0,
+      "dragK": 0.0094,
+      "roundsPerMinute": 80,
+      "autoFire": false,
+      "requiresManualCycle": true,
+      "cycleSeconds": 0.75,
+      "firstShotSpreadDeg": 0.1,
+      "sustainedSpreadDeg": 0.1,
+      "spreadGrowthPerShotDeg": 0.0,
+      "spreadDecayPerSecondDeg": 0.0,
+      "movingSpreadMultiplier": 3.2,
+      "sprintingSpreadMultiplier": 13.0,
+      "crouchSpreadMultiplier": 0.6,
+      "hopperCapacity": 12,
+      "reloadSeconds": 3.8,
+      "loudness": 0.3,
+      "payoutMultiplier": 2.4,
+      "cosmetic": {
+        "bodyColour": [
+          214,
+          176,
+          84
+        ],
+        "barrelColour": [
+          178,
+          140,
+          58
+        ],
+        "material": "gold"
+      },
+      "blurb": "Gold-anodised, hand-cut, twelve in the hopper. Marge kept it in a case for four years waiting for someone who would not embarrass it. The joke is that it is the hardest marker on the field. The joke is also that you can now use it."
+    },
+    "yardTeal": {
+      "displayName": "Yardline Teal",
+      "archetype": "mechanical",
+      "cost": 0,
+      "unlockMap": null,
+      "muzzleVelocity": 126,
+      "dragK": 0.012,
+      "roundsPerMinute": 300,
+      "autoFire": true,
+      "firstShotSpreadDeg": 0.35,
+      "sustainedSpreadDeg": 1.5,
+      "spreadGrowthPerShotDeg": 0.16,
+      "spreadDecayPerSecondDeg": 2.2,
+      "movingSpreadMultiplier": 2.4,
+      "sprintingSpreadMultiplier": 9.0,
+      "crouchSpreadMultiplier": 0.72,
+      "hopperCapacity": 160,
+      "reloadSeconds": 2.1,
+      "loudness": 0.58,
+      "payoutMultiplier": 1.0,
+      "blurb": "The walk-on classic. A quick reload and steady feed, with a little more arc to learn.",
+      "family": "yardline",
+      "model": {
+        "color": [
+          43,
+          176,
+          164
+        ],
+        "body": [
+          0.12,
+          0.17,
+          0.4
+        ],
+        "barrel": 0.55
+      }
+    },
+    "yardOchre": {
+      "displayName": "Yardline Ochre",
+      "archetype": "mechanical",
+      "cost": 0,
+      "unlockMap": null,
+      "muzzleVelocity": 134,
+      "dragK": 0.012,
+      "roundsPerMinute": 250,
+      "autoFire": true,
+      "firstShotSpreadDeg": 0.35,
+      "sustainedSpreadDeg": 1.65,
+      "spreadGrowthPerShotDeg": 0.18,
+      "spreadDecayPerSecondDeg": 2.0,
+      "movingSpreadMultiplier": 2.4,
+      "sprintingSpreadMultiplier": 9.0,
+      "crouchSpreadMultiplier": 0.72,
+      "hopperCapacity": 140,
+      "reloadSeconds": 2.7,
+      "loudness": 0.65,
+      "payoutMultiplier": 1.05,
+      "blurb": "Longer barrel, smaller hopper. A flatter arc trades against a slower rhythm and reload.",
+      "family": "yardline",
+      "model": {
+        "color": [
+          232,
+          172,
+          59
+        ],
+        "body": [
+          0.12,
+          0.17,
+          0.4
+        ],
+        "barrel": 0.65
+      }
+    },
+    "yardOlive": {
+      "displayName": "Yardline Olive",
+      "archetype": "mechanical",
+      "cost": 0,
+      "unlockMap": null,
+      "muzzleVelocity": 122,
+      "dragK": 0.012,
+      "roundsPerMinute": 280,
+      "autoFire": true,
+      "firstShotSpreadDeg": 0.35,
+      "sustainedSpreadDeg": 1.5,
+      "spreadGrowthPerShotDeg": 0.16,
+      "spreadDecayPerSecondDeg": 2.2,
+      "movingSpreadMultiplier": 2.4,
+      "sprintingSpreadMultiplier": 9.0,
+      "crouchSpreadMultiplier": 0.72,
+      "hopperCapacity": 210,
+      "reloadSeconds": 3.0,
+      "loudness": 0.42,
+      "payoutMultiplier": 1.0,
+      "blurb": "Quiet valve and a deep hopper. More paint between reloads, more lead at distance.",
+      "family": "yardline",
+      "model": {
+        "color": [
+          122,
+          155,
+          72
+        ],
+        "body": [
+          0.12,
+          0.17,
+          0.4
+        ],
+        "barrel": 0.55
+      }
+    },
+    "yardCobalt": {
+      "displayName": "Yardline Cobalt",
+      "archetype": "mechanical",
+      "cost": 0,
+      "unlockMap": null,
+      "muzzleVelocity": 125,
+      "dragK": 0.012,
+      "roundsPerMinute": 440,
+      "autoFire": true,
+      "firstShotSpreadDeg": 0.35,
+      "sustainedSpreadDeg": 2.15,
+      "spreadGrowthPerShotDeg": 0.21,
+      "spreadDecayPerSecondDeg": 1.8,
+      "movingSpreadMultiplier": 2.4,
+      "sprintingSpreadMultiplier": 9.0,
+      "crouchSpreadMultiplier": 0.72,
+      "hopperCapacity": 170,
+      "reloadSeconds": 2.8,
+      "loudness": 0.8,
+      "payoutMultiplier": 0.95,
+      "blurb": "Fast mechanical cycling. Keep the bursts short: the cone opens when you lean on it.",
+      "family": "yardline",
+      "model": {
+        "color": [
+          59,
+          117,
+          212
+        ],
+        "body": [
+          0.12,
+          0.17,
+          0.4
+        ],
+        "barrel": 0.55
+      }
+    },
+    "yardCoral": {
+      "displayName": "Yardline Coral",
+      "archetype": "mechanical",
+      "cost": 0,
+      "unlockMap": null,
+      "muzzleVelocity": 128,
+      "dragK": 0.012,
+      "roundsPerMinute": 320,
+      "autoFire": true,
+      "firstShotSpreadDeg": 0.35,
+      "sustainedSpreadDeg": 1.6,
+      "spreadGrowthPerShotDeg": 0.17,
+      "spreadDecayPerSecondDeg": 2.1,
+      "movingSpreadMultiplier": 2.4,
+      "sprintingSpreadMultiplier": 9.0,
+      "crouchSpreadMultiplier": 0.72,
+      "hopperCapacity": 100,
+      "reloadSeconds": 1.7,
+      "loudness": 0.62,
+      "payoutMultiplier": 1.05,
+      "blurb": "Short hopper, lively reload. Keep moving and pick your moments; it empties quickly.",
+      "family": "yardline",
+      "model": {
+        "color": [
+          237,
+          112,
+          111
+        ],
+        "body": [
+          0.12,
+          0.17,
+          0.4
+        ],
+        "barrel": 0.5
+      }
+    }
+  },
+  "_aurum": "THE AURUM KOMPRESSOR. The end of the campaign, and deliberately not an upgrade. It is a pump: one shot per manual cycle, a twelve-round hopper, the flattest arc in the game and the highest payout multiplier on the field. Every marker is a sidegrade and this one is no exception -- it is the hardest thing here to use. That is the reward. An aim trainer whose ultimate item made you shoot better would have no reason to exist, so the ultimate item is a statement that you do not need one.",
+  "attachments": {
+    "barrels": {
+      "stock": {
+        "displayName": "Stock Barrel",
+        "cost": 0,
+        "spreadMultiplier": 1.0,
+        "loudnessMultiplier": 1.0,
+        "velocityMultiplier": 1.0
+      },
+      "ported": {
+        "displayName": "Ported Barrel",
+        "cost": 900,
+        "spreadMultiplier": 1.0,
+        "loudnessMultiplier": 0.72,
+        "velocityMultiplier": 0.97
+      },
+      "freakBore": {
+        "displayName": "Bore-Matched",
+        "cost": 1600,
+        "spreadMultiplier": 1.0,
+        "loudnessMultiplier": 1.0,
+        "velocityMultiplier": 1.04
+      }
+    },
+    "hoppers": {
+      "gravity": {
+        "displayName": "Gravity Hopper",
+        "cost": 0,
+        "capacityMultiplier": 1.0,
+        "feedRateCap": 8.0,
+        "loudnessMultiplier": 1.0
+      },
+      "forceFed": {
+        "displayName": "Force-Fed",
+        "cost": 1400,
+        "capacityMultiplier": 1.15,
+        "feedRateCap": 20.0,
+        "loudnessMultiplier": 1.25
+      }
+    },
+    "tanks": {
+      "steel": {
+        "displayName": "Steel 48ci",
+        "cost": 0,
+        "reloadMultiplier": 1.0,
+        "velocityConsistency": 0.94
+      },
+      "carbon": {
+        "displayName": "Carbon 68ci",
+        "cost": 2000,
+        "reloadMultiplier": 0.85,
+        "velocityConsistency": 0.99
+      }
+    },
+    "_rule": "spreadMultiplier is locked at 1.0 on every purchasable attachment. Nothing bought may tighten the cone. velocityConsistency reduces shot-to-shot velocity JITTER only -- it does not raise velocity, and jitter is applied identically to bots."
+  },
+  "viewModel": {
+    "offsetStuds": [
+      0.8,
+      -0.85,
+      -1.55
+    ],
+    "darkColor": [
+      28,
+      36,
+      42
+    ],
+    "trimColor": [
+      193,
+      208,
+      212
+    ],
+    "reflectance": 0.08,
+    "barrelDiameterMetres": 0.045,
+    "barrelHeightMetres": 0.025,
+    "pieces": [
+      {
+        "name": "Grip",
+        "size": [
+          0.08,
+          0.23,
+          0.09
+        ],
+        "at": [
+          0,
+          -0.15,
+          0.07
+        ],
+        "colour": "dark"
+      },
+      {
+        "name": "FeedNeck",
+        "size": [
+          0.045,
+          0.12,
+          0.045
+        ],
+        "at": [
+          0,
+          0.12,
+          -0.03
+        ],
+        "colour": "metal"
+      },
+      {
+        "name": "Hopper",
+        "size": [
+          0.22,
+          0.14,
+          0.29
+        ],
+        "at": [
+          0,
+          0.21,
+          -0.06
+        ],
+        "colour": "dark",
+        "shape": "Ball"
+      },
+      {
+        "name": "HopperLid",
+        "size": [
+          0.1,
+          0.025,
+          0.13
+        ],
+        "at": [
+          0,
+          0.285,
+          -0.02
+        ],
+        "colour": "metal"
+      },
+      {
+        "name": "AirTank",
+        "size": [
+          0.15,
+          0.15,
+          0.35
+        ],
+        "at": [
+          0,
+          -0.2,
+          0.28
+        ],
+        "colour": "body",
+        "shape": "Ball"
+      },
+      {
+        "name": "TankRegulator",
+        "size": [
+          0.085,
+          0.07,
+          0.1
+        ],
+        "at": [
+          0,
+          -0.2,
+          0.08
+        ],
+        "colour": "metal"
+      },
+      {
+        "name": "TriggerGuardFront",
+        "size": [
+          0.025,
+          0.13,
+          0.025
+        ],
+        "at": [
+          0,
+          -0.115,
+          -0.1
+        ],
+        "colour": "dark"
+      },
+      {
+        "name": "TriggerGuardBase",
+        "size": [
+          0.025,
+          0.025,
+          0.145
+        ],
+        "at": [
+          0,
+          -0.18,
+          -0.03
+        ],
+        "colour": "dark"
+      },
+      {
+        "name": "ValveCap",
+        "size": [
+          0.065,
+          0.075,
+          0.018
+        ],
+        "at": [
+          0,
+          0,
+          0.213
+        ],
+        "colour": "metal"
+      },
+      {
+        "name": "AccentLeft",
+        "size": [
+          0.008,
+          0.026,
+          0.24
+        ],
+        "at": [
+          -0.063,
+          0.035,
+          -0.015
+        ],
+        "colour": "accent"
+      },
+      {
+        "name": "AccentRight",
+        "size": [
+          0.008,
+          0.026,
+          0.24
+        ],
+        "at": [
+          0.063,
+          0.035,
+          -0.015
+        ],
+        "colour": "accent"
+      }
+    ],
+    "camoPanels": [
+      {
+        "size": [
+          0.009,
+          0.11,
+          0.05
+        ],
+        "at": [
+          -0.063,
+          -0.003,
+          -0.13
+        ],
+        "rotationDeg": 18
+      },
+      {
+        "size": [
+          0.009,
+          0.11,
+          0.05
+        ],
+        "at": [
+          -0.063,
+          -0.003,
+          -0.025
+        ],
+        "rotationDeg": 18
+      },
+      {
+        "size": [
+          0.009,
+          0.11,
+          0.05
+        ],
+        "at": [
+          -0.063,
+          -0.003,
+          0.08
+        ],
+        "rotationDeg": 18
+      },
+      {
+        "size": [
+          0.009,
+          0.11,
+          0.05
+        ],
+        "at": [
+          0.063,
+          -0.003,
+          -0.13
+        ],
+        "rotationDeg": -18
+      },
+      {
+        "size": [
+          0.009,
+          0.11,
+          0.05
+        ],
+        "at": [
+          0.063,
+          -0.003,
+          -0.025
+        ],
+        "rotationDeg": -18
+      },
+      {
+        "size": [
+          0.009,
+          0.11,
+          0.05
+        ],
+        "at": [
+          0.063,
+          -0.003,
+          0.08
+        ],
+        "rotationDeg": -18
+      }
+    ],
+    "pulseSeconds": 1.15,
+    "pulseFrequencyHz": 2.2,
+    "pulseBaseBlend": 0.16,
+    "pulsePeakBlend": 0.8,
+    "kickSeconds": 0.16,
+    "kickBackStuds": 0.1,
+    "kickDegrees": 1.2,
+    "skins": {
+      "duracoat": {
+        "displayName": "Duracoat",
+        "baseColor": [
+          45,
+          68,
+          77
+        ],
+        "accentColor": [
+          75,
+          211,
+          187
+        ]
+      },
+      "splitDust": {
+        "displayName": "Split Dust",
+        "baseColor": [
+          193,
+          154,
+          99
+        ],
+        "accentColor": [
+          87,
+          106,
+          82
+        ]
+      },
+      "raw": {
+        "displayName": "Raw Alloy"
+      }
+    }
+  }
+}

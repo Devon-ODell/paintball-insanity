@@ -1,0 +1,37 @@
+{
+  "_comment": "Fastest full clears -- all five rounds of a map, no exceptions. A partial clear is not a time, and the board never shows one. Times are the server's own round clock, summed across the five rounds; nothing here comes from a client.",
+
+  "store": {
+    "timesPrefix": "LiveRoundTimes_v2_",
+    "metaStore": "LiveRoundTimeMeta_v2",
+    "_devSuffix": "Dev runs write to a separate set of keys so testing with infinite money and skipped rounds can never touch the real board. Shared/Dev decides which is used.",
+    "devSuffix": "_dev"
+  },
+
+  "display": {
+    "topCount": 10,
+    "pageSeconds": 9,
+    "refreshSeconds": 45,
+    "_pages": "The board cycles: one page per map, then a personal-bests page. Cycling rather than paging by input means the board is readable while you walk past it, which is the only way anyone will ever read it."
+  },
+
+  "validation": {
+    "_note": "A leaderboard is the one place in this game where a bad number is permanent, so submissions are gated hard. Anything rejected is logged with its reason rather than silently dropped.",
+    "minimumSecondsPerRound": 4.0,
+    "maximumSecondsTotal": 3600,
+    "requireAllRoundsCleared": true,
+    "requireEliminationsToMatchSchedule": true,
+    "_requireEliminations": "A five-round clear eliminates exactly 2+3+4+5+6 = 20 bots. If the elimination count does not match the schedule the run did not happen the way the time claims it did, and it is refused."
+  },
+
+  "tierWeighting": {
+    "_note": "Times are NOT normalised by tier. A rec-tier clear and a pro-tier clear sit on the same board and the tier is shown next to the name -- because the interesting question is not 'who is fastest' but 'who was fastest against what'. Sorting by adjusted time would hide exactly the thing worth seeing.",
+    "showTier": true
+  },
+
+  "personal": {
+    "trackPerMap": true,
+    "trackPerTier": true,
+    "_note": "The player's own bests are kept in their profile as well as on the board, so the goal you are actually chasing is visible without a DataStore round trip."
+  }
+}

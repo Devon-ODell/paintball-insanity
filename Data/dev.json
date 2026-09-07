@@ -1,0 +1,35 @@
+{
+  "_comment": "DEVELOPMENT OVERRIDES. Every flag here is OFF in a shipping build. The server logs a loud banner at boot whenever any of them is on, and Economy specs assert that turning them off restores normal behaviour -- so a flag left on cannot hide.",
+
+  "_shipChecklist": "Before publishing: set enabled=false. tools/ship-check verifies it and fails the build if it is still true.",
+
+  "enabled": true,
+
+  "infiniteCurrency": {
+    "on": true,
+    "grantedBalance": 99999999,
+    "_note": "Purchases still run the full server-side transaction -- ownership, category and price checks all apply. The balance simply never drops. That way the shop code being exercised in dev is the same code that ships; only the wallet is fake."
+  },
+
+  "unlockEverything": {
+    "on": true,
+    "_note": "Ignores the map-clear gates in economy.json unlocks. Lets Woods be opened without grinding Speedball first."
+  },
+
+  "skipRounds": {
+    "on": false,
+    "startAtRound": 1,
+    "_note": "Jump straight to a later round of the five-round match when tuning the hard end."
+  },
+
+  "forceTier": {
+    "on": false,
+    "tier": "pro",
+    "_note": "Pins every round to one bot tier, overriding the round schedule's escalation."
+  },
+
+  "verboseBots": {
+    "on": false,
+    "_note": "Turns the LiveRound.Bots logger up to verbose on a live server. Noisy: six bots' state transitions every tick."
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "name": "PROJECT_LIVEROUND_DEMO",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": {
+        "$path": "src/ReplicatedStorage/Shared"
+      },
+      "Net": {
+        "$path": "src/ReplicatedStorage/Net"
+      },
+      "Data": {
+        "$path": "Data"
+      },
+      "DemoMode": {
+        "$className": "BoolValue",
+        "$properties": {
+          "Value": true
+        }
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Server": {
+        "$path": "src/ServerScriptService"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "Client": {
+          "$path": "src/StarterPlayer/Client"
+        }
+      }
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "FilteringEnabled": true,
+        "StreamingEnabled": false,
+        "Gravity": 196.2
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Technology": "ShadowMap",
+        "Ambient": [
+          0.35,
+          0.36,
+          0.42
+        ],
+        "OutdoorAmbient": [
+          0.42,
+          0.44,
+          0.5
+        ],
+        "Brightness": 2.4,
+        "GlobalShadows": true,
+        "ClockTime": 14.5,
+        "GeographicLatitude": 24,
+        "EnvironmentDiffuseScale": 0.6,
+        "EnvironmentSpecularScale": 0.25
+      }
+    },
+    "SoundService": {
+      "$className": "SoundService",
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    },
+    "Players": {
+      "$className": "Players",
+      "$properties": {
+        "CharacterAutoLoads": false,
+        "RespawnTime": 0.5
+      }
+    }
+  }
+}

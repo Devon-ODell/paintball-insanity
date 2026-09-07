@@ -1,0 +1,137 @@
+{
+  "_comment": "Buyable, single-use field kit. Bought with earned currency only -- never Robux, per BUILD_PLAN's monetization rule.",
+
+  "_theHardRule": "NOTHING in this file touches the player's own accuracy, spread, velocity or recoil, and nothing gives them information they could not have got from something audible in the world. Every offensive item requires you to LAND A SHOT first; the effect is on what happens after the hit, never on whether the hit lands. That is the line, and tools/ship-check audits it by field name.",
+
+  "carry": {
+    "maxSlots": 2,
+    "_note": "Two slots. Consumables are a decision, not a loadout -- if you could carry one of everything they would stop being a choice.",
+    "restockPerRound": true,
+    "_restock": "Slots refill between the five gauntlet rounds. In horde they refill every fifth wave, which is what makes the wave-five breather worth waiting for."
+  },
+
+  "tiers": {
+    "_note": "Common kit is stocked. Red and Gold kit only drops from bosses and deep horde waves -- it cannot be bought at any price, so nobody can buy their way past the part where they get good.",
+    "common": { "displayName": "Field Stock", "colour": [188, 190, 186], "purchasable": true },
+    "red": { "displayName": "Marshal Issue", "colour": [198, 74, 62], "purchasable": false, "source": "boss drops and horde wave 10+" },
+    "gold": { "displayName": "Aurum", "colour": [214, 176, 84], "purchasable": false, "source": "horde wave 25+ and the Aurum chapter" }
+  },
+
+  "items": {
+    "paintGrenade": {
+      "displayName": "Paint Grenade",
+      "tier": "common",
+      "cost": 350,
+      "kind": "thrown",
+      "blurb": "A real thing that real scenario players really throw. Bursts a wide splatter; anyone inside it is marked and out.",
+      "throwSpeedMps": 18,
+      "fuseSeconds": 1.6,
+      "burstRadiusMetres": 4.5,
+      "_note": "Eliminates on contact with paint -- the same one-hit rule as everything else. There is no explosion, no damage number, and no injury. It is a bag of paint.",
+      "loudness": 1.4
+    },
+
+    "smokeCanister": {
+      "displayName": "Smoke Canister",
+      "tier": "common",
+      "cost": 300,
+      "kind": "thrown",
+      "blurb": "Breaks a lane. They cannot see through it either -- and neither can you, which people forget.",
+      "throwSpeedMps": 16,
+      "fuseSeconds": 1.0,
+      "cloudRadiusMetres": 6.0,
+      "durationSeconds": 12,
+      "blocksSightBothWays": true,
+      "_note": "Blocks line of sight for BOTH sides. A one-way smoke would be a wallhack with extra steps.",
+      "loudness": 0.5
+    },
+
+    "spotterDrone": {
+      "displayName": "Spotter Drone",
+      "tier": "common",
+      "cost": 900,
+      "kind": "deployed",
+      "blurb": "A little quadcopter on a stick. It does not see through anything -- it triangulates the ones who have been shooting.",
+      "durationSeconds": 14,
+      "revealsWhoFiredWithinSeconds": 4.0,
+      "revealRefreshSeconds": 1.0,
+      "loudness": 1.8,
+      "_theCompromise": "A drone that showed you every enemy would be a purchasable wallhack, and crosshair placement is one of the six fundamentals this game MEASURES. So it only surfaces bots that have FIRED in the last few seconds -- information a person could get from their ears. It is a hearing aid, not an X-ray.",
+      "_telemetryNote": "Shots taken while a drone is up are flagged droneAssisted and are EXCLUDED from crosshair-placement and reactivity scoring. The aim trainer stays honest even when the toy is fun.",
+      "_theCost": "It is the loudest thing in the game. Every bot inside hearing range knows exactly where you are the moment it lifts."
+    },
+
+    "emberfill": {
+      "displayName": "Emberfill",
+      "tier": "red",
+      "cost": null,
+      "kind": "paintFill",
+      "blurb": "High-visibility incendiary-orange fill. Bursts enormous. Anyone close to the splatter is wearing it on their lens.",
+      "roundsPerPickup": 30,
+      "splatterScale": 2.6,
+      "lensFogRadiusMetres": 3.5,
+      "lensFogSeconds": 3.0,
+      "visionRangeMultiplierWhileFogged": 0.45,
+      "_note": "This is the 'dragon's breath' slot, rebuilt as paint. No fire, no burning, no damage over time -- it is a bright fill that goes everywhere and gets on people's goggles. You still have to land the shot; the effect is entirely downstream of a hit.",
+      "loudness": 1.0
+    },
+
+    "chillfill": {
+      "displayName": "Chillfill",
+      "tier": "gold",
+      "cost": null,
+      "kind": "paintFill",
+      "blurb": "Winter-grade thick fill. Hits like a dropped plate and the shell cracks loud enough to hear across the field.",
+      "roundsPerPickup": 24,
+      "splatterScale": 1.8,
+      "moraleShockRadiusMetres": 9.0,
+      "moraleShockSeconds": 5.0,
+      "moraleStepsDown": 1,
+      "_note": "This is the 'freezing' slot. Nothing is frozen and nothing is slowed -- a hit rattles the squad, stepping their morale state down for a few seconds, which widens their aim through the EXISTING morale system in bots.json. Reuses a mechanic rather than adding a status effect.",
+      "loudness": 1.2
+    },
+
+    "podPatch": {
+      "displayName": "Pod Patch",
+      "tier": "common",
+      "cost": 220,
+      "kind": "utility",
+      "blurb": "An extra pod taped to the harness. Unglamorous. Wins rounds five.",
+      "extraPods": 2,
+      "loudness": 1.0
+    },
+
+    "squeegee": {
+      "displayName": "Squeegee",
+      "tier": "common",
+      "cost": 180,
+      "kind": "utility",
+      "blurb": "Clears a broken ball out of the barrel. If you have never had one break you have not shot enough paint.",
+      "clearsBarrelBreak": true,
+      "loudness": 1.0
+    },
+
+    "marshalsWhistle": {
+      "displayName": "Marshal's Whistle",
+      "tier": "red",
+      "cost": null,
+      "kind": "utility",
+      "blurb": "Field marshals use it to stop play. The squad has to check whether the round is dead. It buys about three seconds.",
+      "durationSeconds": 3.0,
+      "radiusMetres": 30,
+      "botsHoldFire": true,
+      "_note": "Bots stop firing and hold position. They do not become easier to hit, they do not stand still in the open, and they resume with full parameters. It buys a reposition, not a free kill.",
+      "loudness": 2.0
+    }
+  },
+
+  "_auditableFields": [
+    "throwSpeedMps", "fuseSeconds", "burstRadiusMetres", "cloudRadiusMetres",
+    "durationSeconds", "blocksSightBothWays", "roundsPerPickup", "splatterScale",
+    "lensFogRadiusMetres", "lensFogSeconds", "visionRangeMultiplierWhileFogged",
+    "moraleShockRadiusMetres", "moraleShockSeconds", "moraleStepsDown",
+    "extraPods", "clearsBarrelBreak", "radiusMetres", "botsHoldFire",
+    "revealsWhoFiredWithinSeconds", "revealRefreshSeconds", "loudness"
+  ],
+  "_auditNote": "ship-check asserts no item declares a field outside this list. A spreadMultiplier, a damage term, or a revealsAllEnemies would fail the build, which is exactly the point."
+}

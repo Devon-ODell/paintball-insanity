@@ -1,0 +1,49 @@
+{
+  "_comment": "How raw shot records become the six fundamentals. These curves are the aim-training product; changing them changes what the game tells players about themselves, so change them from sim data, never from intuition.",
+
+  "fundamentals": ["reactivity", "flicking", "targetSwitching", "tracking", "crosshairPlacement", "leadAndDrop"],
+
+  "classification": {
+    "_note": "Which shots count toward which fundamental. A shot may count toward several.",
+    "flickMinPriorAngleDeg": 18,
+    "trackingMinLateralSpeedMps": 2.5,
+    "trackingMaxDistanceMetres": 35,
+    "leadMinDistanceMetres": 18,
+    "crosshairMaxVisibleMs": 350,
+    "switchMaxGapSeconds": 6.0
+  },
+
+  "scoring": {
+    "_model": "Each axis maps a raw measurement to 0-100 with score = 100 * exp(-(x / scale)^shape), clamped. Lower raw is better on every axis. `scale` is the value that scores ~37.",
+    "reactivity":         { "measure": "timeToAcquireMs",             "scale": 620,  "shape": 1.4, "minSamples": 5 },
+    "flicking":           { "measure": "angularErrorDeg",             "scale": 5.5,  "shape": 1.2, "minSamples": 5 },
+    "targetSwitching":    { "measure": "timeBetweenEliminationsMs",   "scale": 4200, "shape": 1.3, "minSamples": 3 },
+    "tracking":           { "measure": "angularErrorDeg",             "scale": 3.4,  "shape": 1.2, "minSamples": 6 },
+    "crosshairPlacement": { "measure": "crosshairOffsetDegAtReveal",  "scale": 16.0, "shape": 1.1, "minSamples": 4 },
+    "leadAndDrop":        { "measure": "combinedLeadHoldoverM",       "scale": 1.15, "shape": 1.25, "minSamples": 6 }
+  },
+
+  "leadAndDrop": {
+    "_note": "lead and holdover error are combined in quadrature, but reported separately too -- the SIGN of lead error is the diagnosis. Under-leading and mis-aiming are different problems.",
+    "holdoverWeight": 1.0,
+    "leadWeight": 1.0,
+    "biasSignificanceM": 0.35,
+    "_biasNote": "If the mean signed lead error exceeds this and 70% of samples share its sign, the player has a systematic lead bias rather than random spread. That gets its own prescription line."
+  },
+
+  "prescriptions": {
+    "reactivity":         { "drill": "popup",    "line": "You are seeing them late. Targets are on screen {acquire} ms before your first shot -- run Pop-Up until that is under {target} ms." },
+    "flicking":           { "drill": "popup",    "line": "Your large-angle acquisitions land {error} degrees off. Run Pop-Up and slow down the last third of the flick; you are overshooting, not under-aiming." },
+    "targetSwitching":    { "drill": "switch",   "line": "You take {gap} s between eliminations. That is enough time for their squad to reset a crossfire on you. Run Switch." },
+    "tracking":           { "drill": "strafe",   "line": "Against crossing targets you are {error} degrees off. Run Strafe at the two shortest distances -- this is a smoothness problem, not a prediction problem." },
+    "crosshairPlacement": { "drill": "peek",     "line": "When a target appeared, your crosshair was {offset} degrees away from it. Run Peek. You are winning nothing you have to re-aim for." },
+    "leadAndDropUnder":   { "drill": "strafe",   "line": "You under-lead by {bias} m on average -- you are shooting where they ARE. Run Strafe and consciously aim at empty ground ahead of them." },
+    "leadAndDropOver":    { "drill": "strafe",   "line": "You over-lead by {bias} m on average. You have learned that lead exists and are now overcorrecting. Run Strafe at the two SHORTEST distances to recalibrate." },
+    "leadAndDropSpread":  { "drill": "holdover", "line": "Your lead error is {error} m but has no consistent direction, so it is drop you are missing, not lead. Run Holdover at 35 and 50 m." }
+  },
+
+  "session": {
+    "maxShotRecords": 4000,
+    "_maxNote": "Hard cap so a grinding session cannot balloon server memory. Aggregates are updated incrementally, so the cap costs detail in the shot list, never accuracy in the scores."
+  }
+}

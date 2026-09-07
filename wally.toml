@@ -1,0 +1,18 @@
+[package]
+name = "liveround/project-liveround"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+license = "UNLICENSED"
+
+[dependencies]
+
+[server-dependencies]
+# Session-locked profile store. Successor to ProfileService, actively maintained.
+# Verified 2026-09-06 -- see docs/PLATFORM_NOTES.md
+ProfileStore = "madstudioroblox/profilestore@1.1.1"
+
+[dev-dependencies]
+# In-Studio spec runner. The headless runner in tools/ is the primary signal;
+# this exists so the same specs can also be run inside Studio.
+TestEZ = "roblox/testez@0.4.1"

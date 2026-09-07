@@ -1,0 +1,211 @@
+{
+  "_comment": "The tone carrier. The enemy squad is six guys who booked the field for the afternoon and did not expect this. They are cocky at six, rattled at four, openly blaming each other at three, and quietly falling apart at one. Nobody is hurt. Nobody is in danger. They are just losing, in front of their friends, and it is going badly.",
+
+  "_rules": [
+    "No profanity, no slurs, no threats of real harm. Roblox Mild, and it is funnier clean anyway.",
+    "Never reference injury, blood, weapons, or death. They are OUT. They walk off. They are fine and they are annoyed.",
+    "Specificity beats volume. 'Marcus' is funnier than 'someone'.",
+    "The squad has names so the blaming lands. Names are assigned at match start from the roster below.",
+    "Lines are drawn without replacement inside a match so nobody repeats until the bank is exhausted."
+  ],
+
+  "roster": [
+    "Denny", "Marcus", "Oz", "Reggie", "Priya", "Tuck",
+    "Brooks", "Sal", "Wheels", "Coach", "Junior", "Big Mike"
+  ],
+
+  "cooldownSeconds": { "min": 3.5, "max": 9.0 },
+  "maxLinesPerMinute": 9,
+
+  "banks": {
+    "matchStart": [
+      "Alright, six on one. Try to make it last, would you?",
+      "Somebody actually paid to play against us today. Bless them.",
+      "New meat. {name}, you're on the snake, don't embarrass us.",
+      "Just one? Cool. Cool cool cool. Everybody go easy, we're on the clock.",
+      "Remember: we're professionals. We do not gloat. We win, and THEN we gloat.",
+      "One player. Six of us. {name}, you can sit this one out and I mean that.",
+      "Hoppers full? Good. This'll be quick.",
+      "I told the front desk this was unfair. They laughed at me. Let's go."
+    ],
+
+    "cocky": {
+      "playerEliminated": [
+        "And that's the field. Thanks for coming out.",
+        "Ohhh, that was a nice one. That was a nice one.",
+        "Walk it off! Walk it off, you're fine!",
+        "Hey — good effort. Genuinely. Bad, but good effort.",
+        "{name} got 'em. {name} got 'em, and he will not shut up about it.",
+        "That's paint. That is DEFINITELY paint. Check your shoulder.",
+        "You know you can just watch, right? You don't have to keep doing this.",
+        "Six on one and they still ran straight down the middle. Beautiful.",
+        "I'd say unlucky but I don't want to lie to you."
+      ],
+      "botEliminated": [
+        "{name}'s out? {name}'s OUT? To that guy?",
+        "Okay, that's one. That's allowed. That's within tolerance.",
+        "Everybody stop laughing at {name}, he's had a long week.",
+        "Lucky shot. Say it with me. Lucky shot.",
+        "Down to {alive}. Still comfortable. Still very comfortable.",
+        "{name}, was that on purpose? Did you just — did you walk into it?"
+      ],
+      "taunt": [
+        "Take your time back there. We're not going anywhere.",
+        "I can hear your hopper. I can literally hear your hopper.",
+        "Anyone got eyes? No? Then they're hiding. They're hiding, everyone relax.",
+        "Is this the part where they get good? Is this that part?",
+        "{name}, stop reloading, you've fired four balls all game."
+      ]
+    },
+
+    "rattled": {
+      "playerEliminated": [
+        "There. THERE. Okay. We're fine. We were always fine.",
+        "Got 'em. Everybody reset. Everybody reset, please.",
+        "Okay that took way too long and we all know it.",
+        "Good. Good. Now nobody do anything clever.",
+        "That's the one. Back to the plan. Do we have a plan?"
+      ],
+      "botEliminated": [
+        "That's two. That's two, and I don't love it.",
+        "{name}? Are you serious? You were BEHIND cover.",
+        "Down to {alive}. Tighten up. Tighten up!",
+        "Where is that coming from? Somebody give me an angle.",
+        "Okay, this person can shoot. I'm saying it. This person can shoot.",
+        "Stop pushing! Stop pushing, that's how {name} went out!"
+      ],
+      "taunt": [
+        "Nobody peek. Nobody peek until we know where they are.",
+        "Does anyone have eyes on? Anyone? Hello?",
+        "I'm not scared, I'm being tactical. There's a difference.",
+        "They're playing angles. Who taught them angles?",
+        "Coach, this is exactly what you said would never happen."
+      ]
+    },
+
+    "blaming": {
+      "playerEliminated": [
+        "Oh NOW we hit something. Now. After all that.",
+        "Great. Fantastic. They respawn, by the way. That's how this works.",
+        "One. That's one. We need — how many is it? We need a lot.",
+        "Don't celebrate. Nobody celebrate. We are not in a celebrating position."
+      ],
+      "botEliminated": [
+        "{name}, that was YOUR angle. That was your one job.",
+        "Three of us. Three. Against one. I want that on the record.",
+        "Who let them get the high ground? Somebody let them get the high ground.",
+        "I called it. I called the flank. I said the words out loud.",
+        "{alive} left. {alive}. We started with six.",
+        "This is because we didn't rotate. I SAID rotate.",
+        "Oz, if you say 'my bad' one more time I'm walking to the car.",
+        "Nobody talk to me. Nobody talk to me right now."
+      ],
+      "taunt": [
+        "I'm not moving. You move. You've been on that bunker all game.",
+        "Whose idea was the six-on-one? Whose idea? I'd like a name.",
+        "We're getting picked apart by one guy and we're arguing about snacks.",
+        "Everybody just — everybody just stay where you are. Please.",
+        "I've been holding this angle for four minutes. Somebody acknowledge that."
+      ]
+    },
+
+    "broken": {
+      "playerEliminated": [
+        "...okay. Okay, one. One is something.",
+        "Cool. Now do it five more times, me.",
+        "Was anyone watching that? Anyone? No?"
+      ],
+      "botEliminated": [
+        "It's just me.",
+        "...guys?",
+        "Right. Yeah. Of course.",
+        "I can hear everyone else in the staging area. They're eating.",
+        "So that's how today's going."
+      ],
+      "taunt": [
+        "I'm going to be honest with you, I've stopped trying to win.",
+        "You could just let me have this one. As a person.",
+        "I've been standing behind this bunker for a very long time.",
+        "Take the shot. Genuinely. I've made peace with it.",
+        "Six of us. There were six of us this morning."
+      ]
+    }
+  },
+
+  "roundStart": [
+    "Alright, {name}'s in. Round two. Try harder.",
+    "Reinforcements. Because apparently we need reinforcements.",
+    "Fresh bodies, fresh angles. Nobody repeat last round.",
+    "Okay. New round. We do NOT talk about the last one.",
+    "{name}, you're in. Do literally anything useful.",
+    "More of us this round. Statistically that should help.",
+    "Round's up. Everyone actually hold your lane this time.",
+    "They cleared that? Fine. Send the rest of us."
+  ],
+
+  "roundWon": [
+    "Round's theirs. Regroup, we've got more coming.",
+    "Fine. FINE. Next round we bring another body.",
+    "That's the round. Somebody go get {name} off the bench.",
+    "They took it. Reset, tighten up, we're not done.",
+    "Round to them. Don't let it become a pattern."
+  ],
+
+  "squadWipe": [
+    "That's the round. That's — okay. Everybody to the staging area.",
+    "Nobody speak on the drive home.",
+    "Six on one. Six. On. One.",
+    "We're rebooking. We're rebooking and nobody tells Coach.",
+    "Good game. Genuinely, good game. Please leave.",
+    "I want to be clear that this was {name}'s fault specifically."
+  ],
+
+  "flawlessWipe": [
+    "...did they get hit once? Did they get hit even once?",
+    "I'd like to speak to whoever let them in the building.",
+    "Not a single mark. There is not a single mark on that jersey.",
+    "We're not talking about this. Ever. Agreed? Agreed."
+  ],
+
+  "callouts": {
+    "contact": [
+      "Contact! {bearing}!",
+      "Eyes on, {bearing}!",
+      "There! {bearing}, moving!",
+      "I see 'em — {bearing}!"
+    ],
+    "lostContact": [
+      "Lost 'em.",
+      "They broke off. Watch your side.",
+      "Gone. Everybody hold."
+    ],
+    "reloading": [
+      "Reloading, cover me!",
+      "Dry! I'm dry!",
+      "Hopper's out, gimme a second."
+    ],
+    "flanking": [
+      "Going wide, hold the front.",
+      "I'm rotating {bearing}.",
+      "Coming around. Don't shoot me, {name}."
+    ],
+    "focusFire": [
+      "Everybody on them! Now!",
+      "Focus! Focus, they're pinned!",
+      "Right there, all of you, RIGHT THERE!"
+    ],
+    "crossfire": [
+      "Crossfire's set. Make them move.",
+      "We've got both angles. Squeeze it.",
+      "They're boxed. Don't let them reset."
+    ]
+  },
+
+  "_tierVoice": {
+    "_note": "Tier does not change the bank; it changes delivery weight. Rec bots chatter constantly and say almost nothing useful. Pros barely talk and every line is a callout.",
+    "rec":     { "tauntWeight": 1.0,  "calloutWeight": 0.15, "linesPerMinute": 11 },
+    "amateur": { "tauntWeight": 0.8,  "calloutWeight": 0.5,  "linesPerMinute": 9 },
+    "semipro": { "tauntWeight": 0.45, "calloutWeight": 0.9,  "linesPerMinute": 7 },
+    "pro":     { "tauntWeight": 0.2,  "calloutWeight": 1.0,  "linesPerMinute": 5 }
+  }
+}

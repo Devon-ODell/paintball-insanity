@@ -1,0 +1,255 @@
+{
+  "_comment": "The campaign. A linear, single-player run from a loaner marker to the Aurum Kompressor. Chapters gate on SKILL -- clear this, at this tier -- never on time played, per BUILD_PLAN's out-of-scope list.",
+  "_modes": "GAUNTLET is the five fixed rounds. HORDE is endless. Horde stays locked until the gauntlet is beaten on every map, because horde has no curriculum in it -- it is a victory lap and a leaderboard, and handing it out first would let a player skip the thing that actually teaches them.",
+  "chapters": [
+    {
+      "id": "walkOn",
+      "index": 1,
+      "title": "Walk-On",
+      "subtitle": "Everybody starts as a walk-on.",
+      "brief": "Marge hands you a loaner and points at the tournament field. Six of them, one of you, five rounds. Nobody expects you to clear it today.",
+      "requires": null,
+      "goal": {
+        "kind": "clearGauntlet",
+        "map": "speedball",
+        "tier": "rec"
+      },
+      "rewards": {
+        "currency": 400,
+        "unlocks": [
+          "dustline"
+        ],
+        "gear": []
+      },
+      "closer": "That's a clear. First one's the only one that's ever a surprise."
+    },
+    {
+      "id": "yardSale",
+      "index": 2,
+      "title": "Yard Sale",
+      "subtitle": "Too many corners to hold.",
+      "brief": "Dustline. A dead freight yard: tactical shells, jackknifed trailers and three gutted school buses, none of it square to anything else. Every container corner is a lane and you cannot pre-aim all of them.",
+      "requires": "walkOn",
+      "goal": {
+        "kind": "clearGauntlet",
+        "map": "dustline",
+        "tier": "rec"
+      },
+      "rewards": {
+        "currency": 550,
+        "unlocks": [
+          "urban"
+        ],
+        "gear": [
+          "boonie"
+        ]
+      },
+      "closer": "You stopped trying to watch everything. That is the entire lesson of that yard."
+    },
+    {
+      "id": "backLot",
+      "index": 3,
+      "title": "The Back Lot",
+      "subtitle": "Shooting down at things that are moving.",
+      "brief": "Urban. Two and three storey shells, dead cars, alleys. Everything you learned about lead on the flat is wrong the moment you are above them.",
+      "requires": "yardSale",
+      "goal": {
+        "kind": "clearGauntlet",
+        "map": "urban",
+        "tier": "rec"
+      },
+      "rewards": {
+        "currency": 700,
+        "unlocks": [
+          "woods"
+        ],
+        "gear": [
+          "kneeSliders"
+        ]
+      },
+      "closer": "Elevation changes the lead. Nobody tells you that. Now you know."
+    },
+    {
+      "id": "backForty",
+      "index": 4,
+      "title": "The Back Forty",
+      "subtitle": "Where the paint takes a second to get there.",
+      "brief": "Woods. Long lanes, real elevation, and brush that hides you without stopping anything. This is the map the pump exists for.",
+      "requires": "backLot",
+      "goal": {
+        "kind": "clearGauntlet",
+        "map": "woods",
+        "tier": "rec"
+      },
+      "rewards": {
+        "currency": 1100,
+        "unlocks": [
+          "holdfast",
+          "captureTheFlag"
+        ],
+        "gear": [
+          "fourPack"
+        ]
+      },
+      "closer": "Over a second of flight at the far end. You felt that. There is a valley past the treeline with a keep at each end -- Marge will tell you about it."
+    },
+    {
+      "id": "localLeague",
+      "index": 5,
+      "title": "Local League",
+      "subtitle": "They stopped going easy.",
+      "brief": "Same three fields, amateur squads. Faster hands, actual comms, and they punish you for holding one angle.",
+      "requires": "backForty",
+      "goal": {
+        "kind": "clearGauntletAll",
+        "tier": "amateur"
+      },
+      "rewards": {
+        "currency": 2200,
+        "unlocks": [
+          "consumables"
+        ],
+        "gear": [
+          "paddedTwill"
+        ]
+      },
+      "closer": "Tildy will sell you the fun stuff now. Ask her about the drone. Do not ask her about the drone."
+    },
+    {
+      "id": "regional",
+      "index": 6,
+      "title": "Regional",
+      "subtitle": "Crossfires, on purpose.",
+      "brief": "Semi-pro. They set crossfires deliberately and they share contact in half a second. You do not win a straight fight here and you never will.",
+      "requires": "localLeague",
+      "goal": {
+        "kind": "clearGauntletAll",
+        "tier": "semipro"
+      },
+      "rewards": {
+        "currency": 4000,
+        "unlocks": [
+          "bosses"
+        ],
+        "gear": [
+          "fullWrap",
+          "crownGuard"
+        ]
+      },
+      "closer": "Somebody's been asking about you. She wears a white armband and she does not talk."
+    },
+    {
+      "id": "theMarshal",
+      "index": 7,
+      "title": "The Marshal",
+      "subtitle": "One shot, one very small target.",
+      "brief": "The field marshal plays now and then. She is padded to the eyes -- paint on the body does not count. The hopper counts. That is the whole fight.",
+      "requires": "regional",
+      "goal": {
+        "kind": "beatBoss",
+        "boss": "marshal",
+        "map": "speedball"
+      },
+      "rewards": {
+        "currency": 5000,
+        "unlocks": [],
+        "gear": [
+          "marshalPlate"
+        ]
+      },
+      "closer": "Nobody had done that in four years. She still did not say anything."
+    },
+    {
+      "id": "proCircuit",
+      "index": 8,
+      "title": "Pro Circuit",
+      "subtitle": "Everything, at the top.",
+      "brief": "All three fields, pro squads, five rounds each. 170 ms reactions and they apply ninety-six percent of the correct lead. They are not cheating. They are just better than you were.",
+      "requires": "theMarshal",
+      "goal": {
+        "kind": "clearGauntletAll",
+        "tier": "pro"
+      },
+      "rewards": {
+        "currency": 9000,
+        "unlocks": [
+          "horde"
+        ],
+        "gear": [
+          "proWrap"
+        ]
+      },
+      "closer": "The back gate is open. There is no round limit through it."
+    },
+    {
+      "id": "theLongAfternoon",
+      "index": 9,
+      "title": "The Long Afternoon",
+      "subtitle": "Horde. It does not stop.",
+      "brief": "Endless waves, escalating, with the marshals turning up when it gets interesting. There is no clear condition. There is only how long.",
+      "requires": "proCircuit",
+      "goal": {
+        "kind": "surviveWaves",
+        "waves": 20
+      },
+      "rewards": {
+        "currency": 15000,
+        "unlocks": [],
+        "gear": [
+          "gildedShoulders"
+        ]
+      },
+      "closer": "Twenty waves. Marge started keeping a note behind the counter."
+    },
+    {
+      "id": "aurum",
+      "index": 10,
+      "title": "Aurum",
+      "subtitle": "The last thing on the shelf.",
+      "brief": "There is a marker in a case behind the counter that Marge has never sold. Wave forty in horde, and a flawless pro gauntlet on all three fields. Then she opens the case.",
+      "requires": "theLongAfternoon",
+      "goal": {
+        "kind": "composite",
+        "all": [
+          {
+            "kind": "surviveWaves",
+            "waves": 40
+          },
+          {
+            "kind": "flawlessGauntletAll",
+            "tier": "pro"
+          }
+        ]
+      },
+      "rewards": {
+        "currency": 0,
+        "unlocks": [],
+        "gear": [
+          "aurumKompressor"
+        ]
+      },
+      "closer": "It is a pump. It holds twelve. It is the hardest marker on the field to use and it is made of gold, and that is the joke, and you earned it."
+    }
+  ],
+  "_theReward": "The Aurum Kompressor -- 'the AK' -- is the end of the campaign and it is deliberately NOT an upgrade. It is a pump: one shot per manual cycle, a twelve-round hopper, the flattest arc in the game and the highest payout multiplier. It is a statement that you do not need the crutch, which is the only kind of ultimate reward an aim trainer can honestly offer. Read markers.json.",
+  "modeUnlocks": {
+    "gauntlet": {
+      "requires": null,
+      "_note": "Always open. It is the game."
+    },
+    "horde": {
+      "requires": "proCircuit",
+      "_note": "Locked until the gauntlet is beaten at pro on every field."
+    },
+    "consumables": {
+      "requires": "localLeague"
+    },
+    "bosses": {
+      "requires": "regional"
+    },
+    "captureTheFlag": {
+      "requires": "backForty",
+      "_note": "Opens with Holdfast, which is the only map built for it."
+    }
+  }
+}

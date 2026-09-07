@@ -1,0 +1,109 @@
+{
+  "_comment": "Earned only. Headshots are mask hits classified from authoritative projectile impacts; body splatters still eliminate in one hit. No purchase, dev unlock or paid skip grants camos. Visual tuning never affects marker stats.",
+  "default": "factory",
+  "autoEquipFirstUnlock": true,
+  "headshot": {
+    "centerBelowHeadTopMetres": 0.17,
+    "horizontalRadiusMetres": 0.205,
+    "verticalRadiusMetres": 0.2
+  },
+  "order": [
+    "factory",
+    "citrusCircuit",
+    "tideShift",
+    "prismBreak",
+    "auroraFlux"
+  ],
+  "camos": {
+    "factory": {
+      "displayName": "Factory Finish",
+      "requiredHeadshots": 0,
+      "reactive": false,
+      "blurb": "The original colourway. Straight from the workbench."
+    },
+    "citrusCircuit": {
+      "displayName": "Citrus Circuit",
+      "requiredHeadshots": 10,
+      "reactive": true,
+      "baseColor": [
+        51,
+        73,
+        32
+      ],
+      "accentColor": [
+        195,
+        242,
+        74
+      ],
+      "pulseColor": [
+        255,
+        240,
+        138
+      ],
+      "blurb": "Electric citrus stripes light up on every confirmed headshot."
+    },
+    "tideShift": {
+      "displayName": "Tide Shift",
+      "requiredHeadshots": 35,
+      "reactive": true,
+      "baseColor": [
+        25,
+        69,
+        99
+      ],
+      "accentColor": [
+        51,
+        220,
+        211
+      ],
+      "pulseColor": [
+        176,
+        255,
+        252
+      ],
+      "blurb": "Deep blue anodising with a sea-glass pulse when you tag the mask."
+    },
+    "prismBreak": {
+      "displayName": "Prism Break",
+      "requiredHeadshots": 75,
+      "reactive": true,
+      "baseColor": [
+        87,
+        46,
+        119
+      ],
+      "accentColor": [
+        239,
+        111,
+        218
+      ],
+      "pulseColor": [
+        255,
+        204,
+        248
+      ],
+      "blurb": "Violet panels and pink light. Earn every flash."
+    },
+    "auroraFlux": {
+      "displayName": "Aurora Flux",
+      "requiredHeadshots": 150,
+      "reactive": true,
+      "baseColor": [
+        31,
+        62,
+        66
+      ],
+      "accentColor": [
+        85,
+        242,
+        177
+      ],
+      "pulseColor": [
+        190,
+        167,
+        255
+      ],
+      "blurb": "Mint bands flare into an aurora after a clean mask tag."
+    }
+  }
+}

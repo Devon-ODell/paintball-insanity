@@ -1,0 +1,140 @@
+{
+  "_comment": "Bots do not cheat. Every parameter here is something a human could match. There is no wallhack term, no perfect-aim term, and no damage term. Their entire advantage is that there are six of them and they talk to each other.",
+
+  "tierOrder": ["rec", "amateur", "semipro", "pro"],
+
+  "tiers": {
+    "rec": {
+      "displayName": "Rec Ballers",
+      "marker": "mechanical",
+      "reactionTimeMs": 450,
+      "reactionJitterMs": 140,
+      "aimErrorDeg": 4.0,
+      "leadSolutionAccuracy": 0.4,
+      "leadJitter": 0.22,
+      "timeToSettleMs": 600,
+      "crosshairPrePlacement": 0.0,
+      "peekDiscipline": 0.15,
+      "burstLengthMin": 2,
+      "burstLengthMax": 7,
+      "burstRestMs": 520,
+      "repositionChance": 0.15,
+      "focusFireChance": 0.05,
+      "coordinationLevel": 0.05,
+      "hearingRadiusMetres": 26,
+      "visionRangeMetres": 55,
+      "visionConeDeg": 105,
+      "payoutMultiplier": 1.0
+    },
+    "amateur": {
+      "displayName": "Local League",
+      "marker": "mechanical",
+      "reactionTimeMs": 320,
+      "reactionJitterMs": 95,
+      "aimErrorDeg": 2.4,
+      "leadSolutionAccuracy": 0.65,
+      "leadJitter": 0.16,
+      "timeToSettleMs": 400,
+      "crosshairPrePlacement": 0.35,
+      "peekDiscipline": 0.4,
+      "burstLengthMin": 2,
+      "burstLengthMax": 6,
+      "burstRestMs": 400,
+      "repositionChance": 0.32,
+      "focusFireChance": 0.3,
+      "coordinationLevel": 0.35,
+      "hearingRadiusMetres": 32,
+      "visionRangeMetres": 65,
+      "visionConeDeg": 110,
+      "payoutMultiplier": 1.6
+    },
+    "semipro": {
+      "displayName": "Regional Semi-Pro",
+      "marker": "electronic",
+      "reactionTimeMs": 230,
+      "reactionJitterMs": 60,
+      "aimErrorDeg": 1.3,
+      "leadSolutionAccuracy": 0.85,
+      "leadJitter": 0.09,
+      "timeToSettleMs": 260,
+      "crosshairPrePlacement": 0.7,
+      "peekDiscipline": 0.7,
+      "burstLengthMin": 3,
+      "burstLengthMax": 6,
+      "burstRestMs": 300,
+      "repositionChance": 0.5,
+      "focusFireChance": 0.6,
+      "coordinationLevel": 0.7,
+      "hearingRadiusMetres": 38,
+      "visionRangeMetres": 78,
+      "visionConeDeg": 115,
+      "payoutMultiplier": 2.6
+    },
+    "pro": {
+      "displayName": "Pro Circuit",
+      "marker": "electronic",
+      "reactionTimeMs": 170,
+      "reactionJitterMs": 35,
+      "aimErrorDeg": 0.7,
+      "leadSolutionAccuracy": 0.96,
+      "leadJitter": 0.05,
+      "timeToSettleMs": 180,
+      "crosshairPrePlacement": 0.95,
+      "peekDiscipline": 0.92,
+      "burstLengthMin": 3,
+      "burstLengthMax": 5,
+      "burstRestMs": 240,
+      "repositionChance": 0.68,
+      "focusFireChance": 0.85,
+      "coordinationLevel": 0.95,
+      "hearingRadiusMetres": 44,
+      "visionRangeMetres": 90,
+      "visionConeDeg": 120,
+      "payoutMultiplier": 4.2
+    }
+  },
+
+  "squad": {
+    "size": 6,
+    "roles": {
+      "anchor":   { "count": 2, "holdsAngle": true,  "advanceChance": 0.05, "preferredRangeMetres": [18, 45] },
+      "flanker":  { "count": 2, "holdsAngle": false, "advanceChance": 0.55, "preferredRangeMetres": [8, 26] },
+      "pressure": { "count": 2, "holdsAngle": false, "advanceChance": 0.35, "preferredRangeMetres": [12, 32] }
+    },
+    "_crossfire": "A crossfire is declared when two living bots hold anchors whose bearings to the player differ by more than crossfireMinSeparationDeg. Holding one angle against a declared crossfire is what punishes camping.",
+    "crossfireMinSeparationDeg": 55,
+    "crossfireRewardWeight": 1.4,
+    "focusFireWindowSeconds": 2.5,
+    "contactShareRadiusMetres": 100,
+    "contactShareDelayMs": { "rec": 2200, "amateur": 1100, "semipro": 500, "pro": 220 },
+    "_contactShareDelay": "How long before one bot's sighting reaches the rest. This, not vision range, is what makes higher tiers feel omniscient -- and it is bounded by something a human squad could do over voice comms."
+  },
+
+  "movement": {
+    "walkSpeedMps": 3.4,
+    "sprintSpeedMps": 6.0,
+    "crouchSpeedMps": 1.9,
+    "peekDwellSeconds": { "min": 0.55, "max": 2.4 },
+    "repositionCooldownSeconds": 4.0,
+    "stopToShootDelayMs": 120
+  },
+
+  "morale": {
+    "_comment": "Drives which chatter bank the squad draws from. Keyed on living bot count.",
+    "thresholds": [
+      { "atLeast": 6, "state": "cocky" },
+      { "atLeast": 5, "state": "cocky" },
+      { "atLeast": 4, "state": "rattled" },
+      { "atLeast": 3, "state": "blaming" },
+      { "atLeast": 2, "state": "blaming" },
+      { "atLeast": 1, "state": "broken" }
+    ],
+    "aimErrorPenaltyByState": {
+      "cocky": 1.0,
+      "rattled": 1.06,
+      "blaming": 1.14,
+      "broken": 1.25
+    },
+    "_penaltyNote": "Morale degrades bot aim slightly, so snowballing is real. Capped at 1.25x error -- a broken pro is still better than a fresh rec bot."
+  }
+}

@@ -1,0 +1,10 @@
+/Packages/
+/ServerPackages/
+/DevPackages/
+/build/
+*.rbxl
+*.rbxlx
+*.rbxlx.lock
+/Saved/Sims/*.json
+!/Saved/Sims/.gitkeep
+.DS_Store

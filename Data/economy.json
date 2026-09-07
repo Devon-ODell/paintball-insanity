@@ -1,0 +1,294 @@
+{
+  "_comment": "payout = base(map) * tierMultiplier * markerMultiplier * deathPenalty * accuracyBonus, computed server-side only. Nothing here is ever sent from a client.",
+  "currency": {
+    "name": "Field Fees",
+    "short": "FF"
+  },
+  "basePayout": {
+    "speedball": 220,
+    "urban": 340,
+    "woods": 480,
+    "dustline": 560,
+    "holdfast": 720,
+    "range": 0
+  },
+  "deathPenalty": {
+    "_model": "multiplier = floor + (1 - floor) * exp(-decay * deaths). Tuned so a no-death clear pays ~9x a ten-death clear, per BUILD_PLAN Phase 6.",
+    "decay": 0.26,
+    "floor": 0.06,
+    "_verify": "deaths=0 -> 1.000, deaths=10 -> 0.1298. Ratio 7.7x. With the accuracy bonus a clean run realistically doubles that gap. EconomySpec asserts the raw ratio stays in [6, 12]."
+  },
+  "accuracyBonus": {
+    "_model": "1 + gain * max(0, hitRate - threshold) / (1 - threshold), where hitRate is server-counted hits/shots.",
+    "threshold": 0.18,
+    "gain": 0.85,
+    "minShotsToQualify": 12
+  },
+  "streakBonus": {
+    "_model": "Consecutive eliminations without being hit. Rewards isolation and angles, which is exactly the skill the maps teach.",
+    "perElimination": 0.04,
+    "max": 0.3
+  },
+  "flawlessBonus": {
+    "multiplier": 1.5,
+    "_note": "Zero deaths only. Stacks last."
+  },
+  "shop": {
+    "_rule": "ABSOLUTE: nothing purchasable may improve accuracy, reduce spread, increase velocity, or otherwise substitute for aim. Cosmetics and convenience only. The Robux catalogue below is cosmetic-only by construction and EconomySpec asserts it.",
+    "markers": [
+      "mechanical",
+      "electronic",
+      "pump"
+    ],
+    "barrels": [
+      "stock",
+      "ported",
+      "freakBore"
+    ],
+    "_gearNote": "jerseys, pads and pods are stocked from Data/gear.json -- they carry mechanical stats, so they live with the other tuning rather than with the cosmetics below.",
+    "hoppers": [
+      "gravity",
+      "forceFed"
+    ],
+    "tanks": [
+      "steel",
+      "carbon"
+    ],
+    "cosmetics": {
+      "jerseys": {
+        "houseWhite": {
+          "displayName": "House White",
+          "cost": 0,
+          "colorKey": "white"
+        },
+        "hazard": {
+          "displayName": "Hazard",
+          "cost": 600,
+          "colorKey": "amber"
+        },
+        "deepwater": {
+          "displayName": "Deepwater",
+          "cost": 600,
+          "colorKey": "teal"
+        },
+        "sunbleach": {
+          "displayName": "Sunbleach",
+          "cost": 1200,
+          "colorKey": "coral"
+        },
+        "nightRange": {
+          "displayName": "Night Range",
+          "cost": 1800,
+          "colorKey": "indigo"
+        }
+      },
+      "masks": {
+        "stockMask": {
+          "displayName": "Stock Mask",
+          "cost": 0
+        },
+        "chromeLens": {
+          "displayName": "Chrome Lens",
+          "cost": 900
+        },
+        "smokeLens": {
+          "displayName": "Smoke Lens",
+          "cost": 900
+        },
+        "splitLens": {
+          "displayName": "Split Lens",
+          "cost": 2200
+        }
+      },
+      "paintColors": {
+        "yellow": {
+          "displayName": "Field Yellow",
+          "cost": 0
+        },
+        "pink": {
+          "displayName": "Hot Pink",
+          "cost": 400
+        },
+        "cyan": {
+          "displayName": "Cyan",
+          "cost": 400
+        },
+        "lime": {
+          "displayName": "Lime",
+          "cost": 400
+        },
+        "violet": {
+          "displayName": "Violet",
+          "cost": 800
+        }
+      },
+      "markerSkins": {
+        "raw": {
+          "displayName": "Raw Alloy",
+          "cost": 0
+        },
+        "duracoat": {
+          "displayName": "Duracoat",
+          "cost": 1500
+        },
+        "splitDust": {
+          "displayName": "Split Dust",
+          "cost": 2600
+        }
+      }
+    },
+    "robux": {
+      "_rule": "Cosmetic and convenience only. Every entry must declare affectsAccuracy: false and the shop refuses to list one that does not.",
+      "products": {
+        "jerseyPackFieldDay": {
+          "displayName": "Field Day Jersey Pack",
+          "robux": 0,
+          "grants": {
+            "jerseys": [
+              "hazard",
+              "deepwater",
+              "sunbleach"
+            ]
+          },
+          "affectsAccuracy": false
+        },
+        "lensPack": {
+          "displayName": "Lens Pack",
+          "robux": 0,
+          "grants": {
+            "masks": [
+              "chromeLens",
+              "smokeLens",
+              "splitLens"
+            ]
+          },
+          "affectsAccuracy": false
+        },
+        "paintPack": {
+          "displayName": "Paint Locker",
+          "robux": 0,
+          "grants": {
+            "paintColors": [
+              "pink",
+              "cyan",
+              "lime",
+              "violet"
+            ]
+          },
+          "affectsAccuracy": false
+        }
+      }
+    }
+  },
+  "profile": {
+    "storeName": "LiveRoundProfiles_v1",
+    "keyPrefix": "player_",
+    "template": {
+      "version": 2,
+      "currency": 0,
+      "ownedMarkers": [
+        "mechanical"
+      ],
+      "ownedBarrels": [
+        "stock"
+      ],
+      "ownedHoppers": [
+        "gravity"
+      ],
+      "ownedTanks": [
+        "steel"
+      ],
+      "ownedJerseys": [
+        "houseWhite"
+      ],
+      "ownedPads": [
+        "none"
+      ],
+      "ownedHelmets": [
+        "capBackwards"
+      ],
+      "ownedShoulders": [
+        "bare"
+      ],
+      "ownedPods": [
+        "twoPack"
+      ],
+      "ownedMasks": [
+        "stockMask"
+      ],
+      "ownedPaintColors": [
+        "yellow"
+      ],
+      "ownedMarkerSkins": [
+        "raw"
+      ],
+      "loadout": {
+        "marker": "mechanical",
+        "barrel": "stock",
+        "hopper": "gravity",
+        "tank": "steel",
+        "jersey": "houseWhite",
+        "pads": "none",
+        "helmet": "capBackwards",
+        "shoulders": "bare",
+        "pods": "twoPack",
+        "mask": "stockMask",
+        "paintColor": "yellow",
+        "markerSkin": "raw",
+        "camo": "factory"
+      },
+      "bestClears": {},
+      "bestTimes": {},
+      "consumables": {},
+      "carry": [],
+      "chaptersCompleted": [],
+      "hordeBest": {},
+      "lifetime": {
+        "shots": 0,
+        "hits": 0,
+        "eliminations": 0,
+        "deaths": 0,
+        "matches": 0,
+        "flawless": 0
+      },
+      "fundamentals": {
+        "reactivity": 0,
+        "flicking": 0,
+        "targetSwitching": 0,
+        "tracking": 0,
+        "crosshairPlacement": 0,
+        "leadAndDrop": 0
+      },
+      "camoProgress": {
+        "headshots": 0
+      },
+      "ownedCamos": [
+        "factory"
+      ],
+      "commerce": {
+        "claims": {},
+        "passes": {},
+        "receipts": {}
+      }
+    }
+  },
+  "unlocks": {
+    "_note": "Map order teaches the economy: each map's tier is where you can afford the marker that map's skill needs. Nothing is time-gated.",
+    "dustline": {
+      "requiresClear": "speedball",
+      "requiresTier": "rec"
+    },
+    "urban": {
+      "requiresClear": "dustline",
+      "requiresTier": "rec"
+    },
+    "woods": {
+      "requiresClear": "urban",
+      "requiresTier": "rec"
+    },
+    "holdfast": {
+      "requiresClear": "woods",
+      "requiresTier": "rec"
+    }
+  }
+}

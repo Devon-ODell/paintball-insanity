@@ -1,0 +1,14 @@
+{
+  "languageMode": "strict",
+  "lint": {
+    "*": true,
+    "LocalUnused": false
+  },
+  "lintErrors": false,
+  "globals": ["game", "workspace", "script", "shared", "plugin"],
+  "aliases": {
+    "Shared": "src/ReplicatedStorage/Shared",
+    "Net": "src/ReplicatedStorage/Net",
+    "Data": "Data"
+  }
+}

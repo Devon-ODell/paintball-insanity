@@ -1,0 +1,300 @@
+{
+  "_comment": "The Protective and Paint & Air bays of the pole barn. Everything here is a SIDEGRADE, on the same terms as markers.json: each item is better at one thing and worse at another.",
+  "_rules": [
+    "Nothing here reduces damage. One hit is out, always -- that is the paintball rule and it is also the whole difficulty design. There is no armour stat in this game and there is not going to be one.",
+    "Nothing here touches accuracy, spread, velocity or recoil. Read BUILD_PLAN's monetization rule: a pay-to-win aim trainer produces meaningless telemetry and has no reason to exist. tools/ship-check audits this file.",
+    "The axes gear IS allowed to trade on: how loud you are, how fast you move, how much paint you carry, and how quickly you get back into the fight."
+  ],
+  "protective": {
+    "_note": "Loudness is the interesting axis. Bots hear you within tierData.hearingRadiusMetres * loudness -- a quiet jersey lets you take an angle they have not been told about, and pays for it in speed. That is a real decision and it is not an aim upgrade.",
+    "jerseys": {
+      "order": [
+        "houseWhite",
+        "paddedTwill",
+        "slickComp",
+        "hazard",
+        "deepwater",
+        "sunbleach",
+        "nightRange"
+      ],
+      "items": {
+        "houseWhite": {
+          "displayName": "House Jersey",
+          "cost": 0,
+          "colorKey": "white",
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "blurb": "Field loaner. Smells like every field loaner."
+        },
+        "paddedTwill": {
+          "displayName": "Padded Twill",
+          "cost": 1100,
+          "colorKey": "moss",
+          "loudnessMultiplier": 0.72,
+          "sprintMultiplier": 0.93,
+          "blurb": "Heavy brushed cotton. Deadens every rustle. You will not be sprinting anyone down in it."
+        },
+        "slickComp": {
+          "displayName": "Slick Comp",
+          "cost": 1400,
+          "colorKey": "amber",
+          "loudnessMultiplier": 1.24,
+          "sprintMultiplier": 1.07,
+          "blurb": "Competition cut, ripstop shell. Fast, and audible from the next bunker over."
+        },
+        "hazard": {
+          "displayName": "Hazard",
+          "cost": 600,
+          "colorKey": "amber",
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "cosmetic": true
+        },
+        "deepwater": {
+          "displayName": "Deepwater",
+          "cost": 600,
+          "colorKey": "teal",
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "cosmetic": true
+        },
+        "sunbleach": {
+          "displayName": "Sunbleach",
+          "cost": 1200,
+          "colorKey": "coral",
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "cosmetic": true
+        },
+        "nightRange": {
+          "displayName": "Night Range",
+          "cost": 1800,
+          "colorKey": "indigo",
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "cosmetic": true
+        }
+      }
+    },
+    "pads": {
+      "order": [
+        "none",
+        "kneeSliders",
+        "fullWrap",
+        "lowProfile"
+      ],
+      "items": {
+        "none": {
+          "displayName": "No Pads",
+          "cost": 0,
+          "crouchMultiplier": 1.0,
+          "slideDurationMultiplier": 1.0,
+          "slideCooldownMultiplier": 1.0,
+          "loudnessMultiplier": 1.0,
+          "blurb": "Nothing between you and the field. Slides hurt. Slides are also short."
+        },
+        "kneeSliders": {
+          "displayName": "Knee Sliders",
+          "cost": 900,
+          "crouchMultiplier": 1.0,
+          "slideDurationMultiplier": 1.35,
+          "slideCooldownMultiplier": 0.8,
+          "loudnessMultiplier": 1.12,
+          "blurb": "Slide further, slide sooner, and announce it to everyone."
+        },
+        "fullWrap": {
+          "displayName": "Full Wrap",
+          "cost": 1600,
+          "crouchMultiplier": 0.86,
+          "slideDurationMultiplier": 1.15,
+          "slideCooldownMultiplier": 0.9,
+          "loudnessMultiplier": 0.88,
+          "blurb": "Elbows, knees, shins. Quiet and slow. The snake player's pick."
+        },
+        "lowProfile": {
+          "displayName": "Low Profile",
+          "cost": 1300,
+          "crouchMultiplier": 1.16,
+          "slideDurationMultiplier": 0.9,
+          "slideCooldownMultiplier": 1.15,
+          "loudnessMultiplier": 0.94,
+          "blurb": "Thin sleeves. Crouch-walk quickly, and do not expect to slide out of anything."
+        }
+      }
+    },
+    "helmets": {
+      "_note": "Headwear over the mask. Real scenario players wear all of this. None of it stops paint -- a mask already does that, and a hit is a hit anywhere -- so helmets trade on the same axes as everything else: how loud you are and how fast you move.",
+      "order": [
+        "capBackwards",
+        "boonie",
+        "crownGuard",
+        "marshalPlate",
+        "gildedCrown"
+      ],
+      "items": {
+        "capBackwards": {
+          "displayName": "Cap, Backwards",
+          "cost": 0,
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "blurb": "The default. Free, and everyone has one."
+        },
+        "boonie": {
+          "displayName": "Boonie Hat",
+          "cost": 700,
+          "loudnessMultiplier": 0.9,
+          "sprintMultiplier": 1.0,
+          "blurb": "Floppy brim, breaks your outline in the treeline. Woods players swear by it and nobody has ever proven them right."
+        },
+        "crownGuard": {
+          "displayName": "Crown Guard",
+          "cost": 1500,
+          "unlockChapter": "regional",
+          "loudnessMultiplier": 1.08,
+          "sprintMultiplier": 1.02,
+          "blurb": "Hard shell over the top of the mask. Ball bounces off it with a noise you will learn to like."
+        },
+        "marshalPlate": {
+          "displayName": "Marshal's Plate",
+          "cost": null,
+          "unlockChapter": "theMarshal",
+          "loudnessMultiplier": 0.82,
+          "sprintMultiplier": 0.97,
+          "blurb": "Taken off a field marshal who did not say a word about it. Heavy, and very quiet."
+        },
+        "gildedCrown": {
+          "displayName": "Gilded Crown",
+          "cost": null,
+          "unlockChapter": "aurum",
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "cosmetic": true,
+          "blurb": "Matches the marker. Does nothing at all, which after everything is rather the point."
+        }
+      }
+    },
+    "shoulders": {
+      "_note": "Shoulder and chest rigs. The bulk axis: more coverage is quieter and slower, less is faster and louder.",
+      "order": [
+        "bare",
+        "harnessStraps",
+        "scenarioRig",
+        "breachPads",
+        "gildedShoulders"
+      ],
+      "items": {
+        "bare": {
+          "displayName": "Jersey Only",
+          "cost": 0,
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "crouchMultiplier": 1.0,
+          "blurb": "Nothing on top. Light, loud on brush, and you will feel every bounce."
+        },
+        "harnessStraps": {
+          "displayName": "Harness Straps",
+          "cost": 800,
+          "loudnessMultiplier": 1.05,
+          "sprintMultiplier": 1.04,
+          "crouchMultiplier": 1.0,
+          "blurb": "Minimal webbing across the shoulders. Fast. Rattles."
+        },
+        "scenarioRig": {
+          "displayName": "Scenario Rig",
+          "cost": 1700,
+          "loudnessMultiplier": 0.86,
+          "sprintMultiplier": 0.95,
+          "crouchMultiplier": 1.06,
+          "blurb": "Padded shoulders and a chest panel. Built for lying in a snake for four minutes."
+        },
+        "breachPads": {
+          "displayName": "Breach Pads",
+          "cost": 2100,
+          "unlockChapter": "localLeague",
+          "loudnessMultiplier": 0.94,
+          "sprintMultiplier": 1.0,
+          "crouchMultiplier": 1.1,
+          "slideDurationMultiplier": 1.2,
+          "blurb": "Thick shoulder caps and slick panels down the ribs. Made for going through a gap on your side."
+        },
+        "gildedShoulders": {
+          "displayName": "Gilded Shoulders",
+          "cost": null,
+          "unlockChapter": "theLongAfternoon",
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "crouchMultiplier": 1.0,
+          "cosmetic": true,
+          "blurb": "Twenty waves of horde. Marge had them made. She will not say by whom."
+        }
+      }
+    }
+  },
+  "paintAndAir": {
+    "_note": "Pods are spare paint on your belt. They set how many times you can refill the hopper before you are dry for the round -- which is a capacity and tempo decision, not an aim one. Run the electronic marker on two pods and find out.",
+    "pods": {
+      "order": [
+        "twoPack",
+        "fourPack",
+        "sixPack",
+        "harness"
+      ],
+      "items": {
+        "twoPack": {
+          "displayName": "2-Pod Wrap",
+          "cost": 0,
+          "podCount": 2,
+          "reloadMultiplier": 1.0,
+          "loudnessMultiplier": 1.0,
+          "sprintMultiplier": 1.0,
+          "blurb": "Two pods. Enough for a short round and a bad habit."
+        },
+        "fourPack": {
+          "displayName": "4-Pod Harness",
+          "cost": 850,
+          "podCount": 4,
+          "reloadMultiplier": 1.0,
+          "loudnessMultiplier": 1.06,
+          "sprintMultiplier": 0.98,
+          "blurb": "The standard. Rattles a little when you run."
+        },
+        "sixPack": {
+          "displayName": "6-Pod Harness",
+          "cost": 1900,
+          "podCount": 6,
+          "reloadMultiplier": 1.08,
+          "loudnessMultiplier": 1.15,
+          "sprintMultiplier": 0.94,
+          "blurb": "You will not run dry in round five. You will also be heard doing it."
+        },
+        "harness": {
+          "displayName": "Racer Harness",
+          "cost": 2600,
+          "podCount": 3,
+          "reloadMultiplier": 0.78,
+          "loudnessMultiplier": 0.92,
+          "sprintMultiplier": 1.03,
+          "blurb": "Three pods, mounted tight and forward. Fewer refills, much faster ones."
+        }
+      }
+    }
+  },
+  "defaults": {
+    "jersey": "houseWhite",
+    "pads": "none",
+    "pods": "twoPack",
+    "helmet": "capBackwards",
+    "shoulders": "bare"
+  },
+  "_auditableFields": [
+    "loudnessMultiplier",
+    "sprintMultiplier",
+    "crouchMultiplier",
+    "slideDurationMultiplier",
+    "slideCooldownMultiplier",
+    "reloadMultiplier",
+    "podCount",
+    "unlockChapter"
+  ],
+  "_auditNote": "tools/ship-check asserts that no item in this file declares any field outside the list above. Adding a spreadMultiplier or a damageReduction here would fail the build, which is the point."
+}

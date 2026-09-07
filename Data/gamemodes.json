@@ -1,0 +1,91 @@
+{
+  "_comment": "The three ways to play. All solo PvE -- one player against a squad, always. There is no multiplayer in scope and none of these modes add any.",
+
+  "order": ["gauntlet", "horde", "captureTheFlag"],
+  "default": "gauntlet",
+
+  "modes": {
+    "gauntlet": {
+      "displayName": "Gauntlet",
+      "subtitle": "Five rounds. The field fills up.",
+      "blurb": "Two of them, then three, then four, five, six. Better players for the last two. Clear all five or the match ends where you stopped.",
+      "unlockRequires": null,
+      "maps": ["speedball", "urban", "woods", "dustline"],
+      "rules": "match.rounds",
+      "leaderboard": "time"
+    },
+
+    "horde": {
+      "displayName": "Horde",
+      "subtitle": "The Long Afternoon.",
+      "blurb": "Endless waves. Breather every fifth, a marshal every seventh, and it does not have an end -- only a depth you stopped at.",
+      "unlockRequires": "proCircuit",
+      "maps": ["speedball", "urban", "woods", "dustline"],
+      "rules": "endless",
+      "leaderboard": "wave"
+    },
+
+    "captureTheFlag": {
+      "displayName": "Capture the Flag",
+      "subtitle": "Holdfast. Their keep, your keep, one flag each.",
+      "blurb": "Take their flag out of the north keep and get it back to yours. They are doing the same thing in the other direction, and they have six people to your one.",
+      "unlockRequires": "backForty",
+      "maps": ["holdfast"],
+      "rules": "captureTheFlag",
+      "leaderboard": "time"
+    }
+  },
+
+  "captureTheFlag": {
+    "_comment": "Solo CTF: you are one runner against a squad that both defends and attacks. It works because the squad has to SPLIT -- and watching them split, then punishing whichever half is thinner, is the whole game.",
+
+    "capturesToWin": 3,
+    "timeLimitSeconds": 600,
+
+    "flag": {
+      "_note": "You pick a flag up by touching it and you carry it visibly. Everyone can see a carrier from anywhere -- that is not a wallhack, it is a flag on a pole on someone's back, and it is the point.",
+      "pickupRadiusMetres": 2.0,
+      "captureRadiusMetres": 3.0,
+      "carrierVisibleToAll": true,
+      "carrierSprintMultiplier": 0.88,
+      "carrierLoudnessMultiplier": 1.35,
+      "_carrierCost": "Carrying slows you and makes you loud. You cannot outrun the squad with it -- you have to have made room BEFORE you picked it up.",
+      "dropOnElimination": true,
+      "returnAfterSecondsIdle": 22,
+      "_returnNote": "A dropped flag sits where it fell and returns home if nobody touches it. So a failed run is not a reset -- it is a flag lying in the open that both sides now want."
+    },
+
+    "mustHaveOwnFlagHome": true,
+    "_mustHave": "You cannot capture while your own flag is out. Standard CTF rule and it is what forces you to care about defence at all when you are alone.",
+
+    "squadSplit": {
+      "_note": "The squad divides between holding their keep and running at yours. The split shifts with the score -- behind, they push; ahead, they turtle -- which is the read the player is learning to make.",
+      "defendersBase": 4,
+      "attackersBase": 2,
+      "whenLosing": { "defenders": 2, "attackers": 4 },
+      "whenWinning": { "defenders": 5, "attackers": 1 },
+      "reassignEverySeconds": 20
+    },
+
+    "botCarrier": {
+      "_note": "A bot carrying your flag runs for home and its escort collapses onto it. Marking the carrier drops the flag where they stood.",
+      "sprintMultiplier": 0.9,
+      "escortCount": 2,
+      "prefersCover": true
+    },
+
+    "respawn": {
+      "playerSeconds": 4.0,
+      "botSeconds": 9.0,
+      "_note": "Bots respawn here, unlike every other mode. CTF is not an elimination mode -- it is a territory mode, and a squad you can permanently delete would make it trivial."
+    },
+
+    "payout": {
+      "perCapture": 900,
+      "perFlagReturn": 250,
+      "winBonus": 2200,
+      "usesDeathPenalty": true,
+      "usesAccuracyBonus": true
+    }
+  }
+}

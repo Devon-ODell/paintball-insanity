@@ -1,0 +1,109 @@
+{
+  "id": "speedball",
+  "displayName": "Speedball",
+  "curriculumIndex": 1,
+  "teaches": ["reactivity", "flicking", "targetSwitching"],
+  "_intent": "A meat grinder on purpose. Shallow cover, no real flank, short sightlines. This is where the player learns that trading is death: six markers beat one every single time you stand and fight. The only way out is timing and isolation.",
+
+  "engagementBand": { "minMetres": 5, "targetMedianMetres": 16, "maxMetres": 34 },
+
+  "bounds": { "widthMetres": 34, "lengthMetres": 55, "heightMetres": 9 },
+  "ground": { "colorKey": "groundAlt", "thicknessMetres": 1 },
+  "walls": { "colorKey": "netting", "heightMetres": 7, "transparency": 0.55 },
+
+  "_shapes": "Bunker shapes are real speedball inflatables -- can, dorito, snake, temple, brick. Match/Inflatables.luau builds each as a rounded, seamed, strapped model and gives it one invisible collision box matching the oriented box declared here, so player collision, bot line-of-sight and projectile blocking are all the same shape.",
+
+  "_mirror": "Pieces with mirrorZ:true are duplicated with Z negated, giving the symmetric field. Pieces with mirrorX:true are duplicated with X negated.",
+
+  "geometry": [
+    { "id": "temple",     "shape": "inflatable_temple",      "position": [0, 1.6, 0],     "size": [3.2, 3.2, 3.2],  "rotationY": 45, "colorKey": "bunkerC", "cover": true },
+
+    { "id": "can_mid",    "shape": "inflatable_can", "position": [8.5, 1.5, -6],  "size": [2.0, 3.0, 2.0],  "colorKey": "bunkerB", "cover": true, "mirrorX": true, "mirrorZ": true },
+    { "id": "dorito_mid", "shape": "inflatable_dorito",    "position": [3.5, 1.1, -11], "size": [2.6, 2.2, 2.6],  "rotationY": 180, "colorKey": "bunkerA", "cover": true, "mirrorX": true, "mirrorZ": true },
+    { "id": "dorito_out", "shape": "inflatable_dorito",    "position": [12.0, 1.1, -15],"size": [2.8, 2.2, 2.8],  "rotationY": 180, "colorKey": "bunkerA", "cover": true, "mirrorX": true, "mirrorZ": true },
+
+    { "id": "snake_a",    "shape": "inflatable_snake",      "position": [-13.5, 0.65, -19], "size": [5.5, 1.3, 1.4], "colorKey": "bunkerB", "cover": true, "mirrorZ": true },
+    { "id": "snake_b",    "shape": "inflatable_snake",      "position": [-13.5, 0.65, -12], "size": [5.5, 1.3, 1.4], "colorKey": "bunkerB", "cover": true, "mirrorZ": true },
+    { "id": "snake_c",    "shape": "inflatable_snake",      "position": [-13.5, 0.65, -5],  "size": [5.5, 1.3, 1.4], "colorKey": "bunkerB", "cover": true, "mirrorZ": true },
+    { "id": "snake_knuckle", "shape": "inflatable_can", "position": [-11.0, 1.2, -8.5], "size": [1.6, 2.4, 1.6], "colorKey": "bunkerC", "cover": true, "mirrorZ": true },
+
+    { "id": "can_home",   "shape": "inflatable_can", "position": [5.0, 1.5, -21],  "size": [2.0, 3.0, 2.0],  "colorKey": "bunkerB", "cover": true, "mirrorX": true, "mirrorZ": true },
+    { "id": "corner",     "shape": "inflatable_temple",      "position": [15.0, 1.4, -24], "size": [2.6, 2.8, 2.6],  "rotationY": 30, "colorKey": "bunkerC", "cover": true, "mirrorX": true, "mirrorZ": true },
+    { "id": "beam_low",   "shape": "inflatable_brick",      "position": [0, 0.6, -17],    "size": [7.0, 1.2, 1.2],  "colorKey": "bunkerA", "cover": true, "mirrorZ": true }
+  ],
+
+  "playerSpawn": { "position": [0, 0, -25.5], "lookAt": [0, 0, 0] },
+  "playerRespawns": [
+    { "position": [0, 0, -25.5], "lookAt": [0, 0, 0] },
+    { "position": [-12, 0, -24.0], "lookAt": [0, 0, 0] },
+    { "position": [12, 0, -24.0], "lookAt": [0, 0, 0] }
+  ],
+
+  "botSpawns": [
+    { "position": [0, 0, 25.5],   "lookAt": [0, 0, 0] },
+    { "position": [-6, 0, 24.5],  "lookAt": [0, 0, 0] },
+    { "position": [6, 0, 24.5],   "lookAt": [0, 0, 0] },
+    { "position": [-13, 0, 23.0], "lookAt": [0, 0, 0] },
+    { "position": [13, 0, 23.0],  "lookAt": [0, 0, 0] },
+    { "position": [0, 0, 21.0],   "lookAt": [0, 0, 0] }
+  ],
+
+  "anchors": [
+    { "id": "an_temple_far", "position": [1.8, 0, 2.6],    "faces": [0, -1], "roles": ["anchor", "pressure"], "coverId": "temple" },
+    { "id": "an_can_l",      "position": [-8.5, 0, 6.6],   "faces": [0.2, -1], "roles": ["anchor"], "coverId": "can_mid" },
+    { "id": "an_can_r",      "position": [8.5, 0, 6.6],    "faces": [-0.2, -1], "roles": ["anchor"], "coverId": "can_mid" },
+    { "id": "an_dorito_l",   "position": [-3.5, 0, 11.6],  "faces": [0, -1], "roles": ["pressure"], "coverId": "dorito_mid" },
+    { "id": "an_dorito_r",   "position": [3.5, 0, 11.6],   "faces": [0, -1], "roles": ["pressure"], "coverId": "dorito_mid" },
+    { "id": "an_snake_far",  "position": [-13.5, 0, 12.0], "faces": [0.3, -1], "roles": ["flanker"], "coverId": "snake_b", "crouchOnly": true },
+    { "id": "an_snake_mid",  "position": [-13.5, 0, 5.0],  "faces": [0.4, -1], "roles": ["flanker"], "coverId": "snake_c", "crouchOnly": true },
+    { "id": "an_snake_near", "position": [-13.5, 0, -5.0], "faces": [0.6, -1], "roles": ["flanker"], "coverId": "snake_c", "crouchOnly": true },
+    { "id": "an_corner_l",   "position": [-15.0, 0, 24.0], "faces": [0.4, -1], "roles": ["anchor"], "coverId": "corner" },
+    { "id": "an_corner_r",   "position": [15.0, 0, 24.0],  "faces": [-0.4, -1], "roles": ["anchor"], "coverId": "corner" },
+    { "id": "an_wide_r",     "position": [12.0, 0, 15.6],  "faces": [-0.3, -1], "roles": ["flanker", "pressure"], "coverId": "dorito_out" },
+    { "id": "an_wide_r_push","position": [13.5, 0, 2.0],   "faces": [-0.5, -1], "roles": ["flanker"], "coverId": "can_mid" },
+    { "id": "an_beam_far",   "position": [0, 0, 17.8],     "faces": [0, -1], "roles": ["pressure"], "coverId": "beam_low", "crouchOnly": true },
+    { "id": "an_temple_near","position": [-1.8, 0, -2.6],  "faces": [0, -1], "roles": ["pressure"], "coverId": "temple" }
+  ],
+
+  "_navNodes": "The field is symmetric across both axes and so is this graph. Nodes sit BESIDE cover, never inside it -- tools/map-validate enforces that.",
+  "navNodes": [
+    [0, 0, 24], [-8, 0, 22], [8, 0, 22], [-14.36, 0, 21.89], [14.36, 0, 21.89],
+    [0, 0, 18.45], [-12, 0, 17.25], [12, 0, 17.25], [-3.5, 0, 13.15], [3.5, 0, 13.15],
+    [-13.5, 0, 13.55], [13.5, 0, 11], [-8.5, 0, 7.85], [8.5, 0, 7.85], [0, 0, 5],
+    [-13.5, 0, 6.55], [13.5, 0, 4], [-4.5, 0, 0], [4.5, 0, 0], [0, 0, 3],
+    [0, 0, -3], [-13.5, 0, -3.45], [13.5, 0, -5], [-8.5, 0, -7.85], [8.5, 0, -7.85],
+    [-3.5, 0, -13.15], [3.5, 0, -13.15], [0, 0, -10], [-12, 0, -17.25], [12, 0, -17.25],
+    [0, 0, -18.45], [-14.36, 0, -21.89], [14.36, 0, -21.89], [0, 0, -24], [-8, 0, -22],
+    [8, 0, -22], [-13.5, 0, -13.55], [13.5, 0, 13.55], [13.5, 0, -13.55], [13.5, 0, -11],
+    [-13.5, 0, 11], [-13.5, 0, -11], [0, 0, -5], [-13.5, 0, -6.55], [13.5, 0, 6.55],
+    [13.5, 0, -6.55], [13.5, 0, -4], [-13.5, 0, 4], [-13.5, 0, -4], [-13.5, 0, 3.45],
+    [13.5, 0, -3.45], [13.5, 0, 3.45], [13.5, 0, 5], [-13.5, 0, -3.45], [-13.5, 0, 6.55],
+    [0, 0, 10]
+  ],
+
+  "sightlines": [
+    { "from": "an_temple_far", "to": "an_temple_near", "lengthMetres": 5.2, "_note": "Knife fight. Whoever moves second loses." },
+    { "from": "an_can_l", "to": "an_dorito_r", "lengthMetres": 13.0 },
+    { "from": "an_can_r", "to": "an_dorito_l", "lengthMetres": 13.0 },
+    { "from": "an_corner_l", "to": "an_wide_r_push", "lengthMetres": 36.0, "_note": "The one long lane. Anchors pre-place here; crossing it in the open is the classic new-player death." },
+    { "from": "an_snake_far", "to": "an_wide_r", "lengthMetres": 25.7 },
+    { "from": "an_beam_far", "to": "an_temple_near", "lengthMetres": 20.5 }
+  ],
+
+  "prePlacementAngles": [
+    { "anchorId": "an_can_l",    "watch": [0, 0, -8],    "priority": 1 },
+    { "anchorId": "an_can_r",    "watch": [0, 0, -8],    "priority": 1 },
+    { "anchorId": "an_corner_l", "watch": [-13.5, 0, 0], "priority": 2 },
+    { "anchorId": "an_corner_r", "watch": [13.5, 0, 0],  "priority": 2 },
+    { "anchorId": "an_temple_far", "watch": [0, 0, -10], "priority": 1 }
+  ],
+
+  "presentation": {
+    "theme": "tournament",
+    "banner": "SPEEDBALL / PLAY THE ANGLES",
+    "groundStripes": true,
+    "boundaryLines": true,
+    "groundDetails": [],
+    "facades": []
+  }
+}

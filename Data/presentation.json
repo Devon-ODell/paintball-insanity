@@ -1,0 +1,49 @@
+{
+  "_comment": "Purely visual world tuning. Dressing never collides, receives touches or participates in raycasts. All gameplay geometry remains in maps/*.json.",
+  "palette": {
+    "cream": [238, 231, 207],
+    "ink": [28, 38, 44],
+    "teal": [44, 161, 156],
+    "amber": [221, 168, 74],
+    "trail": [136, 120, 86],
+    "gravel": [149, 141, 123],
+    "turf": [86, 119, 75],
+    "pine": [48, 84, 64],
+    "pineLight": [66, 99, 73],
+    "bark": [88, 66, 48]
+  },
+  "groundMarking": { "heightMetres": 0.009, "thicknessMetres": 0.014 },
+  "facades": {
+    "maxDistanceMetres": 80,
+    "canvasSize": [900, 500],
+    "bandHeight": 0.07,
+    "labelPosition": [0.1, 0.32],
+    "labelSize": [0.8, 0.34],
+    "textStrokeTransparency": 0.72
+  },
+  "venue": {
+    "signMaxDistanceMetres": 65,
+    "displayColumns": 5,
+    "displayWidthMetres": 18,
+    "displayBaseHeightMetres": 2.15,
+    "displayRowHeightMetres": 1.45,
+    "displayModelScale": 1.5,
+    "priceTagSizeMetres": [3.3, 0.37, 0.04]
+  },
+  "foliage": {
+    "_comment": "Keep shadows on large trunks, canopies and rocks. Small undergrowth adds thousands of shadow casters but no useful depth at walking distance.",
+    "shadowParts": { "Trunk": true, "Canopy1": true, "Canopy2": true, "Canopy3": true, "Crown": true, "Rock": true, "Log": true }
+  },
+  "treeLine": {
+    "insetOutsideBoundsMetres": 8,
+    "trunkDiameterMetres": 0.85,
+    "crownWidthMetres": 8,
+    "crownHeightFraction": 0.42,
+    "crownHeightFraction2": 0.29,
+    "crownPositionFraction": 0.71,
+    "crownPositionFraction2": 0.91,
+    "crownWidthFraction2": 0.68,
+    "heightVariationMetres": [0, 3, -1, 5, 1, -2, 4],
+    "offsetVariationMetres": [0, 3, 1, 5, 2]
+  }
+}

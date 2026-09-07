@@ -1,0 +1,81 @@
+{
+  "_comment": "HORDE -- The Long Afternoon. Endless waves that keep escalating until you stop. Locked until the gauntlet is beaten at pro on all three fields, because horde has no curriculum in it: it is a victory lap and a leaderboard, and handing it out first would let a player skip the thing that actually teaches them.",
+
+  "_theHealthQuestion": "There is no health here either. One hit is out, in horde exactly as everywhere else -- it is the paintball rule, the content rating and the whole difficulty design at once. So a wave gets harder by adding BODIES, better PLAYERS and tighter COORDINATION, and by shrinking the target on the bosses. A bot that soaked three hits would break the one rule the entire game is built on.",
+
+  "unlockRequires": "proCircuit",
+
+  "waves": {
+    "botsBase": 3,
+    "botsPerWave": 0.55,
+    "botsMax": 14,
+    "_botsNote": "Grows about a body every other wave, capped at fourteen alive at once. Past that the field stops having space and it turns into a shooting gallery, which is the opposite of the point.",
+
+    "concurrentCap": 8,
+    "_concurrentNote": "Only this many are ON the field at once; the rest feed in as their teammates go out. A wave of fourteen arriving together would just be a wall.",
+
+    "tierLadder": [
+      { "fromWave": 1, "tier": "rec" },
+      { "fromWave": 4, "tier": "amateur" },
+      { "fromWave": 9, "tier": "semipro" },
+      { "fromWave": 15, "tier": "pro" }
+    ],
+
+    "veterancy": {
+      "_note": "Past pro there is nowhere left on the tier ladder, so waves keep tightening the pro parameters directly -- and every one of these stays inside what a human could do. Reaction time floors at 120 ms and aim error floors at 0.45 degrees; the game will not manufacture a bot that nobody could be.",
+      "fromWave": 15,
+      "perWave": {
+        "reactionTimeMultiplier": 0.985,
+        "aimErrorMultiplier": 0.985,
+        "leadSolutionAccuracyAdd": 0.002,
+        "contactShareDelayMultiplier": 0.98
+      },
+      "floors": {
+        "reactionTimeMs": 120,
+        "aimErrorDeg": 0.45,
+        "leadSolutionAccuracy": 0.99,
+        "contactShareDelayMs": 150
+      }
+    },
+
+    "breatherEveryWaves": 5,
+    "breatherSeconds": 22,
+    "_breather": "Every fifth wave the field goes quiet, consumable slots refill and a supply crate drops. It is the only pacing horde has and it is also when people go and read the board.",
+
+    "bossEveryWaves": 7,
+    "_bossNote": "A marshal turns up on wave 7, 14, 21 and so on, escorted. See bosses.json.",
+
+    "dropTable": {
+      "_note": "Red kit from wave 10, gold from wave 25. Neither is ever purchasable at any price.",
+      "red": { "fromWave": 10, "chancePerBreather": 0.5 },
+      "gold": { "fromWave": 25, "chancePerBreather": 0.35 },
+      "bossGuaranteed": { "red": true, "gold": "fromWave25" }
+    }
+  },
+
+  "payout": {
+    "_note": "Horde pays per wave survived, on a curve that rewards depth rather than repetition. Deaths still apply the same multiplicative penalty as the gauntlet -- brute-forcing wave 30 with forty respawns earns almost nothing, exactly as intended.",
+    "perWaveBase": 90,
+    "waveExponent": 1.18,
+    "bossBonus": 800,
+    "usesDeathPenalty": true,
+    "usesAccuracyBonus": true
+  },
+
+  "leaderboard": {
+    "_note": "Horde has its own board: deepest wave, then fastest to reach it as the tiebreak. Kept separate from the gauntlet time boards, because 'how far' and 'how fast' are different questions and merging them would answer neither.",
+    "storePrefix": "LiveRoundHorde_v1_",
+    "metric": "wave",
+    "tiebreak": "seconds"
+  },
+
+  "milestones": [
+    { "wave": 5, "line": "Five. Everyone still knows your name." },
+    { "wave": 10, "line": "Ten. Marshal issue in the crate -- take the Emberfill." },
+    { "wave": 15, "line": "Fifteen. That is the pro squad and they are not going to get worse." },
+    { "wave": 20, "line": "Twenty. Marge started keeping a note behind the counter." },
+    { "wave": 25, "line": "Twenty-five. There is gold in the crate. Nobody has ever needed it." },
+    { "wave": 30, "line": "Thirty. The field lights came on and nobody remembers turning them on." },
+    { "wave": 40, "line": "Forty. She is going to open the case." }
+  ]
+}

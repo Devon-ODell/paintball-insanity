@@ -1,0 +1,360 @@
+{
+  "id": "holdfast",
+  "displayName": "Holdfast",
+  "curriculumIndex": 5,
+  "teaches": ["leadAndDrop", "crosshairPlacement", "tracking"],
+  "_intent": "The big one. Deep woods with a timber keep on each end of the valley, and the whole map is the ground between them. Built for capture the flag: you have to cross it, they have to hold it, and both keeps have a wall you can shoot over and a gate you have to go through. Longest sightlines in the game, and the only map where you are ever attacking a fixed position.",
+
+  "engagementBand": { "minMetres": 10, "targetMedianMetres": 52, "maxMetres": 96 },
+
+  "bounds": { "widthMetres": 150, "lengthMetres": 200, "heightMetres": 44 },
+  "ground": { "colorKey": "ground", "thicknessMetres": 1 },
+  "walls": { "colorKey": "foliageDeep", "heightMetres": 20, "transparency": 0.2 },
+  "navLinkRadiusMetres": 34,
+
+  "terrain": [
+    { "id": "knoll_north", "shape": "box", "position": [0, 2.5, 62], "size": [58, 5, 34], "colorKey": "groundAlt", "walkable": true },
+    { "id": "knoll_south", "shape": "box", "position": [0, 2.5, -62], "size": [58, 5, 34], "colorKey": "groundAlt", "walkable": true },
+    { "id": "ridge_west", "shape": "box", "position": [-52, 3.5, 0], "size": [26, 7, 90], "colorKey": "ground", "walkable": true },
+    { "id": "ridge_east", "shape": "box", "position": [52, 3.5, 0], "size": [26, 7, 90], "colorKey": "ground", "walkable": true },
+    { "id": "hollow_mid", "shape": "box", "position": [0, -1.4, 0], "size": [64, 2.8, 56], "colorKey": "groundAlt", "walkable": true }
+  ],
+
+  "geometry": [
+    { "id": "keep_n_wall_w", "shape": "box", "position": [-15, 6.5, 74], "size": [3, 8, 26], "colorKey": "rock", "cover": true },
+    { "id": "keep_n_wall_e", "shape": "box", "position": [15, 6.5, 74], "size": [3, 8, 26], "colorKey": "rock", "cover": true },
+    { "id": "keep_n_wall_back", "shape": "box", "position": [0, 6.5, 86], "size": [33, 8, 3], "colorKey": "rock", "cover": true },
+    { "id": "keep_n_wall_fl", "shape": "box", "position": [-11, 6.5, 62], "size": [11, 8, 3], "colorKey": "rock", "cover": true },
+    { "id": "keep_n_wall_fr", "shape": "box", "position": [11, 6.5, 62], "size": [11, 8, 3], "colorKey": "rock", "cover": true },
+    { "id": "keep_n_walk", "shape": "box", "position": [0, 8.2, 74], "size": [33, 0.6, 26], "colorKey": "timberDark", "cover": true, "walkable": true },
+    { "id": "keep_n_crenel_l", "shape": "box", "position": [-13.6, 9.6, 74], "size": [1.0, 2.2, 26], "colorKey": "rock", "cover": true },
+    { "id": "keep_n_crenel_r", "shape": "box", "position": [13.6, 9.6, 74], "size": [1.0, 2.2, 26], "colorKey": "rock", "cover": true },
+    { "id": "keep_n_crenel_f", "shape": "box", "position": [0, 9.6, 62.6], "size": [33, 2.2, 1.0], "colorKey": "rock", "cover": true },
+    { "id": "keep_n_tower_l", "shape": "box", "position": [-15, 9.0, 62], "size": [6, 14, 6], "colorKey": "timber", "cover": true },
+    { "id": "keep_n_tower_r", "shape": "box", "position": [15, 9.0, 62], "size": [6, 14, 6], "colorKey": "timber", "cover": true },
+    { "id": "keep_n_keepblock", "shape": "box", "position": [0, 4.5, 84], "size": [14, 9, 5], "colorKey": "timberDark", "cover": true },
+    { "id": "keep_n_ramp", "shape": "wedge", "position": [0, 4.0, 68], "size": [7, 8, 10], "rotationY": 180, "colorKey": "timber", "cover": true, "walkable": true },
+
+    { "id": "keep_s_wall_w", "shape": "box", "position": [-15, 6.5, -74], "size": [3, 8, 26], "colorKey": "rock", "cover": true },
+    { "id": "keep_s_wall_e", "shape": "box", "position": [15, 6.5, -74], "size": [3, 8, 26], "colorKey": "rock", "cover": true },
+    { "id": "keep_s_wall_back", "shape": "box", "position": [0, 6.5, -86], "size": [33, 8, 3], "colorKey": "rock", "cover": true },
+    { "id": "keep_s_wall_fl", "shape": "box", "position": [-11, 6.5, -62], "size": [11, 8, 3], "colorKey": "rock", "cover": true },
+    { "id": "keep_s_wall_fr", "shape": "box", "position": [11, 6.5, -62], "size": [11, 8, 3], "colorKey": "rock", "cover": true },
+    { "id": "keep_s_walk", "shape": "box", "position": [0, 8.2, -74], "size": [33, 0.6, 26], "colorKey": "timberDark", "cover": true, "walkable": true },
+    { "id": "keep_s_crenel_l", "shape": "box", "position": [-13.6, 9.6, -74], "size": [1.0, 2.2, 26], "colorKey": "rock", "cover": true },
+    { "id": "keep_s_crenel_r", "shape": "box", "position": [13.6, 9.6, -74], "size": [1.0, 2.2, 26], "colorKey": "rock", "cover": true },
+    { "id": "keep_s_crenel_f", "shape": "box", "position": [0, 9.6, -62.6], "size": [33, 2.2, 1.0], "colorKey": "rock", "cover": true },
+    { "id": "keep_s_tower_l", "shape": "box", "position": [-15, 9.0, -62], "size": [6, 14, 6], "colorKey": "timber", "cover": true },
+    { "id": "keep_s_tower_r", "shape": "box", "position": [15, 9.0, -62], "size": [6, 14, 6], "colorKey": "timber", "cover": true },
+    { "id": "keep_s_keepblock", "shape": "box", "position": [0, 4.5, -84], "size": [14, 9, 5], "colorKey": "timberDark", "cover": true },
+    { "id": "keep_s_ramp", "shape": "wedge", "position": [0, 4.0, -68], "size": [7, 8, 10], "rotationY": 0, "colorKey": "timber", "cover": true, "walkable": true },
+
+    { "id": "outpost_w", "shape": "box", "position": [-52, 8.0, 22], "size": [8, 9, 8], "colorKey": "timber", "cover": true },
+    { "id": "outpost_w_deck", "shape": "box", "position": [-52, 12.7, 22], "size": [11, 0.5, 11], "colorKey": "timberDark", "cover": true, "walkable": true },
+    { "id": "outpost_w_rail", "shape": "box", "position": [-47.2, 13.5, 22], "size": [0.4, 1.2, 11], "colorKey": "timber", "cover": true },
+    { "id": "outpost_e", "shape": "box", "position": [52, 8.0, -22], "size": [8, 9, 8], "colorKey": "timber", "cover": true },
+    { "id": "outpost_e_deck", "shape": "box", "position": [52, 12.7, -22], "size": [11, 0.5, 11], "colorKey": "timberDark", "cover": true, "walkable": true },
+    { "id": "outpost_e_rail", "shape": "box", "position": [47.2, 13.5, -22], "size": [0.4, 1.2, 11], "colorKey": "timber", "cover": true },
+
+    { "id": "bridge_deck", "shape": "box", "position": [0, 1.6, 0], "size": [10, 0.6, 26], "colorKey": "timber", "cover": true, "walkable": true },
+    { "id": "bridge_rail_l", "shape": "box", "position": [-4.8, 2.5, 0], "size": [0.4, 1.2, 26], "colorKey": "timberDark", "cover": true },
+    { "id": "bridge_rail_r", "shape": "box", "position": [4.8, 2.5, 0], "size": [0.4, 1.2, 26], "colorKey": "timberDark", "cover": true },
+
+    { "id": "ruin_a", "shape": "box", "position": [-26, 1.8, 24], "size": [10, 3.6, 3], "rotationY": 22, "colorKey": "rock", "cover": true },
+    { "id": "ruin_b", "shape": "box", "position": [28, 1.8, -20], "size": [10, 3.6, 3], "rotationY": -34, "colorKey": "rock", "cover": true },
+    { "id": "ruin_c", "shape": "box", "position": [-30, 1.8, -28], "size": [9, 3.6, 3], "rotationY": 68, "colorKey": "rock", "cover": true },
+    { "id": "ruin_d", "shape": "box", "position": [24, 1.8, 30], "size": [9, 3.6, 3], "rotationY": -56, "colorKey": "rock", "cover": true },
+
+    { "id": "boulder_a", "shape": "box", "position": [-14, 1.4, 12], "size": [4.5, 2.8, 4.0], "rotationY": 30, "colorKey": "rock", "cover": true },
+    { "id": "boulder_b", "shape": "box", "position": [16, 1.4, -10], "size": [4.5, 2.8, 4.0], "rotationY": -48, "colorKey": "rock", "cover": true },
+    { "id": "boulder_c", "shape": "box", "position": [-8, 1.4, -34], "size": [4.0, 2.6, 3.6], "rotationY": 62, "colorKey": "mossRock", "cover": true },
+    { "id": "boulder_d", "shape": "box", "position": [10, 1.4, 36], "size": [4.0, 2.6, 3.6], "rotationY": -18, "colorKey": "mossRock", "cover": true },
+
+    { "id": "log_a", "shape": "cylinder", "position": [-34, 0.8, 4], "size": [1.6, 11, 1.6], "rotationY": 74, "rotationZ": 90, "colorKey": "timberDark", "cover": true },
+    { "id": "log_b", "shape": "cylinder", "position": [32, 0.8, 8], "size": [1.6, 10, 1.6], "rotationY": 18, "rotationZ": 90, "colorKey": "timber", "cover": true },
+
+    { "id": "tree_a", "shape": "cylinder", "position": [-22, 6, 44], "size": [1.4, 12, 1.4], "colorKey": "timberDark", "cover": true },
+    { "id": "tree_b", "shape": "cylinder", "position": [20, 6, 46], "size": [1.4, 12, 1.4], "colorKey": "timberDark", "cover": true },
+    { "id": "tree_c", "shape": "cylinder", "position": [-26, 6, -46], "size": [1.4, 12, 1.4], "colorKey": "timberDark", "cover": true },
+    { "id": "tree_d", "shape": "cylinder", "position": [24, 6, -44], "size": [1.4, 12, 1.4], "colorKey": "timberDark", "cover": true },
+    { "id": "tree_e", "shape": "cylinder", "position": [-40, 6, 30], "size": [1.4, 12, 1.4], "colorKey": "timber", "cover": true },
+    { "id": "tree_f", "shape": "cylinder", "position": [38, 6, -32], "size": [1.4, 12, 1.4], "colorKey": "timber", "cover": true },
+
+    { "id": "brush_a", "shape": "box", "position": [-18, 1.1, 34], "size": [14, 2.2, 7], "colorKey": "foliage", "cover": false, "concealment": true },
+    { "id": "brush_b", "shape": "box", "position": [18, 1.1, -34], "size": [14, 2.2, 7], "colorKey": "foliage", "cover": false, "concealment": true },
+    { "id": "brush_c", "shape": "box", "position": [-38, 1.1, -12], "size": [10, 2.2, 16], "colorKey": "foliageDeep", "cover": false, "concealment": true },
+    { "id": "brush_d", "shape": "box", "position": [36, 1.1, 14], "size": [10, 2.2, 16], "colorKey": "foliageDeep", "cover": false, "concealment": true },
+    { "id": "brush_e", "shape": "box", "position": [0, 1.1, 26], "size": [18, 2.2, 6], "colorKey": "foliage", "cover": false, "concealment": true },
+    { "id": "brush_f", "shape": "box", "position": [0, 1.1, -26], "size": [18, 2.2, 6], "colorKey": "foliage", "cover": false, "concealment": true }
+  ],
+
+  "_concealmentNote": "Brush blocks sight and not paint, same as Woods. On a map this size that is the difference between a crossing you survive and one you do not.",
+
+  "playerSpawn": { "position": [0, 0, -78], "lookAt": [0, 0, 0] },
+  "playerRespawns": [
+    { "position": [0, 0, -78], "lookAt": [0, 0, 0] },
+    { "position": [-12, 0, -72], "lookAt": [0, 0, 0] },
+    { "position": [12, 0, -72], "lookAt": [0, 0, 0] }
+  ],
+
+  "botSpawns": [
+    { "position": [0, 8.8, 74], "lookAt": [0, 0, 0] },
+    { "position": [-13, 8.8, 70], "lookAt": [0, 0, 0] },
+    { "position": [13, 8.8, 70], "lookAt": [0, 0, 0] },
+    { "position": [0, 5, 78], "lookAt": [0, 0, 0] },
+    { "position": [-52, 13, 22], "lookAt": [0, 0, 0] },
+    { "position": [52, 13, -22], "lookAt": [0, 0, 0] }
+  ],
+
+  "anchors": [
+    { "id": "an_keep_n_wall", "position": [0, 8.8, 64.4], "faces": [0, -1], "roles": ["anchor"], "coverId": "keep_n_crenel_f", "elevated": true, "_note": "The wall. Shooting down at the whole approach with over a second of flight time -- the hardest defensive angle in the game to answer." },
+    { "id": "an_keep_n_tower_l", "position": [-15, 14.0, 60], "faces": [0.2, -1], "roles": ["anchor"], "coverId": "keep_n_tower_l", "elevated": true },
+    { "id": "an_keep_n_tower_r", "position": [15, 14.0, 60], "faces": [-0.2, -1], "roles": ["anchor"], "coverId": "keep_n_tower_r", "elevated": true },
+    { "id": "an_keep_n_gate", "position": [0, 0, 61], "faces": [0, -1], "roles": ["pressure"], "coverId": "keep_n_wall_fl" },
+    { "id": "an_outpost_w", "position": [-47.6, 13.0, 22], "faces": [0.6, -1], "roles": ["anchor", "flanker"], "coverId": "outpost_w_rail", "elevated": true },
+    { "id": "an_outpost_e", "position": [47.6, 13.0, -22], "faces": [-0.6, -1], "roles": ["anchor", "flanker"], "coverId": "outpost_e_rail", "elevated": true },
+    { "id": "an_ruin_a", "position": [-26, 0, 21], "faces": [0.2, -1], "roles": ["pressure"], "coverId": "ruin_a" },
+    { "id": "an_ruin_b", "position": [28, 0, -17], "faces": [-0.3, -1], "roles": ["flanker"], "coverId": "ruin_b" },
+    { "id": "an_ruin_d", "position": [24, 0, 27], "faces": [-0.2, -1], "roles": ["pressure"], "coverId": "ruin_d" },
+    { "id": "an_boulder_a", "position": [-14, 0, 9], "faces": [0.1, -1], "roles": ["pressure"], "coverId": "boulder_a" },
+    { "id": "an_boulder_b", "position": [16, 0, -13], "faces": [-0.2, -1], "roles": ["flanker"], "coverId": "boulder_b" },
+    { "id": "an_bridge", "position": [0, 1.9, 10], "faces": [0, -1], "roles": ["pressure"], "coverId": "bridge_rail_l", "crouchOnly": true },
+    { "id": "an_ridge_w", "position": [-46, 7, 0], "faces": [0.7, -1], "roles": ["flanker"], "elevated": true },
+    { "id": "an_ridge_e", "position": [46, 7, 0], "faces": [-0.7, -1], "roles": ["flanker"], "elevated": true }
+  ],
+
+  "navNodes": [
+    [0, 8.8, 64.4], [-15, 14, 58.15], [15, 14, 58.15], [-47.6, 13, 22], [47.6, 13, -22],
+    [0, 5, 78], [0, 8.8, 74], [-13, 8.8, 70], [13, 8.8, 70], [0, 4, 68],
+    [0, 0, 61], [-20, 0, 66], [20, 0, 66], [-47.15, 7, 22], [56.85, 7, -22],
+    [-46, 7, 0], [46, 7, 0], [-46, 7, 32], [46, 7, -32], [-26, 0, 21],
+    [24, 0, 27], [0, 1.9, 10], [0, 1.9, -10], [-14, 0, 9], [16, 0, -13],
+    [-35.59, 0, 4.45], [31.49, 0, 9.57], [0, 0, 34], [0, 0, -34], [-18, 0, 40],
+    [18, 0, -40], [28, 0, -17], [-31.14, 0, -24.54], [-8, 0, -37], [10, 0, 39],
+    [0, 0, -61], [0, 4, -68], [-20, 0, -66], [20, 0, -66], [0, 8.8, -64.4],
+    [-15, 14, -58.15], [15, 14, -58.15], [0, 5, -78], [-12, 0, -72], [12, 0, -72],
+    [0, 0, -78], [57, 7, -6], [57, 7, -38]
+  ],
+
+  "navLinks": [[0, 9], [1, 9], [2, 9], [3, 13], [4, 14], [39, 36], [40, 36], [41, 36], [6, 9], [7, 9], [8, 9]],
+  "_navLinks": "Keep ramps and outpost ladders. Zero-based indices into navNodes.",
+
+  "sightlines": [
+    { "from": "an_keep_n_wall", "to": "an_bridge", "lengthMetres": 55.2, "_note": "Wall down to the bridge. This is the shot that decides whether a flag run ever gets across." },
+    { "from": "an_keep_n_tower_l", "to": "an_ruin_b", "lengthMetres": 62.2 },
+    { "from": "an_outpost_w", "to": "an_outpost_e", "lengthMetres": 111.5, "_note": "Corner to corner across the whole valley. Longest lane in the game -- almost a second and a half of flight with the mechanical." },
+    { "from": "an_ridge_w", "to": "an_ridge_e", "lengthMetres": 92.0 },
+    { "from": "an_keep_n_wall", "to": "an_boulder_b", "lengthMetres": 78.4 },
+    { "from": "an_boulder_a", "to": "an_ruin_b", "lengthMetres": 51.7 }
+  ],
+
+  "prePlacementAngles": [
+    { "anchorId": "an_keep_n_wall", "watch": [0, 1, 10], "priority": 1 },
+    { "anchorId": "an_keep_n_tower_l", "watch": [-14, 1, 9], "priority": 1 },
+    { "anchorId": "an_keep_n_tower_r", "watch": [16, 1, -13], "priority": 1 },
+    { "anchorId": "an_outpost_w", "watch": [-26, 1, 21], "priority": 2 },
+    { "anchorId": "an_outpost_e", "watch": [28, 1, -17], "priority": 2 },
+    { "anchorId": "an_bridge", "watch": [0, 1, -34], "priority": 1 }
+  ],
+
+  "_captureTheFlag": "Holdfast is the CTF map. See Data/gamemodes.json -- the flag positions below are the keep interiors, and the two gates are the only ways in that are not a wall climb.",
+  "captureTheFlag": {
+    "enemyFlag": { "position": [0, 0.6, 80], "keep": "north" },
+    "playerFlag": { "position": [0, 0.6, -80], "keep": "south" },
+    "enemyGate": { "position": [0, 0, 62], "widthMetres": 11 },
+    "playerGate": { "position": [0, 0, -62], "widthMetres": 11 },
+    "wallClimbs": [
+      { "position": [-15, 0, 74], "side": "west" },
+      { "position": [15, 0, 74], "side": "east" }
+    ]
+  },
+
+  "presentation": {
+    "theme": "fortress",
+    "banner": "HOLDFAST / THE TWO KEEPS",
+    "groundStripes": false,
+    "boundaryLines": false,
+    "treeLine": {
+      "perLongSide": 12,
+      "perShortSide": 9,
+      "heightMetres": 31
+    },
+    "groundDetails": [
+      {
+        "id": "ValleyApproachSouth",
+        "points": [
+          [
+            0,
+            0,
+            -96
+          ],
+          [
+            0,
+            0,
+            -82
+          ]
+        ],
+        "widthMetres": 5,
+        "color": "trail"
+      },
+      {
+        "id": "BridgeApproachSouth",
+        "points": [
+          [
+            0,
+            0,
+            -43
+          ],
+          [
+            0,
+            0,
+            -32
+          ],
+          [
+            0,
+            0,
+            -15
+          ]
+        ],
+        "widthMetres": 5,
+        "color": "trail"
+      },
+      {
+        "id": "BridgeApproachNorth",
+        "points": [
+          [
+            0,
+            0,
+            15
+          ],
+          [
+            0,
+            0,
+            32
+          ],
+          [
+            0,
+            0,
+            43
+          ]
+        ],
+        "widthMetres": 5,
+        "color": "trail"
+      },
+      {
+        "id": "WestValleyTrail",
+        "points": [
+          [
+            -25,
+            0,
+            -40
+          ],
+          [
+            -30,
+            0,
+            -33
+          ],
+          [
+            -21,
+            0,
+            -20
+          ],
+          [
+            -24,
+            0,
+            -8
+          ],
+          [
+            -23,
+            0,
+            8
+          ]
+        ],
+        "widthMetres": 3,
+        "color": "trail"
+      },
+      {
+        "id": "EastValleyTrail",
+        "points": [
+          [
+            25,
+            0,
+            40
+          ],
+          [
+            30,
+            0,
+            33
+          ],
+          [
+            22,
+            0,
+            19
+          ],
+          [
+            25,
+            0,
+            8
+          ],
+          [
+            24,
+            0,
+            -7
+          ]
+        ],
+        "widthMetres": 3,
+        "color": "trail"
+      }
+    ],
+    "facades": [
+      {
+        "piece": "keep_n_wall_fl",
+        "face": "Front",
+        "text": "NORTH KEEP",
+        "accent": "amber"
+      },
+      {
+        "piece": "keep_n_wall_fr",
+        "face": "Front",
+        "text": "N / 01",
+        "accent": "amber"
+      },
+      {
+        "piece": "keep_s_wall_fl",
+        "face": "Back",
+        "text": "SOUTH KEEP",
+        "accent": "teal"
+      },
+      {
+        "piece": "keep_s_wall_fr",
+        "face": "Back",
+        "text": "S / 02",
+        "accent": "teal"
+      },
+      {
+        "piece": "outpost_w",
+        "face": "Right",
+        "text": "W\nWEST LOOKOUT",
+        "accent": "amber"
+      },
+      {
+        "piece": "outpost_e",
+        "face": "Left",
+        "text": "E\nEAST LOOKOUT",
+        "accent": "teal"
+      },
+      {
+        "piece": "ruin_a",
+        "face": "Front",
+        "text": "WEST RUINS",
+        "accent": "cream"
+      },
+      {
+        "piece": "ruin_b",
+        "face": "Back",
+        "text": "EAST RUINS",
+        "accent": "cream"
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "_note": "Current release is entirely free. Base FF prices remain tuning only. Paid prompts require BOTH freeMode=false and paidEnabled=true, configured positive IDs, a persistent profile, and successful policy lookup. Never enable without the owner's decision.",
+  "freeMode": true,
+  "paidEnabled": false,
+  "shopFree": true,
+  "requestCooldownSeconds": 0.6,
+  "policyCacheSeconds": 300,
+  "saveTimeoutSeconds": 20,
+  "savePollSeconds": 0.25,
+  "maxConsumableStock": 99,
+  "maxCurrency": 1000000000,
+  "features": { "subscriptions": false, "ads": false, "paidRandomItems": false, "trading": false, "paidAccess": false, "privateServers": false },
+  "order": ["paintPack", "finishPack"],
+  "offers": {
+    "paintPack": {
+      "displayName": "Paint Locker",
+      "description": "Four paint colors for your field kit: pink, cyan, lime and violet. Cosmetic only.",
+      "audience": "tourist",
+      "kind": "pass",
+      "marketplaceId": 0,
+      "enabled": true,
+      "affectsAccuracy": false,
+      "grants": { "paintColors": ["pink", "cyan", "lime", "violet"] }
+    },
+    "finishPack": {
+      "displayName": "Workshop Finishes",
+      "description": "Duracoat and Split Dust marker finishes. Headshot camos are earned separately on the field.",
+      "audience": "local",
+      "kind": "pass",
+      "marketplaceId": 0,
+      "enabled": true,
+      "affectsAccuracy": false,
+      "grants": { "markerSkins": ["duracoat", "splitDust"] }
+    }
+  }
+}

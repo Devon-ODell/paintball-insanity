@@ -1,0 +1,336 @@
+{
+  "_comment": "THE LANDING -- the woodsy hub you walk around between matches. There is no combat here and there is nothing to do quickly. It exists so that the ninety seconds between a match ending and the next one starting are quiet, which is the only counterweight this game has to being a deliberate meat grinder.",
+
+  "name": "The Landing",
+  "bounds": { "widthMetres": 190, "lengthMetres": 190, "heightMetres": 60 },
+
+  "spawn": { "position": [0, 0, 26], "lookAt": [0, 1.6, -6] },
+
+  "ground": {
+    "colorKey": "forestFloor",
+    "thicknessMetres": 2,
+    "_note": "One big soft slab. Everything else -- clearings, gravel, the creek bank -- is a thin decal-height patch laid on top, so the hub reads as a place that grew rather than a set of boxes."
+  },
+
+  "palette": {
+    "forestFloor": [64, 78, 52],
+    "clearingGrass": [96, 118, 68],
+    "gravel": [136, 130, 118],
+    "dirt": [104, 86, 62],
+    "water": [58, 96, 108],
+    "creekBed": [96, 96, 88],
+    "barnWood": [108, 74, 48],
+    "barnWoodDark": [78, 52, 34],
+    "sheetMetal": [150, 156, 160],
+    "sheetMetalRust": [138, 96, 66],
+    "beam": [92, 62, 40],
+    "trunk": [82, 60, 44],
+    "trunkPale": [124, 104, 84],
+    "canopy": [56, 104, 58],
+    "canopyDeep": [40, 78, 46],
+    "canopyLight": [92, 142, 70],
+    "fern": [72, 118, 62],
+    "rock": [116, 118, 114],
+    "mossRock": [88, 106, 84],
+    "cattail": [122, 106, 58],
+    "signBoard": [232, 224, 202],
+    "signPost": [96, 68, 46],
+    "lantern": [252, 214, 138],
+    "truckRed": [158, 72, 58],
+    "truckBlue": [70, 96, 124],
+    "tarp": [64, 88, 78],
+    "brass": [186, 148, 84]
+  },
+
+  "lighting": {
+    "_note": "Late afternoon under a canopy. Warmer and dimmer than any of the fields, with heavy haze so the treeline fades out instead of ending. The hub should feel like the sun is going down on a long day.",
+    "technology": "Future",
+    "brightness": 1.9,
+    "exposureCompensation": 0.08,
+    "globalShadows": true,
+    "shadowSoftness": 0.42,
+    "environmentDiffuseScale": 0.7,
+    "environmentSpecularScale": 0.2,
+    "ambient": [62, 68, 58],
+    "outdoorAmbient": [112, 116, 98],
+    "colorShiftTop": [42, 32, 16],
+    "colorShiftBottom": [16, 20, 16],
+    "clockTime": 17.4,
+    "geographicLatitude": 34,
+    "atmosphere": { "density": 0.42, "offset": 0.2, "color": [206, 200, 178], "decay": [96, 104, 88], "glare": 0.18, "haze": 2.0 },
+    "bloom": { "intensity": 0.45, "size": 26, "threshold": 1.5 },
+    "sunRays": { "intensity": 0.1, "spread": 1.0 },
+    "colorCorrection": { "brightness": 0.01, "contrast": 0.06, "saturation": 0.1, "tintColor": [255, 246, 228] },
+    "depthOfField": { "farIntensity": 0.14, "focusDistance": 40, "inFocusRadius": 70, "nearIntensity": 0 }
+  },
+
+  "ambience": {
+    "_note": "Sound ids are left null on purpose -- audio assets are uploaded per experience and hardcoding someone else's id is how you ship a broken build. The emitters are placed and configured; drop ids into Data/overworld.json and they play.",
+    "beds": [
+      { "id": "forest", "soundId": null, "volume": 0.35, "position": [0, 6, 0], "radiusMetres": 120, "looped": true },
+      { "id": "creek", "soundId": null, "volume": 0.45, "position": [-38, 1, 8], "radiusMetres": 26, "looped": true },
+      { "id": "pond", "soundId": null, "volume": 0.3, "position": [46, 1, -18], "radiusMetres": 30, "looped": true },
+      { "id": "barnHum", "soundId": null, "volume": 0.2, "position": [0, 3, -44], "radiusMetres": 24, "looped": true }
+    ]
+  },
+
+  "_zones": "Ground patches, painted in order. Later entries lay over earlier ones.",
+  "zones": [
+    { "id": "clearing", "shape": "circle", "position": [0, 0, -4], "radiusMetres": 44, "colorKey": "clearingGrass", "material": "grass" },
+    { "id": "barnApron", "shape": "rect", "position": [0, 0, -44], "size": [54, 30], "colorKey": "gravel", "material": "gravel" },
+    { "id": "firepitRing", "shape": "circle", "position": [16, 0, 12], "radiusMetres": 7, "colorKey": "dirt", "material": "ground" },
+    { "id": "pondBank", "shape": "circle", "position": [46, 0, -18], "radiusMetres": 20, "colorKey": "dirt", "material": "ground" },
+    { "id": "pond", "shape": "circle", "position": [46, 0, -18], "radiusMetres": 15, "colorKey": "water", "material": "water", "depthMetres": 1.4, "transparency": 0.35 },
+    { "id": "creek", "shape": "rect", "position": [-40, 0, 6], "size": [7, 120], "rotationY": 8, "colorKey": "water", "material": "water", "depthMetres": 0.7, "transparency": 0.4 }
+  ],
+
+  "_trails": "Gravel paths. The builder lays overlapping slabs between the listed points, so a trail bends without anyone hand-placing a hundred tiles. Every gate and every building is on a trail -- you should never have to guess where to walk.",
+  "trails": [
+    { "id": "spineNorth", "widthMetres": 4.2, "colorKey": "gravel", "points": [[0, 0, 26], [0, 0, 8], [0, 0, -12], [0, 0, -30]] },
+    { "id": "barnSpur", "widthMetres": 4.6, "colorKey": "gravel", "points": [[0, 0, -30], [0, 0, -40]] },
+    { "id": "westTrail", "widthMetres": 3.2, "colorKey": "dirt", "points": [[0, 0, 8], [-16, 0, 12], [-30, 0, 16], [-44, 0, 22], [-58, 0, 30]] },
+    { "id": "eastTrail", "widthMetres": 3.2, "colorKey": "dirt", "points": [[0, 0, 8], [16, 0, 4], [30, 0, -6], [44, 0, -18], [58, 0, -30]] },
+    { "id": "northTrail", "widthMetres": 3.2, "colorKey": "dirt", "points": [[0, 0, -12], [-14, 0, -22], [-28, 0, -34], [-40, 0, -48], [-50, 0, -62]] },
+    { "id": "pondLoop", "widthMetres": 2.4, "colorKey": "dirt", "points": [[30, 0, -6], [38, 0, -2], [50, 0, -4], [60, 0, -16], [56, 0, -30], [44, 0, -34], [34, 0, -26], [30, 0, -6]] },
+    { "id": "boardSpur", "widthMetres": 3.0, "colorKey": "gravel", "points": [[0, 0, -12], [-16, 0, -12], [-24, 0, -14]] },
+    { "id": "yardTrail", "widthMetres": 3.2, "colorKey": "dirt", "points": [[16, 0, 4], [28, 0, 14], [40, 0, 26], [52, 0, 36], [56, 0, 40]] },
+    { "id": "valleyTrail", "widthMetres": 3.2, "colorKey": "dirt", "points": [[-16, 0, -12], [-30, 0, -14], [-44, 0, -17], [-60, 0, -20]] }
+  ],
+
+  "_bridge": "The creek crossing on the west trail. A real footbridge, because a trail that just stops at water is the fastest way to make a place feel fake.",
+  "bridge": {
+    "position": [-40, 0.9, 20],
+    "rotationY": 8,
+    "lengthMetres": 11,
+    "widthMetres": 3.4,
+    "railHeightMetres": 1.05,
+    "plankCount": 14
+  },
+
+  "_barn": "The pole barn. See Data/gear.json for what is actually sold in each bay.",
+  "barn": {
+    "position": [0, 0, -48],
+    "rotationY": 0,
+    "widthMetres": 46,
+    "depthMetres": 26,
+    "wallHeightMetres": 7.5,
+    "roofRiseMetres": 4.5,
+    "baySpacingMetres": 5.75,
+    "name": "PARSONS FIELD SUPPLY",
+    "subtitle": "MARKERS · PAINT & AIR · PROTECTIVE · EST. 1998",
+    "doorWidthMetres": 9,
+    "counterDepthMetres": 1.1,
+    "bays": [
+      {
+        "id": "markers",
+        "displayName": "MARKERS",
+        "blurb": "Sidegrades only. Nothing on this wall makes you shoot straighter.",
+        "position": [-14, 0, -44],
+        "lookAt": [-14, 1.4, -52],
+        "colorKey": "sheetMetalRust",
+        "categories": ["markers", "barrels"]
+      },
+      {
+        "id": "paintAndAir",
+        "displayName": "PAINT & AIR",
+        "blurb": "How much you carry, how fast it feeds, how loud it is.",
+        "position": [0, 0, -44],
+        "lookAt": [0, 1.4, -52],
+        "colorKey": "tarp",
+        "categories": ["hoppers", "tanks", "pods", "paintColors", "consumables"]
+      },
+      {
+        "id": "protective",
+        "displayName": "PROTECTIVE",
+        "blurb": "Quiet or quick. You do not get both, and none of it stops paint.",
+        "position": [14, 0, -44],
+        "lookAt": [14, 1.4, -52],
+        "colorKey": "beam",
+        "categories": ["jerseys", "pads", "helmets", "shoulders", "masks", "markerSkins"]
+      }
+    ]
+  },
+
+  "_gates": "Trailheads to the three fields. Each is a signed arch at the end of its trail; walking into one and holding the interact key starts a match there.",
+  "gates": [
+    {
+      "id": "speedball",
+      "map": "speedball",
+      "displayName": "TOURNAMENT FIELD",
+      "subtitle": "SPEEDBALL · 5 ROUNDS · CLOSE",
+      "position": [-58, 0, 32],
+      "lookAt": [-66, 1.4, 40],
+      "rotationY": -38,
+      "colorKey": "barnWood"
+    },
+    {
+      "id": "urban",
+      "map": "urban",
+      "displayName": "THE BACK LOT",
+      "subtitle": "URBAN · 5 ROUNDS · MID",
+      "position": [60, 0, -32],
+      "lookAt": [68, 1.4, -40],
+      "rotationY": 142,
+      "colorKey": "sheetMetal"
+    },
+    {
+      "id": "woods",
+      "map": "woods",
+      "displayName": "THE BACK FORTY",
+      "subtitle": "WOODS · 5 ROUNDS · LONG",
+      "position": [-52, 0, -64],
+      "lookAt": [-60, 1.4, -74],
+      "rotationY": -142,
+      "colorKey": "trunk"
+    },
+    {
+      "id": "dustline",
+      "map": "dustline",
+      "displayName": "THE YARD",
+      "subtitle": "DUSTLINE \u00b7 5 ROUNDS \u00b7 CLOSE-MID",
+      "position": [56, 0, 40],
+      "lookAt": [64, 1.4, 48],
+      "rotationY": 128,
+      "colorKey": "sheetMetalRust"
+    },
+    {
+      "id": "holdfast",
+      "map": "holdfast",
+      "displayName": "THE VALLEY",
+      "subtitle": "HOLDFAST \u00b7 CAPTURE THE FLAG \u00b7 LONG",
+      "position": [-60, 0, -20],
+      "lookAt": [-70, 1.4, -26],
+      "rotationY": -96,
+      "colorKey": "rock"
+    },
+    {
+      "id": "range",
+      "map": "range",
+      "displayName": "THE RANGE",
+      "subtitle": "FREE · NO PAYOUT · ALWAYS OPEN",
+      "position": [26, 0, 22],
+      "lookAt": [34, 1.4, 30],
+      "rotationY": 128,
+      "colorKey": "signPost"
+    }
+  ],
+
+  "_leaderboard": "A covered notice board beside the main trail. See Data/leaderboard.json.",
+  "leaderboard": {
+    "position": [-24, 0, -15],
+    "rotationY": 24,
+    "widthMetres": 7.5,
+    "heightMetres": 4.2,
+    "postHeightMetres": 4.6,
+    "roofOverhangMetres": 1.1
+  },
+
+  "_props": "Hand-placed set dressing. Everything here is scenery: none of it collides with anything the player cares about except where noted.",
+  "props": [
+    { "kind": "picnicTable", "position": [10, 0, 16], "rotationY": 14 },
+    { "kind": "picnicTable", "position": [21, 0, 9], "rotationY": -62 },
+    { "kind": "firepit", "position": [16, 0, 12], "rotationY": 0 },
+    { "kind": "logBench", "position": [12, 0, 7], "rotationY": 26 },
+    { "kind": "logBench", "position": [21, 0, 16], "rotationY": -118 },
+    { "kind": "truck", "position": [-20, 0, -38], "rotationY": 76, "colorKey": "truckRed" },
+    { "kind": "truck", "position": [-26, 0, -32], "rotationY": 82, "colorKey": "truckBlue" },
+    { "kind": "airRack", "position": [12, 0, -34], "rotationY": 180 },
+    { "kind": "palletStack", "position": [19, 0, -38], "rotationY": 12 },
+    { "kind": "palletStack", "position": [-8, 0, -34], "rotationY": -20 },
+    { "kind": "chronoStand", "position": [6, 0, -30], "rotationY": 168 },
+    { "kind": "dock", "position": [40, 0, -12], "rotationY": 20 },
+    { "kind": "canoe", "position": [43, 0, -9], "rotationY": 34 },
+    { "kind": "lantern", "position": [0, 0, 4], "rotationY": 0 },
+    { "kind": "lantern", "position": [0, 0, -20], "rotationY": 0 },
+    { "kind": "lantern", "position": [-18, 0, -14], "rotationY": 0 },
+    { "kind": "lantern", "position": [-40, 0, 20], "rotationY": 0 },
+    { "kind": "trailSign", "position": [0, 0, 9], "rotationY": 0 },
+    { "kind": "trailSign", "position": [30, 0, -6], "rotationY": 60 },
+    { "kind": "trailSign", "position": [-16, 0, 12], "rotationY": -50 }
+  ],
+
+  "_scatter": "Deterministic foliage. Each zone is seeded, so the same trees grow in the same places every server -- the hub has to be somewhere the player learns, not a fresh forest each visit. Trails and buildings are carved out by the exclusion radii.",
+  "scatter": {
+    "seed": 20260907,
+    "exclusions": [
+      { "shape": "circle", "position": [0, 0, -4], "radiusMetres": 30 },
+      { "shape": "rect", "position": [0, 0, -46], "size": [58, 34] },
+      { "shape": "circle", "position": [46, 0, -18], "radiusMetres": 19 },
+      { "shape": "rect", "position": [-40, 0, 6], "size": [12, 126] },
+      { "shape": "circle", "position": [-24, 0, -15], "radiusMetres": 9 }
+    ],
+    "trailClearanceMetres": 3.4,
+    "layers": [
+      {
+        "id": "canopy",
+        "kind": "tree",
+        "count": 260,
+        "innerRadiusMetres": 34,
+        "outerRadiusMetres": 94,
+        "heightMetres": [11, 22],
+        "trunkDiameterMetres": [0.5, 1.1],
+        "colorKeys": ["canopy", "canopyDeep", "canopyLight"],
+        "trunkKeys": ["trunk", "trunkPale"],
+        "leanDegrees": 4
+      },
+      {
+        "id": "clearingTrees",
+        "kind": "tree",
+        "count": 16,
+        "innerRadiusMetres": 20,
+        "outerRadiusMetres": 40,
+        "heightMetres": [8, 14],
+        "trunkDiameterMetres": [0.4, 0.8],
+        "colorKeys": ["canopyLight", "canopy"],
+        "trunkKeys": ["trunkPale"],
+        "leanDegrees": 6
+      },
+      {
+        "id": "saplings",
+        "kind": "sapling",
+        "count": 120,
+        "innerRadiusMetres": 26,
+        "outerRadiusMetres": 88,
+        "heightMetres": [2.2, 4.5],
+        "colorKeys": ["canopyLight", "fern"]
+      },
+      {
+        "id": "ferns",
+        "kind": "fern",
+        "count": 340,
+        "innerRadiusMetres": 16,
+        "outerRadiusMetres": 92,
+        "heightMetres": [0.5, 1.2],
+        "colorKeys": ["fern", "canopyDeep"]
+      },
+      {
+        "id": "rocks",
+        "kind": "rock",
+        "count": 90,
+        "innerRadiusMetres": 18,
+        "outerRadiusMetres": 90,
+        "heightMetres": [0.4, 1.6],
+        "colorKeys": ["rock", "mossRock"]
+      },
+      {
+        "id": "logs",
+        "kind": "fallenLog",
+        "count": 26,
+        "innerRadiusMetres": 24,
+        "outerRadiusMetres": 82,
+        "heightMetres": [3, 7],
+        "colorKeys": ["trunk", "trunkPale"]
+      },
+      {
+        "id": "cattails",
+        "kind": "cattail",
+        "count": 90,
+        "centre": [46, 0, -18],
+        "innerRadiusMetres": 14,
+        "outerRadiusMetres": 19,
+        "heightMetres": [1.1, 1.9],
+        "colorKeys": ["cattail", "fern"]
+      }
+    ]
+  }
+}
