@@ -16,6 +16,8 @@ local GearStats = require(ReplicatedStorage.Shared.GearStats)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local Foliage = require(Server.World.Foliage)
 local PoleBarn = require(Server.World.PoleBarn)
+local Wardrobe = require(Server.World.Wardrobe)
+local Fonts = require(ReplicatedStorage.Shared.Fonts)
 
 local function hub()
 	return Config.get("overworld")
@@ -524,6 +526,163 @@ return function()
 			expect(barn.interiorLights).never.to.equal(nil)
 			expect(barn.interiorLights.heightMetres < roof.ridgeHeightMetres).to.equal(true)
 			expect(barn.interiorLights.heightMetres > 3).to.equal(true)
+		end)
+	end)
+
+	describe("the wardrobe", function()
+		it("dresses everyone in pieces that exist", function()
+			--[[
+				A typo in an outfit list is invisible: the piece silently does
+				not get built and the character just looks slightly wrong, which
+				nobody notices until they are standing in front of you.
+			]]
+			for _, outfit in ipairs(Wardrobe.outfitNames()) do
+				local pieces = Wardrobe.piecesOf(outfit)
+				expect(#pieces > 0).to.equal(true)
+				for _, piece in ipairs(pieces) do
+					expect(Wardrobe.hasPiece(piece)).to.equal(true)
+				end
+			end
+		end)
+
+		it("gives everyone at the landing an outfit", function()
+			for id, person in pairs(Config.require("npcs", "npcs")) do
+				expect(person.outfit).to.be.a("string")
+				expect(#Wardrobe.piecesOf(person.outfit) > 0).to.equal(true)
+				expect(id).to.be.a("string")
+			end
+		end)
+
+		it("escalates the enemy team's kit with its tier", function()
+			--[[
+				Kit is how a player prices a round before the first shot. Rec
+				turns up in rental gear; pro turns up as a squad. If that
+				ordering ever inverts the read inverts with it.
+			]]
+			local rec = #Wardrobe.piecesOf("botRec")
+			local amateur = #Wardrobe.piecesOf("botAmateur")
+			local semipro = #Wardrobe.piecesOf("botSemipro")
+			local pro = #Wardrobe.piecesOf("botPro")
+			expect(amateur > rec).to.equal(true)
+			expect(semipro > amateur).to.equal(true)
+			expect(pro > semipro).to.equal(true)
+		end)
+
+		it("keeps Denny over-equipped and the Marshal bare", function()
+			--[[
+				Both jokes are structural, not decorative. Denny is rec league in
+				full night-raid kit; the Marshal says nothing and wears nothing.
+				If someone "balances" these the characters stop being characters.
+			]]
+			expect(#Wardrobe.piecesOf("denny") >= 12).to.equal(true)
+			expect(#Wardrobe.piecesOf("theMarshal") <= 5).to.equal(true)
+			local dennyWears = table.concat(Wardrobe.piecesOf("denny"), ",")
+			expect(string.find(dennyWears, "nvgDown") ~= nil).to.equal(true)
+		end)
+
+		it("is fashion and nothing else", function()
+			--[[
+				The rule that matters. A hat may never carry a stat, and no
+				wardrobe part may be collidable or queryable -- if a night vision
+				tube could stop a paintball, buying a hat would change the game.
+			]]
+			local banned = { "damage", "armour", "armor", "health", "spread", "velocity", "accuracy", "protect" }
+			local pieces = Config.require("wardrobe", "pieces")
+			for pieceName, parts in pairs(pieces) do
+				for _, part in ipairs(parts) do
+					for field in pairs(part) do
+						for _, word in ipairs(banned) do
+							expect(string.find(string.lower(field), word)).to.equal(nil)
+						end
+					end
+					-- Every piece hangs off a real anchor on the body.
+					local anchor = part.anchor
+					local known = anchor == "head" or anchor == "chest" or anchor == "hips"
+						or anchor == "legs" or anchor == "feet"
+					expect(known).to.equal(true)
+					expect(#part.size).to.equal(3)
+					expect(#part.at).to.equal(3)
+					expect(pieceName).to.be.a("string")
+				end
+			end
+		end)
+
+		it("paints every piece from a colour the wardrobe actually has", function()
+			local palette = Config.require("wardrobe", "palette")
+			for _, parts in pairs(Config.require("wardrobe", "pieces")) do
+				for _, part in ipairs(parts) do
+					expect(palette[part.colorKey]).never.to.equal(nil)
+				end
+			end
+			-- Outfit tints may only re-colour keys the palette already defines.
+			for _, outfit in ipairs(Wardrobe.outfitNames()) do
+				local entry = Wardrobe.outfit(outfit)
+				for key in pairs((entry :: any).tint or {}) do
+					expect(palette[key]).never.to.equal(nil)
+				end
+			end
+		end)
+	end)
+
+	describe("fonts", function()
+		it("names only fonts the engine actually has", function()
+			--[[
+				A font name that does not resolve is invisible: Fonts falls back
+				rather than erroring, which is right at runtime and useless as a
+				warning. This is the warning. Every name in the data was checked
+				against Enum.Font by hand once; this keeps it checked.
+			]]
+			for _, file in ipairs({ "ui", "presentation" }) do
+				local table_ = Config.get(file).fonts
+				expect(type(table_)).to.equal("table")
+				for role, name in pairs(table_) do
+					expect(name).to.be.a("string")
+					expect(Fonts.byName(name)).never.to.equal(nil)
+					expect(role).to.be.a("string")
+				end
+			end
+		end)
+
+		it("covers every role the world asks for", function()
+			for _, role in ipairs({ "signTitle", "signBody", "handLettered", "nameplate", "tabular" }) do
+				expect(Config.get("presentation").fonts[role]).to.be.a("string")
+			end
+			for _, role in ipairs({ "body", "bold", "title", "numeric" }) do
+				expect(Config.get("ui").fonts[role]).to.be.a("string")
+			end
+		end)
+
+		it("gives the leaderboard a monospace face, so its columns line up", function()
+			--[[
+				Times are a table. A proportional 1 is narrower than a 7, so a
+				column of clear times in a proportional face reads as ragged.
+			]]
+			local tabular = Config.get("presentation").fonts.tabular
+			expect(string.find(tabular, "Mono") ~= nil or string.find(tabular, "Code") ~= nil).to.equal(true)
+		end)
+	end)
+
+	describe("interface scale", function()
+		it("scales text against a sane reference, within sane limits", function()
+			--[[
+				Text sizes in ui.json are pixels at referenceViewportPixels tall.
+				If the reference or the clamp ever goes wrong the UI is either
+				unreadable or covers the screen, and neither shows up in a spec
+				that only checks the numbers exist.
+			]]
+			local ui = Config.get("ui")
+			expect(ui.referenceViewportPixels > 400).to.equal(true)
+			expect(ui.referenceViewportPixels < 2000).to.equal(true)
+			local limits = ui.textScaleLimits
+			expect(#limits).to.equal(2)
+			expect(limits[1] > 0.5).to.equal(true)
+			expect(limits[1] < 1).to.equal(true)
+			expect(limits[2] > 1).to.equal(true)
+			expect(limits[2] < 3).to.equal(true)
+			-- Body copy has to be legible at the smallest clamp on the reference.
+			expect(ui.smallTextPixels * limits[1] >= 11).to.equal(true)
+			expect(ui.titleTextPixels > ui.bodyTextPixels).to.equal(true)
+			expect(ui.bodyTextPixels > ui.smallTextPixels).to.equal(true)
 		end)
 	end)
 

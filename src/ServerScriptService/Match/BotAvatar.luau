@@ -13,6 +13,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
+local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local Units = require(ReplicatedStorage.Shared.Units)
 local WorldBuilder = require(script.Parent.WorldBuilder)
 local Wardrobe = require(script.Parent.Parent.World.Wardrobe)
@@ -121,7 +122,7 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 	label.TextColor3 = Color3.fromRGB(255, 255, 255)
 	label.TextStrokeTransparency = 0.4
 	label.TextScaled = true
-	label.Font = Enum.Font.GothamBold
+	label.Font = Fonts.world("nameplate")
 	label.Parent = nameplate
 
 	model.Parent = parent

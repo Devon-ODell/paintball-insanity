@@ -1,6 +1,7 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
+local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local CommerceCatalog = require(ReplicatedStorage.Shared.CommerceCatalog)
 local Units = require(ReplicatedStorage.Shared.Units)
 
@@ -47,7 +48,7 @@ function FieldDetails.build(mapName: string, parent: Instance): any
 		local label = Instance.new("TextLabel")
 		label.Size = UDim2.fromScale(1, 1)
 		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.GothamBold
+		label.Font = Fonts.world("signTitle")
 		label.TextColor3 = colour("cream")
 		label.TextScaled, label.TextWrapped = true, true
 		label.Text = text

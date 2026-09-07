@@ -12,6 +12,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
+local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
 
@@ -42,12 +43,19 @@ local function row(parent: Instance, y: number, height: number): Frame
 	return frame
 end
 
-local function text(parent: Instance, at: UDim2, size: UDim2, value: string, textSize: number, colour: Color3, bold: boolean?): TextLabel
+--[[
+	`role` picks the face: nil for the board's body copy, "signTitle" for a
+	heading, "tabular" for anything numeric. Times get the monospace face because
+	a leaderboard's columns only line up if every digit is the same width -- a
+	proportional 1 is narrower than a 7, and a column of clear times drawn in a
+	proportional face reads as ragged rather than as a table.
+]]
+local function text(parent: Instance, at: UDim2, size: UDim2, value: string, textSize: number, colour: Color3, bold: boolean?, role: string?): TextLabel
 	local label = Instance.new("TextLabel")
 	label.Position = at
 	label.Size = size
 	label.BackgroundTransparency = 1
-	label.Font = if bold then Enum.Font.GothamBold else Enum.Font.Gotham
+	label.Font = Fonts.world(role or (if bold then "signTitle" else "signBody"))
 	label.TextSize = textSize
 	label.TextColor3 = colour
 	label.TextXAlignment = Enum.TextXAlignment.Left
@@ -149,7 +157,7 @@ function NoticeBoard.build(cfg: any, palette: { [string]: Color3 }, parent: Inst
 				local best = personalBests[mapName]
 				text(line, UDim2.fromScale(0.42, 0), UDim2.fromScale(0.4, 1),
 					if best then Leaderboard.formatTime(best) else "no full clear yet",
-					24, if best then HIGHLIGHT else INK_SOFT, best ~= nil)
+					24, if best then HIGHLIGHT else INK_SOFT, best ~= nil, "tabular")
 				y += 46
 			end
 			text(canvas, UDim2.fromOffset(30, 470), UDim2.new(1, -60, 0, 24),
@@ -173,7 +181,7 @@ function NoticeBoard.build(cfg: any, palette: { [string]: Color3 }, parent: Inst
 			text(line, UDim2.fromScale(0.08, 0), UDim2.fromScale(0.42, 1), entry.displayName, 22, INK, entry.rank <= 3)
 			text(line, UDim2.fromScale(0.5, 0), UDim2.fromScale(0.22, 1),
 				Leaderboard.formatTime(entry.seconds), 22,
-				if entry.rank == 1 then HIGHLIGHT else INK, entry.rank == 1)
+				if entry.rank == 1 then HIGHLIGHT else INK, entry.rank == 1, "tabular")
 			text(line, UDim2.fromScale(0.72, 0), UDim2.fromScale(0.16, 1), entry.tier or "-", 19, INK_SOFT)
 			text(line, UDim2.fromScale(0.88, 0), UDim2.fromScale(0.12, 1),
 				if entry.deaths then `{entry.deaths} out` else "", 19, INK_SOFT)

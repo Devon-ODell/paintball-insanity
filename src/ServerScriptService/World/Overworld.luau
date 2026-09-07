@@ -22,6 +22,7 @@ local SoundService = game:GetService("SoundService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
 
@@ -401,7 +402,7 @@ function Overworld.build(parent: Instance?): Hub
 		local title = Instance.new("TextLabel")
 		title.Size = UDim2.fromScale(1, 0.58)
 		title.BackgroundTransparency = 1
-		title.Font = Enum.Font.GothamBold
+		title.Font = Fonts.world("signTitle")
 		title.TextColor3 = Color3.fromRGB(42, 34, 26)
 		title.TextScaled = true
 		title.Text = gateCfg.displayName
@@ -411,7 +412,7 @@ function Overworld.build(parent: Instance?): Hub
 		sub.Size = UDim2.fromScale(1, 0.38)
 		sub.Position = UDim2.fromScale(0, 0.6)
 		sub.BackgroundTransparency = 1
-		sub.Font = Enum.Font.Gotham
+		sub.Font = Fonts.world("signBody")
 		sub.TextColor3 = Color3.fromRGB(108, 88, 66)
 		sub.TextScaled = true
 		sub.Text = gateCfg.subtitle
@@ -528,7 +529,7 @@ function Overworld.build(parent: Instance?): Hub
 			local label = Instance.new("TextLabel")
 			label.Size = UDim2.fromScale(1, 1)
 			label.BackgroundTransparency = 1
-			label.Font = Enum.Font.GothamBold
+			label.Font = Fonts.world("signTitle")
 			label.TextColor3 = Color3.fromRGB(44, 36, 26)
 			label.TextScaled = true
 			label.TextWrapped = true
@@ -570,7 +571,7 @@ function Overworld.build(parent: Instance?): Hub
 				local label = Instance.new("TextLabel")
 				label.Size = UDim2.fromScale(1, 1)
 				label.BackgroundTransparency = 1
-				label.Font = Enum.Font.GothamMedium
+				label.Font = Fonts.world("signBody")
 				label.TextColor3 = Color3.fromRGB(48, 38, 28)
 				label.TextScaled = true
 				label.Text = entry

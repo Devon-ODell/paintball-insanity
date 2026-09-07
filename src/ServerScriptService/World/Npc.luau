@@ -13,6 +13,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
+local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
 local Wardrobe = require(script.Parent.Wardrobe)
@@ -118,7 +119,7 @@ function Npc.build(id: string, cfg: any, palette: { [string]: Color3 }, parent: 
 	local name = Instance.new("TextLabel")
 	name.Size = UDim2.fromScale(1, 0.58)
 	name.BackgroundTransparency = 1
-	name.Font = Enum.Font.GothamBold
+	name.Font = Fonts.world("nameplate")
 	name.TextColor3 = Color3.fromRGB(246, 242, 230)
 	name.TextStrokeTransparency = 0.4
 	name.TextScaled = true
@@ -129,7 +130,7 @@ function Npc.build(id: string, cfg: any, palette: { [string]: Color3 }, parent: 
 	role.Size = UDim2.fromScale(1, 0.4)
 	role.Position = UDim2.fromScale(0, 0.6)
 	role.BackgroundTransparency = 1
-	role.Font = Enum.Font.Gotham
+	role.Font = Fonts.world("signBody")
 	role.TextColor3 = Color3.fromRGB(186, 180, 166)
 	role.TextStrokeTransparency = 0.6
 	role.TextScaled = true

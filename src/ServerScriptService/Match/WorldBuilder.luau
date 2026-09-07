@@ -14,6 +14,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
+local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
 local Inflatables = require(script.Parent.Inflatables)
@@ -231,7 +232,7 @@ local function buildPresentation(mapData: any, root: Folder, geometry: Folder)
 		label.TextStrokeColor3 = color("ink")
 		label.TextStrokeTransparency = cfg.facades.textStrokeTransparency
 		label.TextScaled, label.TextWrapped = true, true
-		label.Font = Enum.Font.GothamBold
+		label.Font = Fonts.world("signTitle")
 		label.Parent = surface
 	end
 	if look.treeLine then

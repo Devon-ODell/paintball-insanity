@@ -21,6 +21,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
+local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
 
@@ -185,7 +186,7 @@ function PoleBarn.build(cfg: any, palette: { [string]: Color3 }, parent: Instanc
 			label.Size = UDim2.fromScale(1, line.height)
 			label.Position = UDim2.fromScale(0, y)
 			label.BackgroundTransparency = 1
-			label.Font = if line.bold then Enum.Font.GothamBold else Enum.Font.GothamMedium
+			label.Font = if line.bold then Fonts.world("signTitle") else Fonts.world("signBody")
 			label.TextColor3 = line.colour
 			label.TextScaled = true
 			label.TextWrapped = line.wrap == true
