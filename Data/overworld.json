@@ -233,6 +233,41 @@
       234,
       226,
       202
+    ],
+    "canopyShade": [
+      38,
+      62,
+      44
+    ],
+    "canopyMoss": [
+      92,
+      116,
+      66
+    ],
+    "broadleaf": [
+      104,
+      132,
+      72
+    ],
+    "broadleafDeep": [
+      68,
+      96,
+      56
+    ],
+    "broadleafPale": [
+      132,
+      152,
+      88
+    ],
+    "moss": [
+      76,
+      104,
+      58
+    ],
+    "mossPale": [
+      104,
+      126,
+      72
     ]
   },
   "lighting": {
@@ -1654,7 +1689,11 @@
           "trunk",
           "trunkPale"
         ],
-        "leanDegrees": 4
+        "leanDegrees": 4,
+        "shadeKeys": [
+          "canopyShade",
+          "canopyDeep"
+        ]
       },
       {
         "id": "clearingTrees",
@@ -1677,7 +1716,40 @@
         "trunkKeys": [
           "trunkPale"
         ],
-        "leanDegrees": 6
+        "leanDegrees": 6,
+        "shadeKeys": [
+          "canopyShade",
+          "canopyDeep"
+        ]
+      },
+      {
+        "id": "broadleaves",
+        "kind": "broadleaf",
+        "_note": "A forest of nothing but conifers reads as a Christmas tree farm. These break the treeline.",
+        "count": 120,
+        "innerRadiusMetres": 32,
+        "outerRadiusMetres": 92,
+        "heightMetres": [
+          9,
+          17
+        ],
+        "trunkDiameterMetres": [
+          0.45,
+          0.9
+        ],
+        "colorKeys": [
+          "broadleaf",
+          "broadleafPale"
+        ],
+        "shadeKeys": [
+          "broadleafDeep",
+          "canopyShade"
+        ],
+        "trunkKeys": [
+          "trunk",
+          "trunkPale"
+        ],
+        "leanDegrees": 5
       },
       {
         "id": "saplings",
@@ -1760,6 +1832,23 @@
         ],
         "_ignoresExclusions": "Cattails are the pond EDGE planting and their whole annulus sits inside the pond exclusion, so the rule that keeps trees out of the water was deleting all 90 of them. Trail clearance still applies.",
         "ignoresExclusions": true
+      },
+      {
+        "id": "mossPatches",
+        "kind": "moss",
+        "_note": "Domed, never flat. A flat patch on the floor is coplanar with it and shimmers; see tools/check-zfight.",
+        "count": 260,
+        "innerRadiusMetres": 12,
+        "outerRadiusMetres": 94,
+        "heightMetres": [
+          0.14,
+          0.42
+        ],
+        "colorKeys": [
+          "moss",
+          "mossPale",
+          "fern"
+        ]
       }
     ],
     "_placementAttempts": "Rejection-sampling budget per instance. Raised from the old hardcoded 12 because footprint padding rejects far more candidates, and a low cap under-places silently.",

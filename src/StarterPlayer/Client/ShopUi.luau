@@ -79,7 +79,7 @@ function ShopUi.open(initialSnapshot: any, onClose: () -> ())
 	limit.MaxSize = Vector2.new(Theme.config.shop.maxWidthPixels, Theme.config.shop.maxHeightPixels)
 	limit.Parent = panel
 	local title = Theme.text(panel, "Title", snapshot.bayName or "FIELD SUPPLY", UDim2.new(1, -120, 0, 32), UDim2.fromOffset(18, 14), Theme.config.titleTextPixels)
-	title.Font = Enum.Font.GothamBold
+	title.Font = Theme.font("bold")
 	local balance = Theme.text(panel, "Balance", "", UDim2.new(1, -36, 0, 22), UDim2.fromOffset(18, 48), Theme.config.smallTextPixels)
 	balance.TextColor3 = Theme.colors.gold
 	local close = Theme.button(panel, "Close", UDim2.fromOffset(78, 34), UDim2.new(1, -96, 0, 16))
@@ -136,7 +136,7 @@ function ShopUi.open(initialSnapshot: any, onClose: () -> ())
 			row.LayoutOrder, row.BackgroundColor3 = i, Theme.colors.card
 			Theme.round(row)
 			local name = Theme.text(row, "Name", entry.displayName, UDim2.new(1, -28, 0, 30), UDim2.fromOffset(14, 10), 18)
-			name.Font = Enum.Font.GothamBold
+			name.Font = Theme.font("bold")
 			local detail, stats = detailFor(category, entry)
 			local description = Theme.text(row, "Description", detail, UDim2.new(1, -28, 0, 53), UDim2.fromOffset(14, 42), Theme.config.smallTextPixels)
 			description.TextColor3, description.TextYAlignment = Theme.colors.muted, Enum.TextYAlignment.Top

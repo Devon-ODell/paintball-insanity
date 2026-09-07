@@ -25,6 +25,7 @@ local Tracers = require(script.Tracers)
 local Hud = require(script.Hud)
 local ShopUi = require(script.ShopUi)
 local DialogueUi = require(script.DialogueUi)
+local Theme = require(script.UiTheme)
 local ViewMarker = require(script.ViewMarker)
 
 local player = Players.LocalPlayer
@@ -53,6 +54,13 @@ local roundBotCount = matchData.squadSize
 local currentRoundIndex, currentRoundCount = 1, 5
 local phaseRevision = 0
 local readoutElapsed = uiCfg.hudReadoutIntervalSeconds
+
+--[[
+	Every panel sizes its text against the viewport, so the scale has to be
+	bound before anything is built and re-applied when the window changes --
+	which includes a phone rotating.
+]]
+Theme.bindViewport()
 
 Hud.build()
 Input.bind()

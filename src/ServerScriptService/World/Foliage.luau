@@ -44,15 +44,22 @@ local DEFAULT_PLACEMENT_ATTEMPTS = 40
 	builder actually draws, and two copies of "the bottom canopy tier is 6.1
 	trunk diameters wide" would drift the first time someone retuned a tree.
 ]]
-local CANOPY_TIERS = 3
-local CANOPY_BASE = 7.5
-local CANOPY_TAPER = 4.2
-local CROWN_WIDTH_FACTOR = 2.4
-local CROWN_HEIGHT_FRACTION = 0.94
+local CANOPY_TIERS = 7
+local CANOPY_BASE = 7.0
+local CANOPY_TAPER = 5.8
+local CANOPY_BOTTOM_FRACTION = 0.30
+local CANOPY_SPAN_FRACTION = 0.62
+local SPIRE_WIDTH_FACTOR = 1.3
+local CROWN_HEIGHT_FRACTION = 0.99
+local TRUNK_SECTIONS = 3
+local TRUNK_TOP_FRACTION = 0.46
+local BROADLEAF_CROWN_FACTOR = 5.4
+local BROADLEAF_LOBES = 5
 local SAPLING_BUSH_FACTOR = 0.7
 local FERN_FROND_SPREAD = 0.5
 local FERN_MAX_TILT_DEGREES = 28
 local ROCK_MAX_WIDTH_FACTOR = 2.4
+local MOSS_WIDTH_FACTOR = 2.6
 local CATTAIL_JITTER_METRES = 0.2
 local CATTAIL_MAX_TILT_DEGREES = 9
 
@@ -114,13 +121,24 @@ function Foliage.footprintRadius(layer: any): number
 
 	if kind == "tree" then
 		local diameter = layer.trunkDiameterMetres[2]
-		-- Widest tier is the lowest one, at fraction = 1 / CANOPY_TIERS.
-		local widestTier = diameter * (CANOPY_BASE - (1 / CANOPY_TIERS) * CANOPY_TAPER)
-		local canopy = math.max(widestTier, diameter * CROWN_WIDTH_FACTOR) / 2
+		-- The widest tier is the lowest one, at t = 0.
+		local canopy = diameter * CANOPY_BASE / 2
 		-- A leaning tree carries its crown sideways as well as up.
 		local lean = math.rad(layer.leanDegrees or 0)
 		return canopy + math.sin(lean) * tallest * CROWN_HEIGHT_FRACTION
+	elseif kind == "broadleaf" then
+		--[[
+			A lobe can sit its own radius out from the trunk AND be offset by up
+			to 0.28 of the crown, so the reach is the sum, not the larger.
+		]]
+		local diameter = layer.trunkDiameterMetres[2]
+		local crown = diameter * BROADLEAF_CROWN_FACTOR
+		local lean = math.rad(layer.leanDegrees or 0)
+		return crown * 0.28 + crown * 0.9 / 2 + math.sin(lean) * tallest * 0.9
+	elseif kind == "moss" then
+		return tallest * MOSS_WIDTH_FACTOR / 2
 	elseif kind == "sapling" then
+
 		local lean = math.rad(layer.leanDegrees or 0)
 		return tallest * SAPLING_BUSH_FACTOR / 2 + math.sin(lean) * tallest * 0.78
 	elseif kind == "fern" then
@@ -206,48 +224,152 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	A conifer: tapered trunk, three stacked canopy cones, a slight lean.
+	A conifer.
 
-	Cones are built from cylinders with a scaled top rather than real cones,
-	because a Roblox cylinder is one part and a mesh cone is an asset upload.
-	At the distances the hub is viewed from, the read is identical.
+	Roblox has no cone primitive and a Cylinder part cannot taper, so the old
+	version's "cones built from cylinders with a scaled top" did not exist -- it
+	was three tall drums with a gap above them and a ball floating on top, which
+	is why the treeline read as blobs.
+
+	This is a continuous stepped spire instead: seven tiers whose width AND
+	height both fall off toward the top, spaced closer than they are tall so they
+	overlap and no gap opens between them. Stepping is what sells a conifer at
+	distance; a smooth cone would read as a traffic bollard.
+
+	The trunk is three stacked sections of falling diameter with a flared butt,
+	because a cylinder of constant width is the other half of the blob problem.
 ]]
+local function buildConiferTrunk(model: Model, height: number, diameter: number, colour: Color3, topFraction: number)
+	for i = 1, TRUNK_SECTIONS do
+		local lower = (i - 1) / TRUNK_SECTIONS
+		local upper = i / TRUNK_SECTIONS
+		local sectionHeight = height * topFraction * (upper - lower)
+		-- Taper: full diameter at the butt, a bit over half at the top.
+		local width = diameter * (1 - lower * 0.45)
+		local section = part(`Trunk{i}`, model)
+		section.Shape = Enum.PartType.Cylinder
+		section.Size = Units.vectorToStuds(Vector3.new(sectionHeight * 1.06, width, width))
+		section.Color = colour
+		section.Material = MATERIALS.trunk
+		if i == 1 then
+			-- Only the butt stops you walking; the taper above is decoration.
+			section.CanCollide = true
+			section.CanQuery = true
+		end
+		section.CFrame = CFrame.new(0, Units.metresToStuds(height * topFraction * (lower + upper) / 2), 0)
+			* CFrame.Angles(0, 0, math.pi / 2)
+	end
+	-- Root flare. Cheap, and it is what stops a trunk looking like a pipe pushed
+	-- into the ground.
+	local flare = part("Flare", model)
+	flare.Shape = Enum.PartType.Ball
+	flare.Size = Units.vectorToStuds(Vector3.new(diameter * 1.7, diameter * 1.1, diameter * 1.7))
+	flare.Color = colour
+	flare.Material = MATERIALS.trunk
+	flare.CFrame = CFrame.new(0, Units.metresToStuds(diameter * 0.28), 0)
+end
+
 local function buildTree(model: Model, rng: Rng.Generator, layer: any, palette: Palette)
 	local height = rng:nextRange(layer.heightMetres[1], layer.heightMetres[2])
 	local diameter = rng:nextRange(layer.trunkDiameterMetres[1], layer.trunkDiameterMetres[2])
 	local trunkKey = layer.trunkKeys[rng:nextInt(1, #layer.trunkKeys)]
 	local canopyKey = layer.colorKeys[rng:nextInt(1, #layer.colorKeys)]
+	local shadeKey = layer.shadeKeys and layer.shadeKeys[rng:nextInt(1, #layer.shadeKeys)] or canopyKey
 
-	local trunk = part("Trunk", model)
-	trunk.Shape = Enum.PartType.Cylinder
-	trunk.Size = Units.vectorToStuds(Vector3.new(height, diameter, diameter))
-	trunk.Color = palette[trunkKey]
-	trunk.Material = MATERIALS.trunk
-	-- Trunks are the one part of a tree that stops you walking.
-	trunk.CanCollide = true
-	trunk.CanQuery = true
-	trunk.CFrame = CFrame.new(0, Units.metresToStuds(height / 2), 0) * CFrame.Angles(0, 0, math.pi / 2)
+	buildConiferTrunk(model, height, diameter, palette[trunkKey], TRUNK_TOP_FRACTION)
 
 	for i = 1, CANOPY_TIERS do
-		local fraction = i / CANOPY_TIERS
-		local tierWidth = diameter * (CANOPY_BASE - fraction * CANOPY_TAPER)
-		local tierHeight = height * 0.3
-		local at = height * (0.42 + fraction * 0.2)
-		local cone = part(`Canopy{i}`, model)
-		cone.Shape = Enum.PartType.Cylinder
-		cone.Size = Units.vectorToStuds(Vector3.new(tierHeight, tierWidth, tierWidth))
-		cone.Color = palette[canopyKey]
-		cone.Material = MATERIALS.canopy
-		cone.Transparency = 0
-		cone.CFrame = CFrame.new(0, Units.metresToStuds(at), 0) * CFrame.Angles(0, 0, math.pi / 2)
+		local t = (i - 1) / (CANOPY_TIERS - 1)
+		local tierWidth = diameter * (CANOPY_BASE - t * CANOPY_TAPER)
+		local tierHeight = height * (0.155 - t * 0.055)
+		local at = height * (CANOPY_BOTTOM_FRACTION + t * CANOPY_SPAN_FRACTION)
+		local tier = part(`Canopy{i}`, model)
+		tier.Shape = Enum.PartType.Cylinder
+		tier.Size = Units.vectorToStuds(Vector3.new(tierHeight, tierWidth, tierWidth))
+		-- Alternating tones give the canopy depth without a second material.
+		tier.Color = palette[if i % 2 == 0 then shadeKey else canopyKey]
+		tier.Material = MATERIALS.canopy
+		tier.CFrame = CFrame.new(0, Units.metresToStuds(at), 0) * CFrame.Angles(0, 0, math.pi / 2)
 	end
 
-	local crown = part("Crown", model)
-	crown.Shape = Enum.PartType.Ball
-	crown.Size = Units.vectorToStuds(Vector3.new(diameter * CROWN_WIDTH_FACTOR, height * 0.2, diameter * CROWN_WIDTH_FACTOR))
-	crown.Color = palette[canopyKey]
-	crown.Material = MATERIALS.canopy
-	crown.CFrame = CFrame.new(0, Units.metresToStuds(height * CROWN_HEIGHT_FRACTION), 0)
+	local spire = part("Crown", model)
+	spire.Shape = Enum.PartType.Ball
+	spire.Size = Units.vectorToStuds(
+		Vector3.new(diameter * SPIRE_WIDTH_FACTOR, height * 0.09, diameter * SPIRE_WIDTH_FACTOR)
+	)
+	spire.Color = palette[canopyKey]
+	spire.Material = MATERIALS.canopy
+	spire.CFrame = CFrame.new(0, Units.metresToStuds(height * CROWN_HEIGHT_FRACTION), 0)
+end
+
+--[[
+	A broadleaf. A forest of nothing but conifers reads as a Christmas tree farm,
+	and the shape difference is most of what makes a treeline look like woodland.
+
+	Tapered trunk, two lifted limbs, and a crown of overlapping lobes at
+	different heights and offsets rather than one ball -- a single sphere is
+	exactly the blob this is meant to replace.
+]]
+local function buildBroadleaf(model: Model, rng: Rng.Generator, layer: any, palette: Palette)
+	local height = rng:nextRange(layer.heightMetres[1], layer.heightMetres[2])
+	local diameter = rng:nextRange(layer.trunkDiameterMetres[1], layer.trunkDiameterMetres[2])
+	local trunkKey = layer.trunkKeys[rng:nextInt(1, #layer.trunkKeys)]
+	local canopyKey = layer.colorKeys[rng:nextInt(1, #layer.colorKeys)]
+	local shadeKey = layer.shadeKeys and layer.shadeKeys[rng:nextInt(1, #layer.shadeKeys)] or canopyKey
+
+	buildConiferTrunk(model, height, diameter, palette[trunkKey], 0.62)
+
+	-- Two limbs off the main stem, angled up and out.
+	for i = 1, 2 do
+		local bearing = rng:nextNumber() * math.pi * 2
+		local limb = part(`Limb{i}`, model)
+		limb.Shape = Enum.PartType.Cylinder
+		limb.Size = Units.vectorToStuds(Vector3.new(height * 0.26, diameter * 0.42, diameter * 0.42))
+		limb.Color = palette[trunkKey]
+		limb.Material = MATERIALS.trunk
+		limb.CFrame = CFrame.new(0, Units.metresToStuds(height * 0.5), 0)
+			* CFrame.Angles(0, bearing, 0)
+			* CFrame.new(0, Units.metresToStuds(height * 0.09), 0)
+			* CFrame.Angles(0, 0, math.rad(52))
+	end
+
+	local crown = diameter * BROADLEAF_CROWN_FACTOR
+	for i = 1, BROADLEAF_LOBES do
+		local bearing = (i / BROADLEAF_LOBES) * math.pi * 2 + rng:nextRange(-0.4, 0.4)
+		local reach = crown * rng:nextRange(0.14, 0.28)
+		local lobeWidth = crown * rng:nextRange(0.62, 0.9)
+		local lobe = part(`Canopy{i}`, model)
+		lobe.Shape = Enum.PartType.Ball
+		lobe.Size = Units.vectorToStuds(Vector3.new(lobeWidth, lobeWidth * rng:nextRange(0.72, 0.95), lobeWidth))
+		lobe.Color = palette[if i % 2 == 0 then shadeKey else canopyKey]
+		lobe.Material = MATERIALS.canopy
+		lobe.CFrame = CFrame.new(
+			Units.metresToStuds(math.cos(bearing) * reach),
+			Units.metresToStuds(height * rng:nextRange(0.66, 0.9)),
+			Units.metresToStuds(math.sin(bearing) * reach)
+		)
+	end
+end
+
+--[[
+	A moss patch: a very flat dome, half sunk into the floor.
+
+	Deliberately domed rather than a flat disc. A flat patch laid on the ground
+	is coplanar with it, and two faces on one plane shimmer as the camera moves
+	-- the exact bug tools/check-zfight exists to catch. A dome has no coplanar
+	face, so ground detail can be scattered freely without re-creating it.
+]]
+local function buildMoss(model: Model, rng: Rng.Generator, layer: any, palette: Palette)
+	local height = rng:nextRange(layer.heightMetres[1], layer.heightMetres[2])
+	local key = layer.colorKeys[rng:nextInt(1, #layer.colorKeys)]
+	local width = height * rng:nextRange(1.8, MOSS_WIDTH_FACTOR)
+	local patch = part("Moss", model)
+	patch.Shape = Enum.PartType.Ball
+	patch.Size = Units.vectorToStuds(Vector3.new(width, height, width * rng:nextRange(0.8, 1.2)))
+	patch.Color = palette[key]
+	patch.Material = MATERIALS.fern
+	patch.CFrame = CFrame.new(0, Units.metresToStuds(height * 0.12), 0)
+		* CFrame.Angles(0, rng:nextNumber() * math.pi * 2, 0)
 end
 
 local function buildSapling(model: Model, rng: Rng.Generator, layer: any, palette: Palette)
@@ -342,6 +464,8 @@ end
 
 local BUILDERS: { [string]: (Model, Rng.Generator, any, Palette) -> () } = {
 	tree = buildTree,
+	broadleaf = buildBroadleaf,
+	moss = buildMoss,
 	sapling = buildSapling,
 	fern = buildFern,
 	rock = buildRock,

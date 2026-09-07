@@ -1,15 +1,88 @@
 {
   "_comment": "Client presentation only. No values affect shots, rewards, unlocks or prices.",
   "palette": {
-    "panel": [18, 29, 35], "card": [29, 44, 51], "ink": [243, 241, 227],
-    "muted": [169, 190, 192], "accent": [64, 209, 184], "gold": [255, 208, 104],
-    "warning": [255, 159, 133], "line": [63, 91, 96], "black": [0, 0, 0]
+    "panel": [
+      18,
+      29,
+      35
+    ],
+    "card": [
+      29,
+      44,
+      51
+    ],
+    "ink": [
+      243,
+      241,
+      227
+    ],
+    "muted": [
+      169,
+      190,
+      192
+    ],
+    "accent": [
+      64,
+      209,
+      184
+    ],
+    "gold": [
+      255,
+      208,
+      104
+    ],
+    "warning": [
+      255,
+      159,
+      133
+    ],
+    "line": [
+      63,
+      91,
+      96
+    ],
+    "black": [
+      0,
+      0,
+      0
+    ]
   },
-  "cornerPixels": 10, "smallTextPixels": 13, "bodyTextPixels": 15, "titleTextPixels": 24,
-  "scrollbarPixels": 4, "hudReadoutIntervalSeconds": 0.1, "latencyReportSeconds": 2,
-  "rangeRayStuds": 500, "chatterSeconds": 5.5, "bannerSeconds": 3,
-  "headshotBannerSeconds": 4, "hitFlashSeconds": 0.16, "lowHopperFraction": 0.15,
-  "compactViewportPixels": 620, "crosshairMinimumRadiusPixels": 3, "crosshairMaximumRadiusPixels": 90,
-  "shop": { "maxWidthPixels": 900, "maxHeightPixels": 720, "cardHeightPixels": 184 },
-  "summary": { "maxWidthPixels": 660, "maxHeightPixels": 670 }
+  "cornerPixels": 10,
+  "smallTextPixels": 14,
+  "bodyTextPixels": 16,
+  "titleTextPixels": 26,
+  "scrollbarPixels": 4,
+  "hudReadoutIntervalSeconds": 0.1,
+  "latencyReportSeconds": 2,
+  "rangeRayStuds": 500,
+  "chatterSeconds": 5.5,
+  "bannerSeconds": 3,
+  "headshotBannerSeconds": 4,
+  "hitFlashSeconds": 0.16,
+  "lowHopperFraction": 0.15,
+  "compactViewportPixels": 620,
+  "crosshairMinimumRadiusPixels": 3,
+  "crosshairMaximumRadiusPixels": 90,
+  "shop": {
+    "maxWidthPixels": 900,
+    "maxHeightPixels": 720,
+    "cardHeightPixels": 184
+  },
+  "summary": {
+    "maxWidthPixels": 660,
+    "maxHeightPixels": 670
+  },
+  "_scaling": "Text sizes below are pixel counts at referenceViewportPixels tall. Roblox reports real device pixels, so 13px is comfortable at 900 tall, unreadable at 2160 and oversized on a phone. UiTheme.px() scales them by the viewport height against that reference, clamped by textScaleLimits so a large monitor grows the UI without turning it into a billboard.",
+  "referenceViewportPixels": 900,
+  "textScaleLimits": [
+    0.85,
+    1.7
+  ],
+  "_fonts": "Font names, resolved against Enum.Font by UiTheme with a fallback. BuilderSans is Roblox's current interface family and reads cleaner at small sizes than Gotham, which is the previous one -- verified present in Enum.Font (values 46-49) on 2026-09-07. Both families are supported; if a name here ever stops resolving the theme falls back to Gotham rather than to Legacy.",
+  "fonts": {
+    "body": "BuilderSansMedium",
+    "bold": "BuilderSansBold",
+    "title": "BuilderSansExtraBold",
+    "numeric": "BuilderSansBold"
+  }
 }

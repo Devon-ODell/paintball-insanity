@@ -40,7 +40,7 @@ function DialogueUi.show(node: any, choose: (number) -> ())
 	limit.MaxSize = Vector2.new(850, 430)
 	limit.Parent = panel
 	local speaker = Theme.text(panel, "Speaker", node.speaker or "Field crew", UDim2.new(1, -120, 0, 38), UDim2.fromOffset(16, 10), Theme.config.titleTextPixels)
-	speaker.Font, speaker.TextColor3 = Enum.Font.GothamBold, Theme.colors.gold
+	speaker.Font, speaker.TextColor3 = Theme.font("bold"), Theme.colors.gold
 	local close = Theme.button(panel, "Leave", UDim2.fromOffset(76, 34), UDim2.new(1, -92, 0, 12))
 	close.Modal = true
 	local function stepAway()

@@ -49,9 +49,9 @@ function Hud.build()
 	cardLimit.MaxSize = Vector2.new(350, 108)
 	cardLimit.Parent = matchCard
 	roundLabel = Theme.text(matchCard, "Round", "THE LANDING", UDim2.new(1, -24, 0, 22), UDim2.fromOffset(12, 9), cfg.smallTextPixels)
-	roundLabel.TextColor3, roundLabel.Font = C.accent, Enum.Font.GothamBold
+	roundLabel.TextColor3, roundLabel.Font = C.accent, Theme.font("bold")
 	remainingLabel = Theme.text(matchCard, "Remaining", "Welcome to the field", UDim2.new(1, -24, 0, 28), UDim2.fromOffset(12, 31), 19)
-	remainingLabel.Font = Enum.Font.GothamBold
+	remainingLabel.Font = Theme.font("bold")
 	deathsLabel = Theme.text(matchCard, "Eliminations", "Clean run", UDim2.new(1, -24, 0, 20), UDim2.fromOffset(12, 61), cfg.smallTextPixels)
 	phaseLabel = Theme.text(matchCard, "Phase", "", UDim2.new(1, -24, 0, 22), UDim2.fromOffset(12, 81), 11)
 	phaseLabel.TextColor3 = C.muted
@@ -60,7 +60,7 @@ function Hud.build()
 	currencyLabel.TextStrokeTransparency = 0.5
 	bannerLabel = Theme.text(safe, "Banner", "", UDim2.new(1, -8, 0, 66), UDim2.new(0, 4, 0.24, 0), cfg.titleTextPixels)
 	centered(bannerLabel)
-	bannerLabel.Font, bannerLabel.TextColor3 = Enum.Font.GothamBold, C.gold
+	bannerLabel.Font, bannerLabel.TextColor3 = Theme.font("bold"), C.gold
 	bannerLabel.TextStrokeTransparency = 0.4
 
 	crosshair = Theme.frame(gui, "SpreadRing", UDim2.fromOffset(6, 6), UDim2.fromScale(0.5, 0.5))
@@ -92,7 +92,7 @@ function Hud.build()
 	markerLabel = Theme.text(hopperCard, "Marker", "", UDim2.new(1, -24, 0, 18), UDim2.fromOffset(12, 7), 11)
 	markerLabel.TextColor3 = C.muted
 	hopperLabel = Theme.text(hopperCard, "Hopper", "", UDim2.new(1, -24, 0, 33), UDim2.fromOffset(12, 25), cfg.titleTextPixels)
-	hopperLabel.Font = Enum.Font.GothamBold
+	hopperLabel.Font = Theme.font("bold")
 	local track = Theme.frame(hopperCard, "Capacity", UDim2.new(1, -24, 0, 4), UDim2.new(0, 12, 1, -12))
 	track.BackgroundColor3 = C.line
 	hopperFill = Theme.frame(track, "Fill", UDim2.fromScale(1, 1), UDim2.new())
@@ -247,7 +247,7 @@ function Hud.showSummary(summary: any, breakdown: any, onPlayAgain: (() -> any)?
 	limit.MaxSize = Vector2.new(cfg.summary.maxWidthPixels, cfg.summary.maxHeightPixels)
 	limit.Parent = panel
 	local title = Theme.text(panel, "Title", if summary.cleared then "FIELD CLEARED" else "MATCH REPORT", UDim2.new(1, -36, 0, 38), UDim2.fromOffset(18, 12), cfg.titleTextPixels)
-	title.Font, title.TextColor3 = Enum.Font.GothamBold, C.accent
+	title.Font, title.TextColor3 = Theme.font("bold"), C.accent
 	local marker = Config.get("markers").markers[summary.marker]
 	local subtitle = Theme.text(panel, "Subtitle", (summary.map or "Field") .. " · " .. (marker and marker.displayName or summary.marker), UDim2.new(1, -36, 0, 32), UDim2.fromOffset(18, 49), cfg.smallTextPixels)
 	subtitle.TextColor3 = C.muted
