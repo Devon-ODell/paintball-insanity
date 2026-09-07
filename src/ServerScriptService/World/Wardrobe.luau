@@ -37,6 +37,20 @@ export type Worn = {
 
 export type Build = { shoulders: number, height: number }
 
+--[[
+	Walk cycle constants, in metres.
+
+	`GAIT_STRIDE_LENGTH_METRES` is what stops the feet sliding: the phase
+	advances with distance travelled, so at one half-cycle per 0.85m the feet
+	land where the ground says they should rather than marching to a clock.
+]]
+local GAIT_STRIDE_LENGTH_METRES = 0.85
+local GAIT_STRIDE_METRES = 0.26
+local GAIT_LIFT_METRES = 0.09
+local GAIT_BOB_METRES = 0.045
+local GAIT_ARM_FRACTION = 0.55
+local GAIT_FULL_SPEED_MPS = 3.2
+
 local MATERIAL: { [string]: Enum.Material } = {
 	SmoothPlastic = Enum.Material.SmoothPlastic,
 	Metal = Enum.Material.Metal,
@@ -180,6 +194,8 @@ export type Body = {
 	--- Stands the figure up at `base`. Shared so an NPC and an enemy hold
 	--- themselves the same way.
 	pose: (CFrame) -> (),
+	--- Advances the walk cycle by distance travelled and current speed.
+	step: (number, number) -> (),
 }
 
 export type BodyOptions = {
@@ -236,8 +252,15 @@ function Wardrobe.body(parent: Instance, options: BodyOptions): Body
 	piece("Torso", Vector3.new(width * 0.90, hitbox.bodyHeightMetres * 0.34 * height, width * 0.52), options.torsoColour)
 	piece("Chest", Vector3.new(shoulderWidth, hitbox.bodyHeightMetres * 0.22 * height, width * 0.58), options.torsoColour, true)
 	piece("Hips", Vector3.new(width * 0.86, width * 0.48, width * 0.52), options.limbColour, true)
-	piece("Thighs", Vector3.new(width * 0.80, hitbox.bodyHeightMetres * 0.26 * height, width * 0.46), options.limbColour)
-	piece("Shins", Vector3.new(width * 0.70, hitbox.bodyHeightMetres * 0.22 * height, width * 0.40), options.limbColour)
+	--[[
+		Legs are per-side, which they were not. One box across both legs cannot
+		take a stride, so a bot could only ever slide -- and a body that slides
+		reads as a prop no matter how good the kit on it is.
+	]]
+	for _, side in ipairs({ "L", "R" }) do
+		piece(`Thigh{side}`, Vector3.new(width * 0.36, hitbox.bodyHeightMetres * 0.26 * height, width * 0.42), options.limbColour)
+		piece(`Shin{side}`, Vector3.new(width * 0.31, hitbox.bodyHeightMetres * 0.22 * height, width * 0.36), options.limbColour)
+	end
 	piece("Neck", Vector3.new(0.13, 0.09, 0.13), options.skinColour)
 	piece("Head", Vector3.new(0.34, 0.36, 0.35), options.skinColour, true)
 
@@ -250,17 +273,70 @@ function Wardrobe.body(parent: Instance, options: BodyOptions): Body
 
 	local handsForward = options.handsForward == true
 
+	--[[
+		Gait.
+
+		`phase` advances with distance travelled, so the stride is tied to the
+		ground rather than to the clock -- a bot that stops mid-step stops
+		mid-step instead of marching on the spot. `blend` fades the whole thing
+		out when standing still.
+
+		The swing is a translation, not a joint rotation. These are box limbs
+		with no knees; swinging them about a hip would just shear them. Fore-aft
+		displacement plus a lift on the forward foot reads correctly at the
+		distances this game is played at, and costs one CFrame per limb.
+	]]
+	local gaitPhase, gaitBlend = 0, 0
+
+	local function sideSwing(side: string): (number, number)
+		local sign = if side == "L" then 1 else -1
+		local swing = math.sin(gaitPhase) * sign
+		local stride = swing * GAIT_STRIDE_METRES * gaitBlend
+		-- Only the forward-going foot lifts.
+		local lift = math.max(0, swing) * GAIT_LIFT_METRES * gaitBlend
+		return stride, lift
+	end
+
 	local function anchors(base: CFrame): { [string]: CFrame }
+		-- Two footfalls per stride cycle, so the bob runs at double frequency.
+		local bob = -math.abs(math.cos(gaitPhase)) * GAIT_BOB_METRES * gaitBlend
 		local function at(metres: number, forward: number?): CFrame
-			return base * CFrame.new(0, Units.metresToStuds(metres * height), Units.metresToStuds(forward or 0))
+			return base
+				* CFrame.new(0, Units.metresToStuds(metres * height + bob), Units.metresToStuds(forward or 0))
 		end
-		return {
+		local frames: { [string]: CFrame } = {
 			feet = at(0.08),
 			legs = at(hitbox.bodyHeightMetres * 0.28),
 			hips = at(hitbox.bodyHeightMetres * 0.50),
 			chest = at(hitbox.chestHeightMetres),
 			head = at(hitbox.headTopMetres - 0.17),
 		}
+		--[[
+			Sided anchors, so boots and knee pads travel with the leg they are
+			on. Wardrobe.place picks these up automatically for any worn part
+			whose name ends in L or R.
+		]]
+		for _, side in ipairs({ "L", "R" }) do
+			local stride, lift = sideSwing(side)
+			frames[`feet{side}`] = frames.feet
+				* CFrame.new(0, Units.metresToStuds(lift), -Units.metresToStuds(stride))
+			frames[`legs{side}`] = frames.legs
+				* CFrame.new(0, 0, -Units.metresToStuds(stride * 0.6))
+		end
+		return frames
+	end
+
+	--[[
+		Advances the stride by how far the body actually moved.
+
+		`stridesPerMetre` is what stops the walk cycle sliding: at one stride per
+		1.1m the feet land where the ground says they should.
+	]]
+	local function step(distanceMetres: number, speed: number)
+		gaitPhase = (gaitPhase + distanceMetres * math.pi / GAIT_STRIDE_LENGTH_METRES) % (math.pi * 2)
+		local target = math.clamp(speed / GAIT_FULL_SPEED_MPS, 0, 1)
+		-- Ease in and out so starting and stopping is not a snap.
+		gaitBlend += (target - gaitBlend) * 0.25
 	end
 
 	--[[
@@ -270,8 +346,19 @@ function Wardrobe.body(parent: Instance, options: BodyOptions): Body
 	]]
 	local function pose(base: CFrame)
 		local frames = anchors(base)
-		byName.Thighs.CFrame = frames.legs
-		byName.Shins.CFrame = frames.legs * CFrame.new(0, -Units.metresToStuds(hitbox.bodyHeightMetres * 0.22 * height), 0)
+		for _, side in ipairs({ "L", "R" }) do
+			local sign = if side == "L" then -1 else 1
+			local stride, lift = sideSwing(side)
+			local hip = frames.legs
+				* CFrame.new(
+					Units.metresToStuds(sign * width * 0.21),
+					Units.metresToStuds(lift * 0.4),
+					-Units.metresToStuds(stride)
+				)
+			byName[`Thigh{side}`].CFrame = hip
+			byName[`Shin{side}`].CFrame = hip
+				* CFrame.new(0, -Units.metresToStuds(hitbox.bodyHeightMetres * 0.22 * height), -Units.metresToStuds(stride * 0.35))
+		end
 		byName.Hips.CFrame = frames.hips
 		byName.Torso.CFrame = frames.chest
 		byName.Chest.CFrame = frames.chest * CFrame.new(0, Units.metresToStuds(0.16 * height), 0)
@@ -281,7 +368,11 @@ function Wardrobe.body(parent: Instance, options: BodyOptions): Body
 			local sign = if side == "L" then -1 else 1
 			local shoulder = frames.chest
 				* CFrame.new(Units.metresToStuds(sign * shoulderWidth * 0.56), Units.metresToStuds(0.12 * height), 0)
-			byName[`UpperArm{side}`].CFrame = shoulder * CFrame.new(0, -Units.metresToStuds(0.16 * height), 0)
+			-- Arms swing against the leg on the same side, which is what an
+			-- arm does and what makes a walk read as a walk.
+			local armStride = select(1, sideSwing(if side == "L" then "R" else "L")) * GAIT_ARM_FRACTION
+			byName[`UpperArm{side}`].CFrame = shoulder
+				* CFrame.new(0, -Units.metresToStuds(0.16 * height), -Units.metresToStuds(armStride))
 			if handsForward then
 				-- Both hands up on the marker, elbows in. This is the shape that
 				-- reads as "armed and looking at you" from across a field.
@@ -290,8 +381,10 @@ function Wardrobe.body(parent: Instance, options: BodyOptions): Body
 				byName[`Hand{side}`].CFrame = shoulder
 					* CFrame.new(Units.metresToStuds(-sign * 0.08), -Units.metresToStuds(0.36 * height), -Units.metresToStuds(0.32))
 			else
-				byName[`Forearm{side}`].CFrame = shoulder * CFrame.new(0, -Units.metresToStuds(0.40 * height), 0)
-				byName[`Hand{side}`].CFrame = shoulder * CFrame.new(0, -Units.metresToStuds(0.54 * height), 0)
+				byName[`Forearm{side}`].CFrame = shoulder
+					* CFrame.new(0, -Units.metresToStuds(0.40 * height), -Units.metresToStuds(armStride * 1.5))
+				byName[`Hand{side}`].CFrame = shoulder
+					* CFrame.new(0, -Units.metresToStuds(0.54 * height), -Units.metresToStuds(armStride * 1.8))
 			end
 		end
 	end
@@ -301,13 +394,25 @@ function Wardrobe.body(parent: Instance, options: BodyOptions): Body
 		byName = byName,
 		anchors = anchors,
 		pose = pose,
+		step = step,
 	}
 end
 
 --- Places every worn piece against the wearer's current anchor frames.
+--[[
+	Places every worn piece against the wearer's current anchor frames.
+
+	A piece whose part name ends in L or R takes the sided anchor when the wearer
+	offers one -- so a boot travels with the leg it is on rather than staying
+	planted while the leg walks out from under it.
+]]
 function Wardrobe.place(worn: { Worn }, anchors: { [string]: CFrame })
 	for _, item in ipairs(worn) do
 		local frame = anchors[item.anchor]
+		local suffix = string.sub(item.part.Name, -1)
+		if suffix == "L" or suffix == "R" then
+			frame = anchors[item.anchor .. suffix] or frame
+		end
 		if frame then
 			item.part.CFrame = frame * item.offset
 		end

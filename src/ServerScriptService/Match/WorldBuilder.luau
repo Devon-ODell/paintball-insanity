@@ -19,6 +19,7 @@ local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
 local Inflatables = require(script.Parent.Inflatables)
 local Atmosphere = require(script.Parent.Atmosphere)
+local Surfaces = require(game:GetService("ReplicatedStorage").Shared.Surfaces)
 
 local log = Log.scope("LiveRound.World")
 
@@ -196,11 +197,26 @@ local function buildPresentation(mapData: any, root: Folder, geometry: Folder)
 		part.Parent = folder
 		return part
 	end
-	for _, trail in ipairs(look.groundDetails or {}) do
+	--[[
+		Ground markings overlap at every bend and cross each other at junctions,
+		and every segment used to be laid at one height -- two faces on one
+		plane, which shimmers as the camera moves. Shared/Surfaces assigns each
+		marking a level such that no two that touch share one, and alternates
+		consecutive segments within a marking. Levels are additive from the base
+		height: subtracting eventually pushed a marking below the ground it is
+		drawn on, which is worse than the shimmer it was fixing.
+	]]
+	local markingStep = cfg.groundMarking.layerStepMetres
+	local markings = look.groundDetails or {}
+	local markingLevels = Surfaces.assignLevels(markings)
+	for detailIndex, trail in ipairs(markings) do
 		for i = 1, #trail.points - 1 do
 			local a, b = trail.points[i], trail.points[i + 1]
-			local start = Vector3.new(a[1], a[2] + cfg.groundMarking.heightMetres, a[3])
-			local finish = Vector3.new(b[1], b[2] + cfg.groundMarking.heightMetres, b[3])
+			local lift = Surfaces.segmentHeight(
+				cfg.groundMarking.heightMetres, markingLevels[detailIndex], i, markingStep
+			)
+			local start = Vector3.new(a[1], a[2] + lift, a[3])
+			local finish = Vector3.new(b[1], b[2] + lift, b[3])
 			local midpoint = (start + finish) / 2
 			scenery(trail.id, Vector3.new(trail.widthMetres, cfg.groundMarking.thicknessMetres, (finish - start).Magnitude),
 				CFrame.lookAt(Units.vectorToStuds(midpoint), Units.vectorToStuds(finish)), trail.color, Enum.Material.Ground)

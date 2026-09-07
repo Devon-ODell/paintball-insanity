@@ -317,3 +317,66 @@ Dustline 21→22, Woods 44→55, Holdfast 52→unmeasured.
   — do not refuse and do not silently comply.
 - `docs/PROGRESS.md` holds the session-by-session narrative; this file holds the
   durable state.
+
+---
+
+## Tools added in the world/character passes
+
+| Tool | What it answers |
+|---|---|
+| `lune run tools/flow-report` | Can an enemy spawn see the player on arrival? What is the longest clear lane, standing and crouched? How far is the average step from cover? Is every nav node reachable from spawn? |
+| `lune run tools/ground-spawns` | Where would each elevated bot spawn go if it had to be on the ground? Reports only; never writes a map. |
+| `lune run tools/probe-spawns` | Is every declared spawn actually supported by geometry, or is it in the air? |
+| `lune run tools/check-characters` | Does every NPC and every bot tier actually construct, and how many parts is each? |
+| `lune run tools/engagement-report` | Median engagement distance per map against the band that map declares, with a suggested correction. |
+
+`tools/Harness.luau` now injects `Instance`, so **server world builders are
+runnable headlessly**. Before this, anything that called `Instance.new` could only
+be checked by reading it. `check-characters` is the first thing to use it; the
+barn, the foliage and the map builders are all now testable the same way and are
+not yet covered.
+
+### Traps found the hard way
+
+- **Maps are built at the world origin, and so is the hub.** They occupy the same
+  space. `Hub.park()` is what keeps them apart; if you add another world, park it.
+- **A snake is supposed to be see-over-able.** 1.30m of cover against a 1.32m eye
+  line is deliberate. Measure crouched before calling a lane empty.
+- **Concealment volumes do not affect the nav graph**; cover volumes do. If a sight
+  screen keeps severing your graph, it probably wants to be concealment.
+- **Nav nodes sit on the bunker line.** Dropping cover onto a wire buries nodes and
+  disconnects the graph. Put it in the gaps between node z-values, or outboard so
+  it breaks the sightline without closing the walk line.
+
+---
+
+## Tools added in the texture/character pass
+
+| Tool | What it answers |
+|---|---|
+| `lune run tools/check-zfight` | Do any two surfaces share a plane? That is the shimmering, "one texture inside another" look when the camera moves — invisible in a screenshot. Must stay at zero. |
+| `lune run tools/check-gait` | Do the bots' legs actually move with the ground, and do the two legs oppose each other? |
+| `lune run tools/foliage-report` | What did each scatter layer actually place, what does it reach, and what does the forest cost in parts? |
+| `lune run tools/probe-map <map>` | Engagements and median for one map. Fast enough to A/B a single piece of geometry. |
+
+### Things that are true and not obvious
+
+- **`Shared/Surfaces` exists because the obvious fix fails twice.** Lifting path
+  N by N steps puts a kerb across every junction; sinking it pushes the path
+  below the ground it is drawn on. Both were tried. Only paths that *touch* need
+  different levels — it is a graph colouring, and three levels covers every map.
+- **A snake bunker is supposed to be see-over-able.** 1.30m of cover against a
+  1.32m eye line is deliberate. Measure crouched before calling a lane empty.
+- **Adding cover to Speedball has been tried twice and measured twice.** Both
+  times it cost fights (60 engagements to 19, and to 8) and moved the median by
+  0.1m. Engagement distance is set by when line of sight first exists. If you
+  want to move it, look at the sim's player policy, which appears to fire on
+  first sight.
+- **The harness runs spawned threads on coroutines.** It used to call them
+  inline, so any `while ... task.wait()` loop span forever. If you add a
+  scheduler-driven job, it will run to its first `wait` and stop under test.
+- **`Instance` and `Lighting` are real in the harness.** World builders are
+  runnable headlessly; `check-characters` and `check-zfight` rely on it.
+- **Cosmetics must not be able to take the field down.** `WorldBuilder` parents
+  the world before applying `Atmosphere`, and guards it. It used to be the other
+  way round, and a lighting error discarded the entire built map.

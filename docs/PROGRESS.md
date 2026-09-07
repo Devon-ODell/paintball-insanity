@@ -92,6 +92,237 @@ the top shelf.
 
 ---
 
+## Session — characters, spawns, FOV, and map flow
+
+### The hub was standing inside every match
+
+Interactable NPCs mid-round were a symptom, not the bug. Maps are built at the
+world origin and The Landing is 190x190m **there** — so the field was being
+assembled *inside* the hub. Holdfast is 150x200m and overlapped it almost
+completely. Marge and Tildy were never "in the match"; the match was being built
+on top of them, along with the barn, the pond, the trails and 900-odd trees.
+
+`Hub.park()` / `Hub.restore()` move the root model to ServerStorage for the
+duration. One Parent write, so every prompt and connection survives.
+
+### Everyone spawns on the ground
+
+Three maps started bots on rooftops (8.8m, 11m, 13m) — read as spawning in the
+sky. All 15 elevated bot spawns were relocated to ground positions found by the
+new `tools/ground-spawns`, and `MapGeometry.groundPoint` now drops every spawn
+onto whatever actually supports it at runtime. Worst case is now "on the roof of
+the thing under you", never "in the air".
+
+### FOV 92 -> 78
+
+At 92 a player-sized target at 40m — the range this whole game is about — was too
+small to read. The fix for that is magnification, not a bigger hitbox. Targets are
+~18% larger; the HUD scales off `camera.FieldOfView` so the crosshair and holdover
+marks followed automatically.
+
+### Characters
+
+New `World/Wardrobe.luau` + `Data/wardrobe.json`: 45 pieces, 11 outfits, one
+shared body with **arms** (a torso with no arms reads as a bollard at 40m, which
+is a problem in a game about reading a silhouette at 40m). Both the hub people and
+the enemy team dress from it.
+
+Outfits are written against each character's `voice` field, so the clothes are the
+same joke as the dialogue:
+
+| | |
+|---|---|
+| Denny | Bump helmet, night vision flipped **down**, in daylight, for rec league. 53 parts. |
+| The Marshal | A white armband. Nothing else. 9 parts. |
+| Marge | Flannel, apron, readers on her head, clipboard. The only person dressed for a job. |
+| Tildy | Goggles up, headphones down, a bandolier of pods she does not need. |
+| Wheels | Coveralls, thigh tool roll, headlamp on in daylight, one boot untied. |
+| Coach Ruiz | The nineties jersey, whistle, backwards cap, one knee brace older than the knee. |
+
+Enemy kit escalates with tier — rec 13 parts of rental gear, pro 54 with the NVG
+mount worn unused. A squad's difficulty is now readable before anyone fires.
+
+`Instance` was added to the harness globals, so world builders are runnable
+headlessly for the first time; `tools/check-characters` constructs every person in
+the game and counts the result.
+
+### Map flow
+
+New `tools/flow-report` (spawn sight, worst clear lane standing **and** crouched,
+distance to cover, reachability) and `tools/probe-map` (engagements and median for
+one map, fast enough to A/B a single piece of geometry).
+
+**What worked: spawn sight is now 0 on all five maps.** Three of them let an enemy
+spawn see the player the moment they arrived -- dustline 65m, holdfast 78m, woods
+89m. That is an enemy you cannot resolve shooting at you before you have moved,
+and it was most of the "enemies are hard to see at range" complaint.
+
+**What did not work: nearly everything else I tried.** Sixteen pieces of cover
+were added to bring each map's longest lane inside its declared band. A/B measured
+with `tools/probe-map`, per map, engagements over three seeds:
+
+| map | before | after | median | verdict |
+|---|---|---|---|---|
+| urban | 29 | **0** | -- | reverted, all three pieces |
+| speedball | 60 | 19 | 31.0 -> 31.1 | reverted, all three pieces |
+| dustline | 51 | 29 | 12.7 -> 15.3 | reverted six of seven |
+| woods | 48 | 48 | 56.3 -> 59.5 | kept |
+
+Urban went to **zero engagements** -- a map that produces no fights is broken, and
+a 16% band overshoot is a tuning note. Speedball lost 68% of its engagements and
+its median did not move at all (31.0 -> 31.1), which is the clearest possible
+evidence that lane length was not what was driving it. The whole exercise also
+failed five specs in `Sim` and `Match` -- rounds stopped completing -- which is
+how the damage surfaced.
+
+What survives is the three spawn screens plus woods' and holdfast's cover, all of
+which cost nothing measurable. Dustline's screen was then resized from 16m to 7m:
+same spawn-sight fix, 6 engagements lost instead of 22.
+
+**One finding was mine, not the map's.** The tool flagged speedball's snake wire
+as a 43.8m open lane and I built two bunkers on it before reading the numbers
+properly. A snake tops out at 1.30m against a 1.32m eye line: you *can* see down
+the wire standing, and that is the entire point of a snake. Reverted, and the tool
+now reports standing and crouched separately so "this map wants you low" stops
+looking like "this map is empty".
+
+`engagementBand` now drives bot posture rather than only documenting an
+aspiration -- but posture barely moves the median either, for the same reason
+geometry did not: engagement distance is decided by when line of sight first
+exists, not by how eagerly anyone pushes. Every `postureBias` is still 1.0.
+
+### Owed
+
+- Still nothing rendered. All of it is arithmetic and headless construction.
+- Speedball (36.0 vs 34) and dustline (49.3 vs 46) remain a few metres over band.
+- Holdfast produces zero sim engagements — the sim never fights there. Real gap.
+- Per-map `postureBias` is still 1.0 everywhere; posture alone barely moved the
+  median, because engagement distance is decided by when line of sight first
+  exists, not by how eagerly bots push. Geometry is the lever, and now measurable.
+
+---
+
+## Session — textures, characters that walk, and the shimmering ground
+
+### The ground was fighting itself in seven places
+
+"One texture placed inside another" while moving is z-fighting: two faces on the
+same plane have no stable depth winner, so the renderer picks a different one per
+pixel per frame. Invisible in a screenshot, unmissable in motion.
+
+`tools/check-zfight` builds the hub and all five maps and finds coplanar
+overlapping surfaces arithmetically. It found **168 in The Landing and 9 across
+the maps**. All of them are fixed; the sweep now reports zero everywhere.
+
+Causes, in order of how much ground they covered:
+
+- Every hub trail segment was built at exactly y = 0.14, and segments overlap on
+  purpose so bends do not notch. Every bend and every junction was a pair of
+  identical planes.
+- `hollow` on Woods and `hollow_mid` on Holdfast had their tops at exactly the
+  ground slab's top -- 246 and 382 studs of shimmer through the middle of the two
+  biggest maps.
+- In-match ground markings (`FreightLane`, `MarketStreet`, `TimberTrail`) had the
+  same overlapping-segment problem as the hub trails.
+
+`Shared/Surfaces` now owns the fix for all of them. The obvious approach -- give
+path N a lift of N steps -- fails in both directions, and both failures happened
+here first: stacking upward puts a kerb across every junction, and sinking
+downward eventually pushes a path below the ground it is drawn on. Only paths
+that actually touch need to differ, so it is a greedy graph colouring. Three
+levels covers every map in the game.
+
+The detector needed three corrections of its own before it could be trusted:
+oriented-box overlap rather than axis-aligned (the bridge's fourteen planks have
+a real 11cm gap, but the deck is turned 8 degrees and the AABB version called all
+fourteen broken), skipping parts that are not level (it was reporting the barn's
+two roof panels as fighting where they simply meet at the ridge), and top faces
+only, since a buried face cannot shimmer.
+
+### Two bugs the sweep exposed on its own
+
+- **The harness ran spawned threads inline.** `task.spawn` called the function
+  directly, so `while running do ... task.wait() end` -- which is how NoticeBoard
+  cycles the leaderboard pages -- never yielded and span forever. The first
+  headless hub build wrote a **679MB log**. Spawned functions run on coroutines
+  now and `wait` yields them, which is what the engine does.
+- **A DataStore failure logged on every cycle, forever.** That was most of the
+  679MB. Warn once per board, clear the latch on recovery.
+
+### Characters walk now
+
+Legs were a single box across both of them, which cannot take a stride, so bots
+could only slide -- and a body that slides reads as a prop no matter how good the
+kit on it is. Legs are per-side, and the walk cycle advances with **distance
+travelled** rather than with the clock, so the feet land where the ground says
+and a bot that stops mid-step stops mid-step. Arms counter-swing; the body bobs
+at double frequency, because there are two footfalls per cycle.
+
+The swing is translation, not joint rotation: these are box limbs with no knees,
+and rotating them about a hip would shear them. Boots and knee pads take sided
+anchors automatically -- any worn part whose name ends in L or R -- so kit travels
+with the leg it is on.
+
+`tools/check-gait` verifies the two properties that matter: zero movement when
+standing (a clock-driven cycle marches on the spot) and 100% antiphase when
+walking (legs swinging together is a hop, not a walk).
+
+### Speedball looks like speedball
+
+The centre bunker was a "temple" -- four-sided, heavily rounded corners, domed
+top -- and at distance it read as a turret. The vocabulary is simple shapes now:
+CAN, DORITO, SNAKE, BRICK lying down, STANDUP upright, and BALL. The ball is a
+pressurised sphere with welded panel seams, squashed where it meets the ground; a
+sphere on a perfect tangent looks like it is hovering. The standup is a welded
+pillow with bulged faces, because without the bulge it is a flat board.
+
+### Trees are not blobs
+
+The comment claimed the canopy was "cones built from cylinders with a scaled
+top". No such thing exists -- a Roblox Cylinder cannot taper -- so it was three
+drums, a gap, and a ball. A conifer is a seven-tier stepped spire on a
+three-section tapered trunk with a root flare, plus a new broadleaf with five
+overlapping lobes, plus domed moss patches. Domed on purpose: a flat patch on the
+floor is coplanar with it.
+
+### Also
+
+- Woods' timber stands came down from 12.7m decks to 7.7m. Engagements went up.
+- Text scales with the viewport instead of being fixed pixels; fonts resolve by
+  name from data through `Shared/Fonts`, with the leaderboard on a monospace face
+  so its columns line up.
+- **Cattails had been placing zero, all along** -- their annulus sits inside the
+  pond exclusion. The per-layer shortfall report is what surfaced it.
+- A failure in `Atmosphere` used to discard the entire built map: it ran before
+  `root.Parent = parent`. Cosmetics can no longer take the field down with them.
+
+### Owed
+
+- Still nothing rendered. Every fix in this session is arithmetic or headless
+  construction.
+- Foliage is 8069 parts for 1559 instances. Fine for a solo hub, worth watching.
+- **Engagement medians miss their bands on every map, and now the cause is
+  known.** Both benchmark policies return `move = nil` the instant they acquire
+  a target -- they plant and fire from wherever first contact happened. So the
+  number the sim reports is the distance at which the player first SEES a bot,
+  which is a property of sightlines and spawn separation and not of the fight the
+  map is trying to produce. Two rounds of geometry and one of bot posture were
+  spent on that number before this was understood; none moved it and all three
+  were reverted. The fix is to keep closing while engaging in BOTH policies --
+  they duplicate their decide loops, so editing one does nothing, which cost an
+  hour on its own. Not done here: it moves every difficulty measurement at once.
+- `Sim > puts Urban between the two` fails, and the reason is worth stating
+  plainly. It asserts Urban's median exceeds Speedball's. It passed before only
+  because Urban started two bots on rooftops, which inflated its first-contact
+  distances; grounding those spawns -- which was the point -- removed the
+  inflation. The real anomaly is Speedball at 29m against a 16m target, and that
+  measured 28.99m before anything in this session was touched. Urban's back
+  spawns were moved to z=34, taking it from 29 engagements at 24.0m to 34 at
+  26.9m against a target of 27, which is the closest any map now sits to its own
+  band. It still does not exceed Speedball, because Speedball is the broken one.
+
+---
+
 ## Verification
 
 ```

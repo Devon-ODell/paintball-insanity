@@ -85,7 +85,7 @@
       "shape": "box",
       "position": [
         0,
-        -1.2,
+        -1.18,
         -6
       ],
       "size": [
@@ -94,7 +94,8 @@
         30
       ],
       "colorKey": "groundAlt",
-      "walkable": true
+      "walkable": true,
+      "_z": "Top sits a few centimetres proud of the ground plane, not level with it. A hollow is a colour patch laid on the map's one ground slab, and a patch whose top is exactly the slab's top is two faces on one plane -- which shimmers across the whole area as the camera moves. This one covered 246 studs on Woods and 382 on Holdfast, right through the middle of both. tools/check-zfight."
     },
     {
       "id": "hill_s",

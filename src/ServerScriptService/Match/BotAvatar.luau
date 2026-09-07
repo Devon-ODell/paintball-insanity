@@ -127,6 +127,9 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 
 	model.Parent = parent
 
+	local lastPosition: Vector3? = nil
+	local lastAt = os.clock()
+
 	local avatar: Avatar
 	avatar = {
 		model = model,
@@ -136,6 +139,21 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 		nameplate = nameplate,
 
 		setPosition = function(_: Avatar, position: Vector3, facing: Vector3)
+			--[[
+				Drive the walk cycle off distance actually covered.
+
+				BotController moves the bot by CFrame, so there is no physics to
+				read a velocity from -- but the distance between this call and
+				the last one is exactly what the stride needs, and tying the
+				cycle to it means the feet never slide. A bot that stops
+				mid-step stops mid-step.
+			]]
+			local now = os.clock()
+			local moved = if lastPosition then (position - lastPosition).Magnitude else 0
+			local elapsed = math.max(now - lastAt, 1e-3)
+			body.step(moved, moved / elapsed)
+			lastPosition, lastAt = position, now
+
 			local studs = Units.vectorToStuds(position)
 			local flat = Vector3.new(facing.X, 0, facing.Z)
 			if flat.Magnitude < 1e-4 then

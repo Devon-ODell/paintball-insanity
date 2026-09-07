@@ -328,18 +328,51 @@ function Harness.build(repoRoot: string?): Env
 			NumberRange = roblox.NumberRange,
 			BrickColor = roblox.BrickColor,
 			typeof = typeof,
+			--[[
+				Threads, emulated with coroutines rather than run inline.
+
+				`spawn` used to just call the function, so a `while ... do
+				task.wait() end` loop -- which is a perfectly ordinary way to
+				drive a repeating job, and what NoticeBoard uses to cycle the
+				leaderboard pages -- never yielded and span forever. The first
+				tool to build the hub headlessly wrote a 679MB log before anyone
+				noticed.
+
+				A spawned function now runs on its own coroutine and `wait`
+				yields it, which is what the engine does. The scheduler never
+				resumes anything, so a repeating job runs up to its first wait
+				and then stops -- exactly the amount of it a headless tool wants.
+			]]
 			task = {
 				wait = function(n: number?)
+					if coroutine.isyieldable() then
+						coroutine.yield()
+					end
 					return n or 0
 				end,
 				spawn = function(fn: any, ...)
-					return fn(...)
+					local thread = coroutine.create(fn)
+					local ok, err = coroutine.resume(thread, ...)
+					if not ok then
+						error(err, 2)
+					end
+					return thread
 				end,
 				defer = function(fn: any, ...)
-					return fn(...)
+					local thread = coroutine.create(fn)
+					local ok, err = coroutine.resume(thread, ...)
+					if not ok then
+						error(err, 2)
+					end
+					return thread
 				end,
 				delay = function(_: number, fn: any, ...)
-					return fn(...)
+					local thread = coroutine.create(fn)
+					local ok, err = coroutine.resume(thread, ...)
+					if not ok then
+						error(err, 2)
+					end
+					return thread
 				end,
 			},
 			tick = os.clock,

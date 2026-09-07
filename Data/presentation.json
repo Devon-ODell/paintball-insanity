@@ -53,8 +53,10 @@
     ]
   },
   "groundMarking": {
-    "heightMetres": 0.009,
-    "thicknessMetres": 0.014
+    "heightMetres": 0.06,
+    "thicknessMetres": 0.014,
+    "_layerStepMetres": "Ground markings overlap at bends and cross each other. Two faces on one plane shimmer as the camera moves, so each marking and each segment sits a few millimetres off its neighbours. tools/check-zfight verifies it.",
+    "layerStepMetres": 0.005
   },
   "facades": {
     "maxDistanceMetres": 80,

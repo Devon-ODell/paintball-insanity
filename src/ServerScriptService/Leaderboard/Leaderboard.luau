@@ -146,6 +146,7 @@ end
 -- Store access
 --------------------------------------------------------------------------------
 
+local readFailed: { [string]: boolean } = {}
 local timesStores: { [string]: OrderedDataStore } = {}
 local metaStore: DataStore? = nil
 
@@ -256,8 +257,23 @@ function Leaderboard.top(map: string, count: number?): { Entry }
 		end
 	end)
 	if not success then
-		log.warn(`could not read the {map} board: {err}`)
+		--[[
+			Warn once per board, then stay quiet until it works again.
+
+			The notice board re-reads on a timer, so an outage -- or a studio
+			session with no DataStore access at all -- used to write the same
+			line every cycle forever. A headless run of the world builder wrote
+			679MB of it before anyone noticed. A failure is worth saying; saying
+			it a thousand times buries everything else in the log.
+		]]
+		if not readFailed[map] then
+			readFailed[map] = true
+			log.warn(`could not read the {map} board: {err}`)
+		end
 		return {}
+	else
+		-- Recovered: allow the next failure to be reported.
+		readFailed[map] = nil
 	end
 
 	local entries: { any } = {}

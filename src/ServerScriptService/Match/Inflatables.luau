@@ -17,6 +17,13 @@
 	what stops paint are guaranteed to be one shape. The rounded visual is
 	inscribed INSIDE that box, so the only discrepancy is the corner radius --
 	about a quarter of a metre, and always in the player's favour.
+
+	The BALL is the exception worth knowing about: a sphere inscribed in a square
+	footprint leaves the box's corners empty, so the centre bunker blocks roughly
+	0.3m wider than it looks. That is the cost of a round bunker on a square
+	collision box, and it is why the box itself must never be retuned to "fit"
+	the visual -- see the note on speedball's centreBall, where doing exactly
+	that inverted the map's core property.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

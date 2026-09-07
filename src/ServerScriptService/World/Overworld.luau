@@ -27,6 +27,7 @@ local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
 
 local Foliage = require(script.Parent.Foliage)
+local Surfaces = require(ReplicatedStorage.Shared.Surfaces)
 local PoleBarn = require(script.Parent.PoleBarn)
 local NoticeBoard = require(script.Parent.NoticeBoard)
 local Npc = require(script.Parent.Npc)
@@ -200,60 +201,11 @@ function Overworld.build(parent: Instance?): Hub
 	local layer = cfg.surfaceLayerMetres
 
 	--[[
-		Which trails actually need separating from each other.
-
-		Giving all nine their own level would sink the last one below the ground
-		it is drawn on, and stacking them upward would put a 20cm kerb across
-		every junction. Only trails that TOUCH need to differ, so this is a
-		greedy graph colouring: a trail takes the lowest level not already used
-		by a trail it crosses. Three levels covers The Landing.
+		Only trails that touch need different levels; see Shared/Surfaces for why
+		the obvious "one level per trail" fails in both directions. Three levels
+		covers The Landing.
 	]]
-	local function segmentDistance(a1: Vector3, a2: Vector3, b1: Vector3, b2: Vector3): number
-		local function pointToSegment(p: Vector3, s: Vector3, e: Vector3): number
-			local d = Vector3.new(e.X - s.X, 0, e.Z - s.Z)
-			local lengthSq = d.X * d.X + d.Z * d.Z
-			if lengthSq < 1e-9 then
-				return (Vector3.new(p.X - s.X, 0, p.Z - s.Z)).Magnitude
-			end
-			local t = math.clamp(((p.X - s.X) * d.X + (p.Z - s.Z) * d.Z) / lengthSq, 0, 1)
-			return (Vector3.new(p.X - (s.X + d.X * t), 0, p.Z - (s.Z + d.Z * t))).Magnitude
-		end
-		return math.min(
-			pointToSegment(a1, b1, b2), pointToSegment(a2, b1, b2),
-			pointToSegment(b1, a1, a2), pointToSegment(b2, a1, a2)
-		)
-	end
-
-	local function trailsTouch(a: any, b: any): boolean
-		local clearance = (a.widthMetres + b.widthMetres) / 2 + 0.5
-		for i = 1, #a.points - 1 do
-			for j = 1, #b.points - 1 do
-				local distance = segmentDistance(
-					vec(a.points[i]), vec(a.points[i + 1]),
-					vec(b.points[j]), vec(b.points[j + 1])
-				)
-				if distance < clearance then
-					return true
-				end
-			end
-		end
-		return false
-	end
-
-	local trailLevel: { number } = {}
-	for index, trail in ipairs(cfg.trails) do
-		local taken: { [number]: boolean } = {}
-		for other = 1, index - 1 do
-			if trailsTouch(trail, cfg.trails[other]) then
-				taken[trailLevel[other]] = true
-			end
-		end
-		local level = 0
-		while taken[level] do
-			level += 1
-		end
-		trailLevel[index] = level
-	end
+	local trailLevels = Surfaces.assignLevels(cfg.trails)
 
 	for trailIndex, trail in ipairs(cfg.trails) do
 		--[[
@@ -263,16 +215,10 @@ function Overworld.build(parent: Instance?): Hub
 			hides the difference in the floor slab, which is two metres thick,
 			and every trail's visible surface still sits above ground level.
 		]]
-		local trailDrop = trailLevel[trailIndex] * layer.stepMetres
 		for i = 1, #trail.points - 1 do
 			local base = trail.baseMetres or layer.trailBaseMetres
-			--[[
-				Four levels rather than two. `pondLoop` is a closed loop with
-				seven segments, so its last segment is adjacent to its first --
-				and with two levels both landed on the same one and fought.
-			]]
-			local segmentY = base - trailDrop - (i % 4) * layer.alternateMetres
-			local joinY = base - trailDrop - ((i + 2) % 4) * layer.alternateMetres
+			local segmentY = Surfaces.segmentHeight(base, trailLevels[trailIndex], i, layer.alternateMetres)
+			local joinY = Surfaces.segmentHeight(base, trailLevels[trailIndex], i + 2, layer.alternateMetres)
 			local a = vec(trail.points[i])
 			local b = vec(trail.points[i + 1])
 			local delta = b - a

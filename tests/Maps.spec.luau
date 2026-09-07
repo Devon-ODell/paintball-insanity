@@ -160,11 +160,20 @@ return function()
 		end)
 
 		it("recognises every inflatable family", function()
-			for _, shape in ipairs({ "can", "dorito", "snake", "temple", "brick" }) do
+			--[[
+				The vocabulary of a speedball field, and only simple shapes.
+				`temple` was a four-sided body with rounded corners and a domed
+				top; it read as a turret at distance and there are no turrets on
+				a paintball field. It is a BALL now, and STANDUP was added for
+				the upright rectangle -- BRICK is the one lying down.
+			]]
+			for _, shape in ipairs({ "can", "dorito", "snake", "ball", "standup", "brick" }) do
 				expect(Inflatables.handles("inflatable_" .. shape)).to.equal(true)
 				expect(Inflatables.handles(shape)).to.equal(true)
 			end
 			expect(Inflatables.handles("inflatable_nonsense")).to.equal(false)
+			-- The turret is gone and must not come back by accident.
+			expect(Inflatables.handles("temple")).to.equal(false)
 			expect(Inflatables.handles("box")).to.equal(false)
 		end)
 

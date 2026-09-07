@@ -191,6 +191,28 @@ function Policies.competent(sigmaDeg: number?, reactionSeconds: number?): Policy
 end
 
 --[[
+	KNOWN LIMITATION, measured 2026-09-07.
+
+	Both benchmark policies return `move = nil` the moment they acquire a target
+	-- they plant and fire from wherever first contact happened. So the
+	"engagement distance" the sim reports is the distance at which the player
+	first SEES a bot, which is a property of sightlines and spawn separation, not
+	of the fight the map is trying to produce.
+
+	That is why every map misses the `targetMedianMetres` in its own
+	engagementBand, and why Speedball -- the close map, target 16m -- produces
+	the second-longest fights in the game at 29m. Two rounds of geometry and one
+	of bot posture were spent on that number before this was understood; none of
+	them moved it, and all three were reverted. See docs/PROGRESS.md.
+
+	The fix is to keep closing while engaging, up to the band, in BOTH policies --
+	they duplicate their decide loops, so changing one does nothing, which is its
+	own trap. It is deliberately not done here: it moves every difficulty
+	measurement in the suite at once and wants its own session with the
+	before/after in hand.
+]]
+
+--[[
 	Pushes into the open and trades. The policy that should LOSE.
 
 	BUILD_PLAN: "Straight fights are unwinnable. Six markers beat one." If

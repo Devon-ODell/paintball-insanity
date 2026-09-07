@@ -502,7 +502,7 @@
       "position": [
         -15.5,
         0,
-        24.3
+        34.0
       ],
       "lookAt": [
         0,
@@ -514,7 +514,7 @@
       "position": [
         14.4,
         0,
-        29.8
+        34.0
       ],
       "lookAt": [
         0,
@@ -1160,5 +1160,6 @@
     ]
   },
   "_botSpawns": "Every bot starts on the ground. Structures are somewhere bots MOVE to, never somewhere they begin: a squad that opens the round already on a roof reads as spawning in the sky and gives the player nothing to walk into. Positions were found by tools/ground-spawns and are re-checked by tools/map-validate.",
-  "_flow": "Three street-level pieces were added here to cut a 60.4m diagonal against a 52m band, and then removed: they took the map from 29 sim engagements to ZERO. A 16 percent band overshoot is a tuning note; a map that produces no fights is a broken map. Urban keeps its long diagonal on purpose. Measured with tools/probe-map."
+  "_flow": "Three street-level pieces were added here to cut a 60.4m diagonal against a 52m band, and then removed: they took the map from 29 sim engagements to ZERO. A 16 percent band overshoot is a tuning note; a map that produces no fights is a broken map. Urban keeps its long diagonal on purpose. Measured with tools/probe-map.",
+  "_botSpawnDepth": "The two spawns relocated off the rooftops sit at the back of the bots' half rather than level with the others. Measured: 29 engagements at a 24.0m median becomes 34 at 26.9m, against a declared target of 27. Better on both counts."
 }
