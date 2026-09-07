@@ -93,6 +93,60 @@ function Hub.build(): any
 end
 
 --------------------------------------------------------------------------------
+-- Parking the hub for the duration of a match
+--------------------------------------------------------------------------------
+
+--[[
+	The Landing is 190x190 metres and every map is built at the world origin, so
+	while a match is running the field is standing INSIDE the hub. Holdfast is
+	150x200 -- it overlaps The Landing almost completely.
+
+	That is why interactable people were showing up mid-round: nothing was ever
+	hiding them. They were never "in the match", the match was being built on top
+	of them, along with the barn, the trees, the pond and every trail.
+
+	Parking is a single Parent write on the root model rather than a rebuild.
+	Every prompt, connection and reference survives, so coming back is another
+	single write. Prompts are disabled explicitly too: a ProximityPrompt outside
+	the DataModel cannot fire, but the cost of being sure is one boolean.
+]]
+local parked: Folder? = nil
+
+function Hub.park()
+	if not hub or not hub.model or hub.model.Parent ~= Workspace then
+		return
+	end
+	for _, person in pairs(hub.people or {}) do
+		person:setAvailable(false)
+	end
+	local holder = parked
+	if not holder then
+		holder = Instance.new("Folder")
+		;(holder :: Folder).Name = "LandingParked"
+		;(holder :: Folder).Parent = game:GetService("ServerStorage")
+		parked = holder
+	end
+	hub.model.Parent = holder
+	log.info("the landing is parked for the match")
+end
+
+function Hub.restore()
+	if not hub or not hub.model or hub.model.Parent == Workspace then
+		return
+	end
+	hub.model.Parent = Workspace
+	for _, person in pairs(hub.people or {}) do
+		person:setAvailable(true)
+	end
+	log.info("the landing is open again")
+end
+
+--- True when the hub is currently standing in the world.
+function Hub.isOpen(): boolean
+	return hub ~= nil and hub.model ~= nil and hub.model.Parent == Workspace
+end
+
+--------------------------------------------------------------------------------
 
 --- The categories the counter in front of this player actually stocks, or an
 --- empty list if they are not at a counter. This is the server-side gate on
@@ -136,6 +190,8 @@ end
 	start being a chore.
 ]]
 function Hub.placePlayer(player: Player, at: Vector3?)
+	-- Putting a player into a parked hub would drop them through the world.
+	Hub.restore()
 	if not hub then
 		Hub.build()
 	end

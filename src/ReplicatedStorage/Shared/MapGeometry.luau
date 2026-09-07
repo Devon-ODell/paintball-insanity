@@ -192,6 +192,46 @@ function MapGeometry.containsPoint(volume: Volume, point: Vector3): boolean
 	return math.abs(p.X) <= h.X and math.abs(p.Y) <= h.Y and math.abs(p.Z) <= h.Z
 end
 
+--[[
+	Height of the highest solid surface beneath `point`, at or below its own Y.
+
+	Volumes rotate only about Y, so every top face is level and the test reduces
+	to a 2D point-in-rotated-rectangle against the footprint. Concealment-only
+	volumes (brush, netting) are skipped -- you cannot stand on a bush.
+
+	Returns the ground plane when nothing holds the point up, which is the answer
+	that actually matters here: a spawn with nothing under it is a bot standing
+	in the sky, and until now nothing in the pipeline could tell.
+]]
+function MapGeometry.supportHeightAt(world: World, point: Vector3, tolerance: number?): number
+	local slack = tolerance or 0.75
+	local best = 0
+	for _, volume in ipairs(world.volumes) do
+		if volume.cover or volume.walkable then
+			local top = volume.center.Y + volume.halfSize.Y
+			if top <= point.Y + slack and top > best then
+				local flat = toLocal(volume, Vector3.new(point.X, volume.center.Y, point.Z))
+				if math.abs(flat.X) <= volume.halfSize.X and math.abs(flat.Z) <= volume.halfSize.Z then
+					best = top
+				end
+			end
+		end
+	end
+	return best
+end
+
+--- True when something actually holds this point up at its stated height.
+function MapGeometry.isSupported(world: World, point: Vector3, tolerance: number?): boolean
+	local slack = tolerance or 0.75
+	return math.abs(MapGeometry.supportHeightAt(world, point, slack) - point.Y) <= slack
+end
+
+--- Drops a point onto whatever holds it up. Spawns go through this so a Y typo
+--- in a map file produces a bot on the roof, never a bot in the air.
+function MapGeometry.groundPoint(world: World, point: Vector3, tolerance: number?): Vector3
+	return Vector3.new(point.X, MapGeometry.supportHeightAt(world, point, tolerance), point.Z)
+end
+
 --- Nearest blocking volume along a segment, or nil if the segment is clear.
 function MapGeometry.cast(world: World, from: Vector3, to: Vector3, options: CastOptions?): Hit?
 	local opts = options or {}

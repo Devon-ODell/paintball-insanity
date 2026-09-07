@@ -1,29 +1,49 @@
 {
   "_comment": "Round flow and the player's own movement envelope. Matches are single-player: one player, six bots, no lobby. Death costs payout, never progress.",
-
   "squadSize": 6,
-
   "_rounds": "A match is FIVE rounds and the field fills up as you go. Round 1 is two of them and is winnable straight; by round 5 it is the full 1v6 the game is actually about. The escalation is what makes a match a curve rather than a wall -- the player gets to learn the map's angles against two bots before those angles matter against six. Deaths accumulate across all five rounds and the payout penalty is applied once, at the end, to the whole match.",
-
   "rounds": {
     "count": 5,
     "intermissionSeconds": 7,
     "roundTimeLimitSeconds": 200,
     "schedule": [
-      { "round": 1, "bots": 2, "tierOffset": 0, "payoutMultiplier": 0.5 },
-      { "round": 2, "bots": 3, "tierOffset": 0, "payoutMultiplier": 0.7 },
-      { "round": 3, "bots": 4, "tierOffset": 0, "payoutMultiplier": 1.0 },
-      { "round": 4, "bots": 5, "tierOffset": 1, "payoutMultiplier": 1.4 },
-      { "round": 5, "bots": 6, "tierOffset": 1, "payoutMultiplier": 2.0 }
+      {
+        "round": 1,
+        "bots": 2,
+        "tierOffset": 0,
+        "payoutMultiplier": 0.5
+      },
+      {
+        "round": 2,
+        "bots": 3,
+        "tierOffset": 0,
+        "payoutMultiplier": 0.7
+      },
+      {
+        "round": 3,
+        "bots": 4,
+        "tierOffset": 0,
+        "payoutMultiplier": 1.0
+      },
+      {
+        "round": 4,
+        "bots": 5,
+        "tierOffset": 1,
+        "payoutMultiplier": 1.4
+      },
+      {
+        "round": 5,
+        "bots": 6,
+        "tierOffset": 1,
+        "payoutMultiplier": 2.0
+      }
     ],
     "_tierOffset": "Steps the bot tier UP by this many places from the tier the player selected, capped at pro. Rounds 4 and 5 bring in better players, which is the same thing that happens when a real field notices someone is winning.",
     "_payoutMultiplier": "Per-round share of the map's base payout. The five sum to 5.6, so a full clean clear of a match pays a little over five times a single round -- the last two rounds are where the money is."
   },
-
   "roundTimeLimitSeconds": 480,
   "respawnDelaySeconds": 2.5,
   "warmupSeconds": 3.0,
-
   "player": {
     "walkSpeedMps": 4.2,
     "sprintSpeedMps": 6.4,
@@ -35,12 +55,12 @@
     "leanSpeed": 6.0,
     "eyeHeightMetres": 1.62,
     "crouchEyeHeightMetres": 1.05,
-    "fieldOfViewDeg": 92,
+    "fieldOfViewDeg": 78,
     "_stopToShoot": "Sprinting multiplies the cone by markers.json sprintingSpreadMultiplier, which is 9x on every marker. You cannot shoot accurately while sprinting -- stop-to-shoot timing is a fundamental and the game enforces it rather than suggesting it.",
     "sprintToFireRecoverySeconds": 0.28,
-    "_recoveryNote": "How long after releasing sprint before the cone is back to its standing value. This is the window the player is learning to feel."
+    "_recoveryNote": "How long after releasing sprint before the cone is back to its standing value. This is the window the player is learning to feel.",
+    "_fieldOfViewDeg": "Vertical FOV. Dropped from 92 to 78: at 92 a player-sized target at 40m -- which is the range this whole game is about -- was too small to read, and the fix for that is magnification, not a bigger hitbox. 78 makes a target ~18% larger on screen without going so narrow that peripheral awareness suffers. The HUD's crosshair and holdover marks derive their pixel scale from camera.FieldOfView, so both follow this automatically."
   },
-
   "hitRules": {
     "_comment": "Paintball rules. One mark and you are out for the round. No health, no regeneration, no armour, and nothing purchasable changes any of this.",
     "oneHitElimination": true,
@@ -48,14 +68,12 @@
     "surrenderBarrelTagRangeMetres": 4.0,
     "_surrenderNote": "Inside this range a bot offers a barrel tag instead of shooting -- it is a paintball courtesy and it reads as comedy rather than mercy."
   },
-
   "respawn": {
     "_comment": "Respawn is free and unlimited. It is the accessibility floor: anyone can finish. The payout curve in economy.json is what makes only skill profitable.",
     "unlimited": true,
     "invulnerabilitySeconds": 1.0,
     "spawnAwayFromBotsMetres": 18
   },
-
   "server": {
     "_maxPlayers": "The match place is configured MaxPlayers = 1 in Studio's Game Settings; reserved servers via TeleportService:ReserveServerAsync are the fallback if that ever stops being honoured. Verified 2026-09-06, see docs/PLATFORM_NOTES.md.",
     "tickRateHz": 60,

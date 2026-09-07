@@ -191,7 +191,14 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 
 		for i = 1, round.botCount do
 			local spawn = world.botSpawns[((i - 1) % #world.botSpawns) + 1]
-			local position = vecOf(spawn.position)
+			--[[
+				Dropped onto whatever actually holds the point up. The map data
+				is authored to put everyone on the ground, but a Y typo used to
+				produce a bot standing in mid-air and nothing in the pipeline
+				could tell -- this makes the worst case "on the roof of the thing
+				underneath you" instead of "in the sky".
+			]]
+			local position = MapGeometry.groundPoint(world, vecOf(spawn.position))
 			local facing = vecOf(spawn.lookAt) - position
 			if facing.Magnitude < 1e-6 then
 				facing = Vector3.new(0, 0, -1)
@@ -210,7 +217,8 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			})
 			bots[i] = bot
 			botsById[bot.id] = bot
-			avatars[bot.id] = BotAvatar.new(bot.id, bot.name, botFolder)
+			-- Kit tracks tier, so a squad's difficulty is readable on sight.
+			avatars[bot.id] = BotAvatar.new(bot.id, bot.name, botFolder, round.tier)
 			avatars[bot.id]:setPosition(bot.position, bot.facing)
 
 			local anchor = coordinator:anchorById(assignments[i].anchorId)
@@ -643,10 +651,10 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				say("playerEliminated", {})
 
 				-- Respawn is free and unlimited. It costs payout, not progress.
-				local respawnAt = vecOf(world.playerRespawns[1].position)
+				local respawnAt = MapGeometry.groundPoint(world, vecOf(world.playerRespawns[1].position))
 				local best = -math.huge
 				for _, entry in ipairs(world.playerRespawns) do
-					local candidate = vecOf(entry.position)
+					local candidate = MapGeometry.groundPoint(world, vecOf(entry.position))
 					local nearest = math.huge
 					for _, bot in ipairs(bots) do
 						if bot.alive then
@@ -893,7 +901,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		end,
 	}
 	active[player] = match
-	spawnPlayer(vecOf(world.playerSpawn.position))
+	spawnPlayer(MapGeometry.groundPoint(world, vecOf(world.playerSpawn.position)))
 	if finished then return nil end
 
 	-- Round 1 of five. Each subsequent round is started by closeRound after its

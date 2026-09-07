@@ -162,7 +162,19 @@ local function startMatch(player: Player, mapName: string, tier: Types.BotTier):
 		log.warn(`{player.Name} asked for locked map {mapName}`)
 		mapName = DEFAULT_MAP
 	end
+	--[[
+		Park The Landing before the field is built.
+
+		Maps are built at the world origin and the hub is 190x190 metres there,
+		so without this the match is assembled INSIDE the hub -- which is why
+		Marge and Tildy were standing on the field with live prompts. Parked
+		first, restored by Hub.placePlayer on the way back out.
+	]]
+	Hub.park()
 	local match = MatchService.start(player, mapName, tier)
+	if not match then
+		Hub.restore()
+	end
 	return match ~= nil
 end
 
@@ -187,6 +199,8 @@ requestMatch = function(player: Player, payload: any): any
 	starting[player] = nil
 	if not success then
 		MatchService.stop(player)
+		-- A half-built match must never leave the player with no world at all.
+		Hub.restore()
 		log.warn(`match startup failed: {result}`)
 		return { ok = false, reason = "Could not start the match. Check Studio Output." }
 	end
@@ -241,6 +255,11 @@ function bayCatalogue(player: Player, bayId: string?, categories: { string }?): 
 end
 
 Hub.onNpcTalk = function(player: Player, npcId: string)
+	-- Belt and braces. A parked hub's prompts cannot fire, but nobody at The
+	-- Landing is reachable from inside a match and this says so out loud.
+	if not Hub.isOpen() then
+		return
+	end
 	DialogueService.open(player, npcId)
 end
 
