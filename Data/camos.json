@@ -12,14 +12,18 @@
     "citrusCircuit",
     "tideShift",
     "prismBreak",
-    "auroraFlux"
+    "auroraFlux",
+    "chalkline",
+    "shoothouse",
+    "aurumFinish"
   ],
   "camos": {
     "factory": {
       "displayName": "Factory Finish",
       "requiredHeadshots": 0,
       "reactive": false,
-      "blurb": "The original colourway. Straight from the workbench."
+      "blurb": "The original colourway. Straight from the workbench.",
+      "layout": "stripe"
     },
     "citrusCircuit": {
       "displayName": "Citrus Circuit",
@@ -40,7 +44,8 @@
         240,
         138
       ],
-      "blurb": "Electric citrus stripes light up on every confirmed headshot."
+      "blurb": "Electric citrus stripes light up on every confirmed headshot.",
+      "layout": "stripe"
     },
     "tideShift": {
       "displayName": "Tide Shift",
@@ -61,7 +66,8 @@
         255,
         252
       ],
-      "blurb": "Deep blue anodising with a sea-glass pulse when you tag the mask."
+      "blurb": "Deep blue anodising with a sea-glass pulse when you tag the mask.",
+      "layout": "band"
     },
     "prismBreak": {
       "displayName": "Prism Break",
@@ -82,7 +88,8 @@
         204,
         248
       ],
-      "blurb": "Violet panels and pink light. Earn every flash."
+      "blurb": "Violet panels and pink light. Earn every flash.",
+      "layout": "hex"
     },
     "auroraFlux": {
       "displayName": "Aurora Flux",
@@ -103,7 +110,88 @@
         167,
         255
       ],
-      "blurb": "Mint bands flare into an aurora after a clean mask tag."
+      "blurb": "Mint bands flare into an aurora after a clean mask tag.",
+      "layout": "fade"
+    },
+    "chalkline": {
+      "displayName": "Chalkline",
+      "requiredHeadshots": 0,
+      "requires": {
+        "kind": "courseGold",
+        "count": 1
+      },
+      "reactive": true,
+      "layout": "band",
+      "baseColor": [
+        236,
+        236,
+        230
+      ],
+      "accentColor": [
+        52,
+        56,
+        64
+      ],
+      "pulseColor": [
+        255,
+        255,
+        255
+      ],
+      "blurb": "Field-marking white over dark line. One gold medal on any Shoothouse course."
+    },
+    "shoothouse": {
+      "displayName": "Shoothouse",
+      "requiredHeadshots": 0,
+      "requires": {
+        "kind": "courseGold",
+        "count": 3
+      },
+      "reactive": true,
+      "layout": "chevron",
+      "baseColor": [
+        44,
+        48,
+        53
+      ],
+      "accentColor": [
+        255,
+        106,
+        0
+      ],
+      "pulseColor": [
+        255,
+        196,
+        128
+      ],
+      "blurb": "Range orange on slate, in chevrons. Gold on three courses -- worn by people who were there when the field opened."
+    },
+    "aurumFinish": {
+      "displayName": "Aurum",
+      "requiredHeadshots": 0,
+      "requires": {
+        "kind": "courseGold",
+        "count": 5
+      },
+      "reactive": true,
+      "layout": "chevron",
+      "baseColor": [
+        92,
+        70,
+        24
+      ],
+      "accentColor": [
+        214,
+        176,
+        84
+      ],
+      "pulseColor": [
+        255,
+        238,
+        180
+      ],
+      "blurb": "Gold on every course. The same anodising as the Kompressor, and the only finish in the game that says where you got it."
     }
-  }
+  },
+  "_earnedTwoWays": "Two ladders, and they never cross. The five original finishes are bought with CONFIRMED MASK HITS -- server-classified headshots, nothing else. The three below are bought with a CLOCK: gold medals on the Shoothouse courses. Neither is purchasable at any price and neither touches a single number that affects where paint goes.",
+  "_requires": "A camo unlocks on requiredHeadshots by default. A camo carrying a `requires` block unlocks on that instead and its requiredHeadshots is ignored -- see Shared/Camos.isUnlocked and Shared/Courses.meets, which is the one place the rule is written."
 }

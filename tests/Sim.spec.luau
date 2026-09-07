@@ -15,7 +15,9 @@
 	here. See docs/PROGRESS.md.
 ]]
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Server = game:GetService("ServerScriptService").Server
+local Config = require(ReplicatedStorage.Shared.Config)
 local SimMatch = require(Server.Sim.SimMatch)
 local Policies = require(Server.Sim.Policies)
 local RoundSchedule = require(Server.Match.RoundSchedule)
@@ -124,7 +126,7 @@ return function()
 				expect(report.eliminations).to.equal(report.botCount)
 				previous = report.botCount
 			end
-			expect(previous).to.equal(6)
+			expect(previous).to.equal(Config.require("match", "squadSize"))
 		end)
 
 		it("stops the match at the first round the player cannot finish", function()
@@ -141,7 +143,7 @@ return function()
 				maxSeconds = 240, singleRound = 5,
 			})
 			expect(#result.rounds).to.equal(1)
-			expect(result.rounds[1].botCount).to.equal(6)
+			expect(result.rounds[1].botCount).to.equal(Config.require("match", "squadSize"))
 		end)
 
 		it("records telemetry and produces a prescription", function()

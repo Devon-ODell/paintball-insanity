@@ -1,0 +1,116 @@
+{
+  "_comment": "THE SHOOTHOUSE. Every field has a course laid through it: the same map, the same cover, fought in a line. You start at the near end, the far end is the objective, and the field is divided into four stages that you have to clear in order. It is the fourth mode and the only one that is timed.",
+  "_whyItExists": "Gauntlet teaches a map as a place -- six of them somewhere in it, you somewhere else, and the whole field live at once. The Shoothouse teaches the same map as a SEQUENCE. Two defenders, then three, then four, then five, each group holding the next band of cover up the field. That is a curriculum you can actually fail one piece of, which is the thing a timer needs before it means anything.",
+  "_theStagesAreTheMap": "A stage is not new geometry. Every field already declares fourteen anchors -- the authored cover positions the bots fight from -- and the Shoothouse is those fourteen anchors sorted by depth and dealt out two, three, four, five. Nothing was moved, nothing was invented, and the map still plays as itself. What changed is that you meet it in order.",
+  "advanceOnClear": true,
+  "_advanceOnClear": "The next stage does not exist until the current one is empty. No trigger volumes, no leaking a back-stage defender into a fight you are already losing. Clear it and the field moves up.",
+  "stageCount": 4,
+  "stageBots": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "_stageBots": "Concurrent defenders per stage -- what is alive at once. Multiplied by wavesPerStage for the stage total, so a course is 28 defenders fought in 4 stages of 4, 6, 8 and 10.",
+  "stageAnnounceSeconds": 2.5,
+  "_stageAnnounce": "A beat between stages. The clock does NOT stop for it -- see clockStopsBetweenStages -- it is a breath, not a break.",
+  "clockStopsBetweenStages": false,
+  "timing": {
+    "_comment": "One clock, running from the moment the first stage goes live until the last defender is out. There is no pause and no way to bank time.",
+    "startsOnFirstStage": true,
+    "deathPenaltySeconds": 10,
+    "_deathPenalty": "Dying does not end the run and does not send you back to the start. It costs you ten seconds and puts you back on the last checkpoint you reached. This is the same bargain the rest of the game makes -- death costs payout, never progress -- restated in the only currency a timed mode has. Ten seconds is deliberately most of a gold margin: two deaths will usually cost you the medal without ever costing you the run.",
+    "respawnDelaySeconds": 2.0
+  },
+  "checkpoints": {
+    "_comment": "Each stage carries a checkpoint: where you respawn while that stage is live, and where the run-up to it starts. They are picked off the map's own navNodes, so every one is a point the pathfinder already believes is standable.",
+    "_authoring": "Checkpoints are chosen furthest-forward-but-clear: at least minStandoffMetres behind the stage's nearest defender, at least minAdvanceMetres ahead of the previous checkpoint, never inside a cover volume, and never above ground level. tools/course-report re-derives and re-checks all twenty of them.",
+    "minStandoffMetres": 6.0,
+    "minAdvanceMetres": 4.0,
+    "maxGroundHeightMetres": 1.0,
+    "_offCentre": "Some checkpoints sit well off the centre line. That is not sloppiness -- on Urban and Holdfast the centre of the approach is occupied by the market stalls and the ruins, and a clear standable node to the side is worth more than a tidy straight line through a wall."
+  },
+  "medals": {
+    "order": [
+      "bronze",
+      "silver",
+      "gold"
+    ],
+    "_comment": "Par times live per-map in Data/maps/<id>.json under course.parSeconds, because they are a property of the field's length and its engagement range, not of the mode.",
+    "_derivation": "gold = span / 2.4 + 14 * secondsPerBot, where span is the metres from the player spawn to the deepest anchor and secondsPerBot = 4.5 * (1 + (bandMedian - 16) / 60). 2.4 m/s is a careful advance under fire -- slower than the 4.2 m/s walk because this game enforces stop-to-shoot. Silver is gold x 1.35, bronze gold x 1.85. Every number below is a FIRST-PASS ESTIMATE derived from geometry and has not been calibrated against a human run; expect to retune after playtest and treat the derivation, not the values, as the thing to preserve.",
+    "_secondsPerBot": "Scales with the map's declared engagement band. A 52 m fight on Holdfast is not a 16 m fight on Speedball and par should not pretend it is."
+  },
+  "payout": {
+    "_comment": "The Shoothouse pays off the map's basePayout in economy.json, multiplied by the medal. It deliberately pays LESS than a full five-round gauntlet on the same map -- a course is fourteen defenders and a gauntlet is twenty over five rounds -- so the mode is a skill test and a leaderboard, never the efficient way to farm.",
+    "medalMultiplier": {
+      "none": 0.25,
+      "bronze": 0.5,
+      "silver": 0.75,
+      "gold": 1.1
+    },
+    "firstMedalBonus": {
+      "bronze": 150,
+      "silver": 250,
+      "gold": 500
+    },
+    "_firstMedalBonus": "Paid once per map per medal tier, the first time you reach it. Beating your own time again pays the multiplier but not the bonus, so the leaderboard stays worth chasing without turning into an income.",
+    "deathPenaltyApplies": false,
+    "_deathPenaltyApplies": "The economy's exponential death penalty does NOT stack here. Deaths already cost ten seconds each, and the medal already priced that in. Charging twice for one mistake is how a mode stops being replayable."
+  },
+  "records": {
+    "_comment": "What persists per map, and the whole reason to run it twice.",
+    "keeps": [
+      "bestSeconds",
+      "bestMedal",
+      "runs",
+      "clears",
+      "bestDeaths"
+    ],
+    "flawlessRequiresZeroDeaths": true
+  },
+  "rewards": {
+    "_comment": "UNLOCKS, not purchases. Nothing here is buyable at any price and nothing here improves accuracy -- the Shoothouse pays in finishes and in one marker that is famously harder to use than what you already own.",
+    "camoByMedal": {
+      "_note": "Course medals unlock finishes that headshot counts never will. These are the only camos in the game earned by a clock instead of by mask hits.",
+      "anyGold": "chalkline",
+      "threeGold": "shoothouse",
+      "allGold": "aurumFinish"
+    },
+    "aurumKompressor": {
+      "_comment": "A SECOND ROUTE TO THE GOLD MARKER. The Aurum Kompressor already exists -- it is the end of the campaign, chapter ten, and it costs a forty-wave horde run plus a flawless pro gauntlet on every field. That is a fine ending and it stays exactly as it is. What it is not is reachable by someone who is simply very good at shooting, which is the one thing this game claims to be about.",
+      "_theRoute": "Gold on all five Shoothouse courses. Five clean runs, one per field, each inside a par derived from that field's own length. It is not shorter than the campaign route -- it is the same wall approached from the side that rewards aim instead of endurance.",
+      "requires": {
+        "kind": "courseGold",
+        "count": 5,
+        "solo": true
+      },
+      "_stillNotAnUpgrade": "It is still a pump. It still holds twelve. It is still the hardest marker on the field to use and unlocking it early only means you chose to make your life harder sooner, which is the joke markers.json has been making about it all along.",
+      "_solo": "Solo runs only, per coop.countsTowardAurum."
+    }
+  },
+  "leaderboard": "time",
+  "unlockRequires": null,
+  "_unlockRequires": "Open from the first session. The Shoothouse is where a new player learns what a field looks like before the field has six people in it, so gating it behind the campaign would be backwards.",
+  "wavesPerStage": 2,
+  "_wavesPerStage": "Each stage is fought TWICE over. The stage's anchors fill, you clear them, and a second group takes the same cover before the field moves up. That is where the doubled defender count lives: fourteen anchors, twenty-eight defenders, and never two bodies on one bunker at the same time. Reinforcing into cover the player has just fought through also reads better than spawning a bigger line at the start -- the field pushes back instead of merely being larger.",
+  "coop": {
+    "_comment": "TWO-PLAYER CO-OP, and only here. Every other mode is solo and the architecture stays solo: one server, one match, at most two people in it. There is no lobby, no party system and no matchmaking -- a second player joins the running course or there is no second player.",
+    "maxPlayers": 2,
+    "enabled": true,
+    "sharedClock": true,
+    "_sharedClock": "One timer for the pair. Two people cannot each own a time on the same run, and a co-op run that produced two different numbers would be two runs.",
+    "botScalePerExtraPlayer": 0.5,
+    "_botScale": "Each extra player adds half again as many defenders per stage, rounded up. Two players do not meet a course built for one; they meet a course built for two.",
+    "checkpointRequiresBoth": true,
+    "_checkpointRequiresBoth": "A checkpoint banks when BOTH players are past it. Otherwise one player sprints the course while the other feeds the clock ten seconds at a time, which is not co-op, it is a taxi.",
+    "deathPenaltyPerPlayer": true,
+    "_deathPenalty": "Every death costs the shared clock ten seconds, whoever died. The pair is one run.",
+    "reviveOnStageClear": true,
+    "_revive": "An eliminated player is back in at the checkpoint on the next stage clear even if they never respawned -- nobody spectates a whole course.",
+    "payoutPerPlayer": 1.0,
+    "_payout": "Each player is paid in full off their own profile. Co-op is not a way to halve an income and it is not a way to double one; it pays what the run was worth, twice, to two people.",
+    "recordsMedal": true,
+    "countsTowardAurum": false,
+    "_countsTowardAurum": "Co-op medals go on the board and into your records, but the Aurum Kompressor route requires SOLO gold on all five. The gold marker is a statement about your own aim and it stays one -- being carried to it would make it mean the opposite of what markers.json says it means."
+  }
+}

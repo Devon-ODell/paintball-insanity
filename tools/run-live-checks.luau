@@ -39,7 +39,14 @@ local shopVenue = {
     spawn = roblox.Vector3.new(0, 0, -40), lookAt = roblox.Vector3.new(0, 1, -45),
 }
 replace(env.Server.Match.FieldDetails, { build = function() return shopVenue end })
-replace(env.Server.Match.WorldBuilder, { build = function() return { Destroy = function() end } end })
+--[[
+    The map stub has to be a REAL Instance, not a table. MatchService parents its
+    bot Folder to whatever `build` returns, and the harness now hands modules
+    Lune's real `Instance` -- so a plain table on the right of `.Parent =` throws
+    "expected userdata of type Instance". A bare Folder keeps the smoke test off
+    the real world builder without lying about the type.
+]]
+replace(env.Server.Match.WorldBuilder, { build = function() return roblox.Instance.new("Folder") end })
 replace(env.Server.Match.BotAvatar, { new = function() return { setPosition = function() end, splatter = function() end, destroy = function() end } end })
 local ticks, fired = 0, 0
 local botPositions = {}
@@ -68,7 +75,6 @@ end })
 replace(env.Server.Ballistics.LagCompensation, { new = function()
     return { originIsPlausible = function() return false end, capture = function() end }
 end })
-env.globals.Instance = { new = function() return {} end }
 local humanoid = { HipHeight = 1.5 }
 local root = { Position = roblox.Vector3.new(0, 3, 0), Size = roblox.Vector3.new(2, 2, 1), AssemblyLinearVelocity = roblox.Vector3.zero }
 local character = { FindFirstChild = function() return root end, FindFirstChildOfClass = function() return humanoid end, WaitForChild = function(_, name) return if name == "Humanoid" then humanoid else root end }

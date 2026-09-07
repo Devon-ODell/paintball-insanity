@@ -7,7 +7,7 @@ Persistent instructions. Read fully before every session.
 ## What this is
 
 A single-player Roblox PvE paintball shooter built as a **disguised aim trainer**.
-One player against six bots per match. Low-poly, flat-shaded, saturated palette.
+One player against twelve bots per match. Low-poly, flat-shaded, saturated palette.
 
 The game is deliberately hard. Losing a straight 1v6 is the expected outcome; the
 player is meant to die repeatedly and improve. Death costs no progress — it costs
@@ -110,9 +110,22 @@ can be tuned without touching logic.
 
 ### Solo PvE on a multiplayer platform
 
-Matches are single-player. Set `MaxPlayers = 1` on the match place, or use reserved
-servers via `TeleportService`. Verify current best practice — this has changed.
-Do not build lobby or party systems. There is no multiplayer in scope.
+Matches are single-player, with exactly one exception. Set `MaxPlayers = 2` on the
+match place, or use reserved servers via `TeleportService`. Verify current best
+practice — this has changed.
+
+**The exception is the Shoothouse.** The timed course mode takes at most two
+players; Gauntlet, Horde and Capture the Flag remain strictly solo and no work
+should make them otherwise. The rules live in `Data/course.json → coop`: one
+shared clock, stages that advance only when the pair has cleared them, a
+checkpoint that banks only when both players are past it, and defenders scaled up
+per extra player so two people do not walk a course built for one. Co-op medals
+are recorded and ranked but do not unlock the Aurum Kompressor — the gold marker
+stays a statement about your own aim.
+
+Still do not build lobby, party or matchmaking systems. A second player joins a
+running course or there is no second player. Beyond that seat, there is no
+multiplayer in scope.
 
 ---
 

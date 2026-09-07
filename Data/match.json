@@ -1,7 +1,7 @@
 {
-  "_comment": "Round flow and the player's own movement envelope. Matches are single-player: one player, six bots, no lobby. Death costs payout, never progress.",
-  "squadSize": 6,
-  "_rounds": "A match is FIVE rounds and the field fills up as you go. Round 1 is two of them and is winnable straight; by round 5 it is the full 1v6 the game is actually about. The escalation is what makes a match a curve rather than a wall -- the player gets to learn the map's angles against two bots before those angles matter against six. Deaths accumulate across all five rounds and the payout penalty is applied once, at the end, to the whole match.",
+  "_comment": "Round flow and the player's own movement envelope. Gauntlet, Horde and CTF are single-player: one player, twelve bots, no lobby. The Shoothouse course is the one exception and takes at most two -- see Data/course.json coop. There is still no lobby, party system or matchmaking anywhere.",
+  "squadSize": 12,
+  "_rounds": "A match is FIVE rounds and the field fills up as you go. Round 1 is four of them and is winnable straight; by round 5 it is the full 1v12 the game is now about. The escalation is what makes a match a curve rather than a wall -- the player gets to learn the map's angles against four bots before those angles matter against twelve. Deaths accumulate across all five rounds and the payout penalty is applied once, at the end, to the whole match.",
   "rounds": {
     "count": 5,
     "intermissionSeconds": 7,
@@ -9,37 +9,38 @@
     "schedule": [
       {
         "round": 1,
-        "bots": 2,
+        "bots": 4,
         "tierOffset": 0,
         "payoutMultiplier": 0.5
       },
       {
         "round": 2,
-        "bots": 3,
+        "bots": 6,
         "tierOffset": 0,
         "payoutMultiplier": 0.7
       },
       {
         "round": 3,
-        "bots": 4,
+        "bots": 8,
         "tierOffset": 0,
         "payoutMultiplier": 1.0
       },
       {
         "round": 4,
-        "bots": 5,
+        "bots": 10,
         "tierOffset": 1,
         "payoutMultiplier": 1.4
       },
       {
         "round": 5,
-        "bots": 6,
+        "bots": 12,
         "tierOffset": 1,
         "payoutMultiplier": 2.0
       }
     ],
     "_tierOffset": "Steps the bot tier UP by this many places from the tier the player selected, capped at pro. Rounds 4 and 5 bring in better players, which is the same thing that happens when a real field notices someone is winning.",
-    "_payoutMultiplier": "Per-round share of the map's base payout. The five sum to 5.6, so a full clean clear of a match pays a little over five times a single round -- the last two rounds are where the money is."
+    "_payoutMultiplier": "Per-round share of the map's base payout. The five sum to 5.6, so a full clean clear of a match pays a little over five times a single round -- the last two rounds are where the money is.",
+    "_rounds_doubled": "Round sizes doubled with the squad: four, six, eight, ten, twelve. The shape of the escalation is unchanged -- round one is still a third of the field and round five is still all of it -- so the curve the payout multipliers were tuned against still holds."
   },
   "roundTimeLimitSeconds": 480,
   "respawnDelaySeconds": 2.5,
@@ -72,11 +73,14 @@
     "_comment": "Respawn is free and unlimited. It is the accessibility floor: anyone can finish. The payout curve in economy.json is what makes only skill profitable.",
     "unlimited": true,
     "invulnerabilitySeconds": 1.0,
-    "spawnAwayFromBotsMetres": 18
+    "spawnAwayFromBotsMetres": 16,
+    "_spawnAway": "Scaled with the fields when they shrank to 88%. Left at 18 m it was asking for more clearance than a 30 m wide Speedball can offer, which would have quietly forced respawns into the same corner every time."
   },
   "server": {
-    "_maxPlayers": "The match place is configured MaxPlayers = 1 in Studio's Game Settings; reserved servers via TeleportService:ReserveServerAsync are the fallback if that ever stops being honoured. Verified 2026-09-06, see docs/PLATFORM_NOTES.md.",
+    "_maxPlayers": "The match place is MaxPlayers = 2 in Studio's Game Settings: one for every mode, two only so the Shoothouse can be run as a pair. Reserved servers via TeleportService:ReserveServerAsync remain the fallback. Verified 2026-09-06, see docs/PLATFORM_NOTES.md.",
     "tickRateHz": 60,
-    "telemetryFlushSeconds": 15
-  }
+    "telemetryFlushSeconds": 15,
+    "maxPlayers": 2
+  },
+  "_squadSize": "Twelve, doubled from six on 2026-09-07. Every map was given twelve authored bot spawns in the same pass -- MatchService cycles the spawn list modulo its length, so a squad larger than the spawn list would have started two bots inside each other."
 }

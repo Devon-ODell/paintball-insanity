@@ -14,6 +14,13 @@ local skinId = "raw"
 local pulseAt = -math.huge
 local kickAt = -math.huge
 local animated = false
+--[[
+	Rebuilds the camo panels for a given layout. Assigned by equip, which is the
+	only place that knows this marker's body dimensions. A finish carries its own
+	panel geometry -- chevrons, bands, hex -- so switching camo has to rebuild the
+	panels, not just recolour them.
+]]
+local rebuildPanels: ((string?) -> ())? = nil
 
 local function vector(t: { number }): Vector3
 	return Vector3.new(t[1], t[2], t[3])
@@ -54,6 +61,10 @@ function ViewMarker.setCamo(id: string?)
 	camoId = if id and Camos.visual(id) then id else Config.get("camos").default
 	pulseAt = -math.huge
 	animated = false
+	local visual = Camos.visual(camoId)
+	if rebuildPanels then
+		(rebuildPanels :: (string?) -> ())(if visual then visual.layout else nil)
+	end
 	paint(0)
 end
 
@@ -164,10 +175,42 @@ function ViewMarker.equip(id: string, camo: string?)
 	for _, part in ipairs(spec.pieces or archetypeSpec.pieces or {}) do
 		piece(part.name, vector(part.size), vector(part.at), part.colour, part.shape, rotationOf(part))
 	end
-	for index, panel in ipairs(tuning.camoPanels) do
-		local at = vector(panel.at)
-		at = Vector3.new(math.sign(at.X) * (spec.body[1] / 2 + panel.size[1] / 2), at.Y, at.Z)
-		piece(`CamoPanel{index}`, vector(panel.size), at, "camo", nil, CFrame.Angles(math.rad(panel.rotationDeg), 0, 0))
+	--[[
+		Panels are mirrored onto both sides here, so a layout in markers.json is
+		authored once for the right-hand side. An unknown or missing layout falls
+		back to camoPanels, which keeps older saved loadouts rendering.
+	]]
+	rebuildPanels = function(layoutName: string?)
+		for i = #parts, 1, -1 do
+			if parts[i].tint == "camo" then
+				parts[i].part:Destroy()
+				table.remove(parts, i)
+			end
+		end
+		local layouts = tuning.camoLayouts
+		local named = if layouts and layoutName then layouts[layoutName] else nil
+		--[[
+			A named layout is authored for ONE side and mirrored here. The legacy
+			camoPanels fallback already lists both sides, so it is used as
+			authored -- mirroring it would stack every panel on top of its own
+			twin and set the viewmodel z-fighting against itself.
+		]]
+		local layout = named or tuning.camoPanels
+		local sides = if named then { 1, -1 } else { 0 }
+		local index = 0
+		for _, panel in ipairs(layout) do
+			for _, side in ipairs(sides) do
+				index += 1
+				local at = vector(panel.at)
+				local sign = if side == 0 then math.sign(at.X) else side
+				at = Vector3.new(sign * (spec.body[1] / 2 + panel.size[1] / 2), at.Y, at.Z)
+				-- The legacy panels already carry their own per-side slant; only
+				-- a mirrored layout gets its rotation flipped for the far side.
+				local rotation = if side == 0 then panel.rotationDeg else sign * panel.rotationDeg
+				piece(`CamoPanel{index}`, vector(panel.size), at, "camo", nil,
+					CFrame.Angles(math.rad(rotation), 0, 0))
+			end
+		end
 	end
 	ViewMarker.setCamo(camo)
 end

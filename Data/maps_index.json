@@ -10,25 +10,117 @@
   ],
   "palette": {
     "_note": "Saturated, strong silhouettes, 0-255 RGB. Surfaces are no longer uniformly flat plastic -- WorldBuilder maps each key to a material (grass, sand, concrete, timber, slate) and inflatables get a vinyl sheen -- but the rule that cover reads darker than ground, and bots read as the most saturated thing on screen, still governs every value here.",
-    "ground": [96, 128, 82],
-    "groundAlt": [78, 108, 68],
-    "sand": [206, 178, 124],
-    "asphalt": [74, 76, 82],
-    "concrete": [162, 160, 152],
-    "bunkerA": [232, 86, 70],
-    "bunkerB": [42, 128, 190],
-    "bunkerC": [246, 190, 62],
-    "netting": [38, 44, 52],
-    "timber": [124, 84, 50],
-    "timberDark": [88, 58, 36],
-    "foliage": [60, 116, 70],
-    "foliageDeep": [40, 86, 54],
-    "rock": [118, 120, 118],
-    "rust": [154, 86, 52],
-    "enemyJersey": [222, 60, 140],
-    "playerJersey": [60, 210, 200],
-    "mossRock": [88, 106, 84],
-    "sheetMetal": [150, 156, 160]
+    "ground": [
+      96,
+      128,
+      82
+    ],
+    "groundAlt": [
+      78,
+      108,
+      68
+    ],
+    "sand": [
+      206,
+      178,
+      124
+    ],
+    "asphalt": [
+      74,
+      76,
+      82
+    ],
+    "concrete": [
+      162,
+      160,
+      152
+    ],
+    "bunkerA": [
+      232,
+      86,
+      70
+    ],
+    "bunkerB": [
+      42,
+      128,
+      190
+    ],
+    "bunkerC": [
+      246,
+      190,
+      62
+    ],
+    "netting": [
+      38,
+      44,
+      52
+    ],
+    "timber": [
+      124,
+      84,
+      50
+    ],
+    "timberDark": [
+      88,
+      58,
+      36
+    ],
+    "foliage": [
+      60,
+      116,
+      70
+    ],
+    "foliageDeep": [
+      40,
+      86,
+      54
+    ],
+    "rock": [
+      118,
+      120,
+      118
+    ],
+    "rust": [
+      154,
+      86,
+      52
+    ],
+    "enemyJersey": [
+      222,
+      60,
+      140
+    ],
+    "playerJersey": [
+      60,
+      210,
+      200
+    ],
+    "mossRock": [
+      88,
+      106,
+      84
+    ],
+    "sheetMetal": [
+      150,
+      156,
+      160
+    ],
+    "brush": [
+      74,
+      98,
+      58
+    ],
+    "stone": [
+      132,
+      130,
+      122
+    ],
+    "containerRust": [
+      124,
+      72,
+      46
+    ],
+    "_undeclared": "brush, stone and containerRust were in use on Woods, Holdfast and Dustline but had never been declared here, so every thicket, copse, outcrop and rusted screen was falling back to concrete grey on smooth plastic. Woods and Holdfast were rendering their treelines as pale grey boxes."
   },
   "assembly": {
     "_note": "Nav edges are not hand-listed. The builder links any two nav nodes within navLinkRadiusMetres whose connecting segment is not blocked by a cover volume. Hand-authoring 80 edges per map is how maps stop getting edited.",
@@ -46,17 +138,41 @@
       "shadowSoftness": 0.28,
       "environmentDiffuseScale": 0.55,
       "environmentSpecularScale": 0.35,
-      "ambient": [58, 62, 72],
-      "outdoorAmbient": [104, 112, 128],
-      "colorShiftTop": [24, 20, 12],
-      "colorShiftBottom": [10, 12, 18],
+      "ambient": [
+        58,
+        62,
+        72
+      ],
+      "outdoorAmbient": [
+        104,
+        112,
+        128
+      ],
+      "colorShiftTop": [
+        24,
+        20,
+        12
+      ],
+      "colorShiftBottom": [
+        10,
+        12,
+        18
+      ],
       "clockTime": 15.2,
       "geographicLatitude": 28,
       "atmosphere": {
         "density": 0.32,
         "offset": 0.15,
-        "color": [199, 205, 212],
-        "decay": [104, 112, 124],
+        "color": [
+          199,
+          205,
+          212
+        ],
+        "decay": [
+          104,
+          112,
+          124
+        ],
         "glare": 0.28,
         "haze": 1.1
       },
@@ -73,7 +189,11 @@
         "brightness": 0.0,
         "contrast": 0.11,
         "saturation": 0.14,
-        "tintColor": [255, 252, 246]
+        "tintColor": [
+          255,
+          252,
+          246
+        ]
       },
       "depthOfField": {
         "farIntensity": 0,
@@ -101,31 +221,63 @@
         "_note": "Dusty and hot. Warmer ambient, more haze bouncing off the sand, longer focus.",
         "clockTime": 16.1,
         "brightness": 2.4,
-        "ambient": [72, 66, 58],
-        "outdoorAmbient": [128, 116, 98],
+        "ambient": [
+          72,
+          66,
+          58
+        ],
+        "outdoorAmbient": [
+          128,
+          116,
+          98
+        ],
         "atmosphere": {
           "density": 0.36,
           "haze": 1.6,
-          "color": [214, 200, 174],
+          "color": [
+            214,
+            200,
+            174
+          ],
           "glare": 0.32
         },
         "colorCorrection": {
           "saturation": 0.08,
           "contrast": 0.1,
-          "tintColor": [255, 248, 234]
+          "tintColor": [
+            255,
+            248,
+            234
+          ]
         }
       },
       "woods": {
         "_note": "Late overcast light under a treeline. The heavy haze is doing a job here: it is what makes a 70 m shot LOOK like 70 m, which is the whole lesson of this map.",
         "clockTime": 10.6,
         "brightness": 2.1,
-        "ambient": [54, 62, 58],
-        "outdoorAmbient": [96, 110, 100],
+        "ambient": [
+          54,
+          62,
+          58
+        ],
+        "outdoorAmbient": [
+          96,
+          110,
+          100
+        ],
         "atmosphere": {
           "density": 0.44,
           "haze": 2.3,
-          "color": [186, 198, 190],
-          "decay": [92, 108, 98],
+          "color": [
+            186,
+            198,
+            190
+          ],
+          "decay": [
+            92,
+            108,
+            98
+          ],
           "glare": 0.12
         },
         "colorCorrection": {
@@ -142,18 +294,34 @@
         "_note": "Desert freight yard, mid-afternoon, hard light. Very little haze up close so the container corners stay crisp, but a hot sand glare on everything.",
         "clockTime": 13.6,
         "brightness": 3.1,
-        "ambient": [82, 74, 60],
-        "outdoorAmbient": [140, 126, 100],
+        "ambient": [
+          82,
+          74,
+          60
+        ],
+        "outdoorAmbient": [
+          140,
+          126,
+          100
+        ],
         "atmosphere": {
           "density": 0.3,
           "haze": 1.2,
-          "color": [226, 208, 172],
+          "color": [
+            226,
+            208,
+            172
+          ],
           "glare": 0.42
         },
         "colorCorrection": {
           "saturation": 0.06,
           "contrast": 0.15,
-          "tintColor": [255, 246, 226]
+          "tintColor": [
+            255,
+            246,
+            226
+          ]
         },
         "depthOfField": {
           "farIntensity": 0,
@@ -165,13 +333,29 @@
         "_note": "Deep woods valley, low sun behind the north keep. The heaviest haze in the game and it is load-bearing: a 110 m lane has to LOOK like 110 m or nobody can judge the holdover it needs.",
         "clockTime": 8.4,
         "brightness": 2.0,
-        "ambient": [50, 58, 54],
-        "outdoorAmbient": [92, 106, 96],
+        "ambient": [
+          50,
+          58,
+          54
+        ],
+        "outdoorAmbient": [
+          92,
+          106,
+          96
+        ],
         "atmosphere": {
           "density": 0.5,
           "haze": 2.8,
-          "color": [180, 194, 186],
-          "decay": [86, 102, 92],
+          "color": [
+            180,
+            194,
+            186
+          ],
+          "decay": [
+            86,
+            102,
+            92
+          ],
           "glare": 0.16
         },
         "colorCorrection": {

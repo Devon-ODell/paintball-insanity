@@ -82,7 +82,12 @@ return function()
 				end)
 
 				it("gives every bot a spawn", function()
-					expect(#world.botSpawns).to.equal(6)
+					-- The invariant is that nobody has to share. MatchService
+					-- cycles the spawn list modulo its length, so a squad larger
+					-- than the list starts two bots inside each other. Read the
+					-- squad size rather than hardcoding it, so this tracks the
+					-- tuning instead of pinning it.
+					expect(#world.botSpawns >= Config.require("match", "squadSize")).to.equal(true)
 				end)
 
 				it("covers all three squad roles with its anchors", function()

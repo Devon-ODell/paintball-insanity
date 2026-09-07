@@ -731,6 +731,254 @@
       0.014,
       0.02,
       0.026
-    ]
+    ],
+    "camoLayouts": {
+      "_note": "Panel geometry per camo family. A finish is not just a colour -- the panels it wears are a different shape, so two reactive camos read apart at a glance and in peripheral vision. ViewMarker mirrors at.X onto both sides of the body, so every layout below is authored once for the right-hand side.",
+      "stripe": [
+        {
+          "size": [
+            0.009,
+            0.11,
+            0.05
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.13
+          ],
+          "rotationDeg": 18
+        },
+        {
+          "size": [
+            0.009,
+            0.11,
+            0.05
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.025
+          ],
+          "rotationDeg": 18
+        },
+        {
+          "size": [
+            0.009,
+            0.11,
+            0.05
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            0.08
+          ],
+          "rotationDeg": 18
+        }
+      ],
+      "chevron": [
+        {
+          "size": [
+            0.009,
+            0.13,
+            0.035
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.155
+          ],
+          "rotationDeg": 38
+        },
+        {
+          "size": [
+            0.009,
+            0.13,
+            0.035
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.08
+          ],
+          "rotationDeg": -38
+        },
+        {
+          "size": [
+            0.009,
+            0.13,
+            0.035
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.005
+          ],
+          "rotationDeg": 38
+        },
+        {
+          "size": [
+            0.009,
+            0.13,
+            0.035
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            0.07
+          ],
+          "rotationDeg": -38
+        }
+      ],
+      "band": [
+        {
+          "size": [
+            0.009,
+            0.055,
+            0.2
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.095
+          ],
+          "rotationDeg": 0
+        },
+        {
+          "size": [
+            0.009,
+            0.055,
+            0.14
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            0.06
+          ],
+          "rotationDeg": 0
+        }
+      ],
+      "hex": [
+        {
+          "size": [
+            0.009,
+            0.045,
+            0.045
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.16
+          ],
+          "rotationDeg": 45
+        },
+        {
+          "size": [
+            0.009,
+            0.045,
+            0.045
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.1
+          ],
+          "rotationDeg": 45
+        },
+        {
+          "size": [
+            0.009,
+            0.045,
+            0.045
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.04
+          ],
+          "rotationDeg": 45
+        },
+        {
+          "size": [
+            0.009,
+            0.045,
+            0.045
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            0.02
+          ],
+          "rotationDeg": 45
+        },
+        {
+          "size": [
+            0.009,
+            0.045,
+            0.045
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            0.08
+          ],
+          "rotationDeg": 45
+        }
+      ],
+      "fade": [
+        {
+          "size": [
+            0.009,
+            0.12,
+            0.02
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.17
+          ],
+          "rotationDeg": 0
+        },
+        {
+          "size": [
+            0.009,
+            0.12,
+            0.035
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.11
+          ],
+          "rotationDeg": 0
+        },
+        {
+          "size": [
+            0.009,
+            0.12,
+            0.05
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            -0.03
+          ],
+          "rotationDeg": 0
+        },
+        {
+          "size": [
+            0.009,
+            0.12,
+            0.07
+          ],
+          "at": [
+            0.063,
+            -0.003,
+            0.07
+          ],
+          "rotationDeg": 0
+        }
+      ]
+    },
+    "_camoLayouts": "camoPanels below stays as the fallback for any finish that does not name a layout, so an older profile equipping an older camo still renders."
   }
 }

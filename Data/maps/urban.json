@@ -9,9 +9,9 @@
   ],
   "_intent": "Sandy two- and three-storey shells, dead cars, alleys. Verticality and mid range. The skill this map exists for is shooting DOWN at a moving target -- elevation changes the lead you need and almost nothing drills it.",
   "engagementBand": {
-    "minMetres": 8,
-    "targetMedianMetres": 27,
-    "maxMetres": 52,
+    "minMetres": 7.04,
+    "targetMedianMetres": 23.76,
+    "maxMetres": 45.76,
     "_postureBias": "Measured correction on top of the band-derived posture. 1.0 means the derivation lands it; anything else is geometry having the last word. Set from tools/engagement-report, then re-measure.",
     "postureBias": {
       "range": 1.0,
@@ -19,8 +19,8 @@
     }
   },
   "bounds": {
-    "widthMetres": 70,
-    "lengthMetres": 80,
+    "widthMetres": 61.6,
+    "lengthMetres": 70.4,
     "heightMetres": 22
   },
   "ground": {
@@ -37,14 +37,14 @@
       "id": "blk_a_base",
       "shape": "box",
       "position": [
-        -18,
+        -15.84,
         3.0,
-        18
+        15.84
       ],
       "size": [
-        14,
+        12.32,
         6,
-        12
+        10.56
       ],
       "colorKey": "concrete",
       "cover": true
@@ -53,14 +53,14 @@
       "id": "blk_a_up",
       "shape": "box",
       "position": [
-        -18,
+        -15.84,
         8.5,
-        20
+        17.6
       ],
       "size": [
-        14,
+        12.32,
         5,
-        8
+        7.04
       ],
       "colorKey": "sand",
       "cover": true
@@ -69,14 +69,14 @@
       "id": "blk_a_lip",
       "shape": "box",
       "position": [
-        -18,
+        -15.84,
         6.4,
-        13
+        11.44
       ],
       "size": [
-        14,
+        12.32,
         0.8,
-        1.0
+        0.88
       ],
       "colorKey": "concrete",
       "cover": true
@@ -85,14 +85,14 @@
       "id": "blk_b_base",
       "shape": "box",
       "position": [
-        16,
+        14.08,
         4.0,
-        22
+        19.36
       ],
       "size": [
-        16,
+        14.08,
         8,
-        14
+        12.32
       ],
       "colorKey": "sand",
       "cover": true
@@ -101,14 +101,14 @@
       "id": "blk_b_mid",
       "shape": "box",
       "position": [
-        16,
+        14.08,
         10.5,
-        24
+        21.12
       ],
       "size": [
-        16,
+        14.08,
         5,
-        10
+        8.8
       ],
       "colorKey": "concrete",
       "cover": true
@@ -117,14 +117,14 @@
       "id": "blk_b_lip",
       "shape": "box",
       "position": [
-        16,
+        14.08,
         8.4,
-        15
+        13.2
       ],
       "size": [
-        16,
+        14.08,
         0.8,
-        1.0
+        0.88
       ],
       "colorKey": "concrete",
       "cover": true
@@ -133,14 +133,14 @@
       "id": "blk_c",
       "shape": "box",
       "position": [
-        -22,
+        -19.36,
         4.5,
-        -12
+        -10.56
       ],
       "size": [
-        12,
+        10.56,
         9,
-        16
+        14.08
       ],
       "colorKey": "sand",
       "cover": true
@@ -149,14 +149,14 @@
       "id": "blk_c_lip",
       "shape": "box",
       "position": [
-        -22,
+        -19.36,
         9.4,
-        -4
+        -3.52
       ],
       "size": [
-        12,
+        10.56,
         0.8,
-        1.0
+        0.88
       ],
       "colorKey": "concrete",
       "cover": true
@@ -165,14 +165,14 @@
       "id": "blk_d",
       "shape": "box",
       "position": [
-        20,
+        17.6,
         3.0,
-        -16
+        -14.08
       ],
       "size": [
-        14,
+        12.32,
         6,
-        14
+        12.32
       ],
       "colorKey": "concrete",
       "cover": true
@@ -181,14 +181,14 @@
       "id": "blk_d_lip",
       "shape": "box",
       "position": [
-        20,
+        17.6,
         6.4,
-        -9
+        -7.92
       ],
       "size": [
-        14,
+        12.32,
         0.8,
-        1.0
+        0.88
       ],
       "colorKey": "sand",
       "cover": true
@@ -197,14 +197,14 @@
       "id": "market",
       "shape": "box",
       "position": [
-        0,
+        0.0,
         2.0,
-        4
+        3.52
       ],
       "size": [
-        10,
+        8.8,
         4,
-        10
+        8.8
       ],
       "rotationY": 12,
       "colorKey": "rust",
@@ -214,14 +214,14 @@
       "id": "market_awn",
       "shape": "box",
       "position": [
-        0,
+        0.0,
         4.3,
-        -2
+        -1.76
       ],
       "size": [
-        10,
+        8.8,
         0.4,
-        3
+        2.64
       ],
       "rotationY": 12,
       "colorKey": "bunkerA",
@@ -231,14 +231,14 @@
       "id": "car_a",
       "shape": "box",
       "position": [
-        -6,
+        -5.28,
         0.8,
-        -6
+        -5.28
       ],
       "size": [
-        2.2,
+        1.94,
         1.6,
-        4.6
+        4.05
       ],
       "rotationY": 18,
       "colorKey": "bunkerB",
@@ -248,14 +248,14 @@
       "id": "car_b",
       "shape": "box",
       "position": [
-        7,
+        6.16,
         0.8,
-        -2
+        -1.76
       ],
       "size": [
-        2.2,
+        1.94,
         1.6,
-        4.6
+        4.05
       ],
       "rotationY": -35,
       "colorKey": "rust",
@@ -265,14 +265,14 @@
       "id": "car_c",
       "shape": "box",
       "position": [
-        -2,
+        -1.76,
         0.8,
-        14
+        12.32
       ],
       "size": [
-        2.2,
+        1.94,
         1.6,
-        4.6
+        4.05
       ],
       "rotationY": 82,
       "colorKey": "bunkerC",
@@ -282,14 +282,14 @@
       "id": "car_d",
       "shape": "box",
       "position": [
-        12,
+        10.56,
         0.8,
-        -28
+        -24.64
       ],
       "size": [
-        2.2,
+        1.94,
         1.6,
-        4.6
+        4.05
       ],
       "rotationY": 5,
       "colorKey": "bunkerB",
@@ -299,14 +299,14 @@
       "id": "planter_a",
       "shape": "box",
       "position": [
-        -10,
+        -8.8,
         0.6,
-        2
+        1.76
       ],
       "size": [
-        3.0,
+        2.64,
         1.2,
-        3.0
+        2.64
       ],
       "colorKey": "foliage",
       "cover": true
@@ -315,14 +315,14 @@
       "id": "planter_b",
       "shape": "box",
       "position": [
-        10,
+        8.8,
         0.6,
-        8
+        7.04
       ],
       "size": [
-        3.0,
+        2.64,
         1.2,
-        3.0
+        2.64
       ],
       "colorKey": "foliage",
       "cover": true
@@ -331,14 +331,14 @@
       "id": "planter_c",
       "shape": "box",
       "position": [
-        -4,
+        -3.52,
         0.6,
-        -20
+        -17.6
       ],
       "size": [
-        3.0,
+        2.64,
         1.2,
-        3.0
+        2.64
       ],
       "colorKey": "foliage",
       "cover": true
@@ -347,14 +347,14 @@
       "id": "barrier_a",
       "shape": "box",
       "position": [
-        -14,
+        -12.32,
         0.55,
-        -26
+        -22.88
       ],
       "size": [
-        6.0,
+        5.28,
         1.1,
-        0.8
+        0.7
       ],
       "colorKey": "concrete",
       "cover": true
@@ -363,14 +363,14 @@
       "id": "barrier_b",
       "shape": "box",
       "position": [
-        4,
+        3.52,
         0.55,
-        -24
+        -21.12
       ],
       "size": [
-        6.0,
+        5.28,
         1.1,
-        0.8
+        0.7
       ],
       "rotationY": 22,
       "colorKey": "concrete",
@@ -380,14 +380,14 @@
       "id": "barrier_c",
       "shape": "box",
       "position": [
-        24,
+        21.12,
         0.55,
-        2
+        1.76
       ],
       "size": [
-        0.8,
+        0.7,
         1.1,
-        8.0
+        7.04
       ],
       "colorKey": "concrete",
       "cover": true
@@ -396,14 +396,14 @@
       "id": "ramp_a",
       "shape": "wedge",
       "position": [
-        -10,
+        -8.8,
         3.0,
-        12
+        10.56
       ],
       "size": [
-        4,
+        3.52,
         6,
-        8
+        7.04
       ],
       "rotationY": 90,
       "colorKey": "concrete",
@@ -414,14 +414,14 @@
       "id": "ramp_b",
       "shape": "wedge",
       "position": [
-        8,
+        7.04,
         4.0,
-        16
+        14.08
       ],
       "size": [
-        4,
+        3.52,
         8,
-        9
+        7.92
       ],
       "rotationY": -90,
       "colorKey": "concrete",
@@ -432,14 +432,14 @@
       "id": "ramp_c",
       "shape": "wedge",
       "position": [
-        -16,
+        -14.08,
         4.5,
-        -22
+        -19.36
       ],
       "size": [
-        4,
+        3.52,
         9,
-        10
+        8.8
       ],
       "rotationY": 0,
       "colorKey": "sand",
@@ -449,125 +449,197 @@
   ],
   "playerSpawn": {
     "position": [
+      0.0,
       0,
-      0,
-      -34
+      -29.92
     ],
     "lookAt": [
+      0.0,
       0,
-      0,
-      0
+      0.0
     ]
   },
   "playerRespawns": [
     {
       "position": [
+        0.0,
         0,
-        0,
-        -34
+        -29.92
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        -20,
+        -17.6,
         0,
-        -32
+        -28.16
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        20,
+        17.6,
         0,
-        -32
+        -28.16
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     }
   ],
   "botSpawns": [
     {
       "position": [
-        -15.5,
+        -13.64,
         0,
-        34.0
+        29.92
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        14.4,
+        12.67,
         0,
-        34.0
+        29.92
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        -8,
+        -7.04,
         0,
-        30
+        26.4
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        8,
+        7.04,
         0,
-        30
+        26.4
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        -26,
+        -22.88,
         0,
-        12
+        10.56
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        26,
+        22.88,
         0,
-        12
+        10.56
       ],
       "lookAt": [
+        0.0,
         0,
+        0.0
+      ]
+    },
+    {
+      "position": [
+        -1.76,
         0,
-        0
+        10.12
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -29.92
+      ]
+    },
+    {
+      "position": [
+        0.0,
+        0,
+        17.6
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -29.92
+      ]
+    },
+    {
+      "position": [
+        -8.93,
+        0,
+        19.36
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -29.92
+      ]
+    },
+    {
+      "position": [
+        0.0,
+        0,
+        28.16
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -29.92
+      ]
+    },
+    {
+      "position": [
+        6.29,
+        0,
+        19.36
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -29.92
+      ]
+    },
+    {
+      "position": [
+        10.87,
+        0,
+        7.04
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -29.92
       ]
     }
   ],
@@ -575,9 +647,9 @@
     {
       "id": "an_roof_a",
       "position": [
-        -18,
+        -15.84,
         11.0,
-        14.5
+        12.76
       ],
       "faces": [
         0.1,
@@ -593,9 +665,9 @@
     {
       "id": "an_roof_b",
       "position": [
-        16,
+        14.08,
         13.0,
-        16.0
+        14.08
       ],
       "faces": [
         -0.2,
@@ -610,9 +682,9 @@
     {
       "id": "an_roof_c",
       "position": [
-        -22,
+        -19.36,
         9.5,
-        -3.5
+        -3.08
       ],
       "faces": [
         0.5,
@@ -627,9 +699,9 @@
     {
       "id": "an_roof_d",
       "position": [
-        20,
+        17.6,
         6.5,
-        -8.5
+        -7.48
       ],
       "faces": [
         -0.6,
@@ -644,9 +716,9 @@
     {
       "id": "an_market_n",
       "position": [
+        0.0,
         0,
-        0,
-        9.5
+        8.36
       ],
       "faces": [
         0,
@@ -660,9 +732,9 @@
     {
       "id": "an_market_s",
       "position": [
+        0.0,
         0,
-        0,
-        -1.5
+        -1.32
       ],
       "faces": [
         0,
@@ -676,9 +748,9 @@
     {
       "id": "an_car_a",
       "position": [
-        -6,
+        -5.28,
         0,
-        -8.5
+        -7.48
       ],
       "faces": [
         0.2,
@@ -693,9 +765,9 @@
     {
       "id": "an_car_b",
       "position": [
-        7,
+        6.16,
         0,
-        -4.5
+        -3.96
       ],
       "faces": [
         -0.2,
@@ -710,9 +782,9 @@
     {
       "id": "an_car_c",
       "position": [
-        -2,
+        -1.76,
         0,
-        11.5
+        10.12
       ],
       "faces": [
         0,
@@ -727,9 +799,9 @@
     {
       "id": "an_alley_l",
       "position": [
-        -27,
+        -23.76,
         0,
-        4
+        3.52
       ],
       "faces": [
         0.3,
@@ -742,9 +814,9 @@
     {
       "id": "an_alley_r",
       "position": [
-        27,
+        23.76,
         0,
-        6
+        5.28
       ],
       "faces": [
         -0.3,
@@ -757,9 +829,9 @@
     {
       "id": "an_planter_a",
       "position": [
-        -10,
+        -8.8,
         0,
-        -0.5
+        -0.44
       ],
       "faces": [
         0.1,
@@ -774,9 +846,9 @@
     {
       "id": "an_planter_b",
       "position": [
-        10,
+        8.8,
         0,
-        5.5
+        4.84
       ],
       "faces": [
         -0.1,
@@ -791,9 +863,9 @@
     {
       "id": "an_barrier_c",
       "position": [
-        22,
+        19.36,
         0,
-        2
+        1.76
       ],
       "faces": [
         -1,
@@ -806,266 +878,266 @@
       "coverId": "barrier_c"
     }
   ],
-  "_navLinkRadius": "Urban's blocks are 14-16 m across; the radius has to clear a whole building face.",
+  "_navLinkRadius": "Held at its pre-rescale value rather than scaled with the field. This radius is a THREE-dimensional reach and the rescale was horizontal only, so a link between two nodes at different heights shrank by less than the radius would have -- which dropped tower and roof nodes out of reach and disconnected Holdfast's nav graph outright. Holding the reach is what compensates for the height axis not moving.",
   "navLinkRadiusMetres": 21,
   "navNodes": [
     [
+      0.0,
       0,
-      0,
-      32
+      28.16
     ],
     [
-      -8,
+      -7.04,
       0,
-      30
+      26.4
     ],
     [
-      8,
+      7.04,
       0,
-      30
+      26.4
     ],
     [
-      -26,
+      -22.88,
       0,
-      14
+      12.32
     ],
     [
-      26,
+      22.88,
       0,
-      14
+      12.32
     ],
     [
-      -18,
+      -15.84,
       11,
-      14.5
+      12.76
     ],
     [
-      16,
+      14.08,
       13,
-      16
+      14.08
     ],
     [
-      -10,
+      -8.8,
       6,
-      12
+      10.56
     ],
     [
+      7.04,
       8,
-      8,
-      16
+      14.08
     ],
     [
+      0.0,
       0,
-      0,
-      20
+      17.6
     ],
     [
-      -10.15,
+      -8.93,
       0,
-      22
+      19.36
     ],
     [
-      7.15,
+      6.29,
       0,
-      22
+      19.36
     ],
     [
-      -2,
+      -1.76,
       0,
-      11.5
+      10.12
     ],
     [
-      -10,
+      -8.8,
       0,
-      6
+      5.28
     ],
     [
-      12.35,
+      10.87,
       0,
-      8
+      7.04
     ],
     [
+      0.0,
       0,
-      0,
-      9.5
+      8.36
     ],
     [
-      -27,
+      -23.76,
       0,
-      4
+      3.52
     ],
     [
-      27,
+      23.76,
       0,
-      6
+      5.28
     ],
     [
-      22,
+      19.36,
       0,
-      2
+      1.76
     ],
     [
+      0.0,
       0,
-      0,
-      -1.5
+      -1.32
     ],
     [
-      -6,
+      -5.28,
       0,
-      -8.5
+      -7.48
     ],
     [
-      7,
+      6.16,
       0,
-      -4.5
+      -3.96
     ],
     [
-      -14,
+      -12.32,
       0,
-      -6
+      -5.28
     ],
     [
-      14,
+      12.32,
       0,
-      -8
+      -7.04
     ],
     [
-      -22,
+      -19.36,
       9.5,
-      -3.5
+      -3.08
     ],
     [
-      20,
+      17.6,
       6.5,
-      -8.5
+      -7.48
     ],
     [
-      -16,
+      -14.08,
       4.5,
-      -22
+      -19.36
     ],
     [
-      -1.65,
+      -1.45,
       0,
-      -20
+      -17.6
     ],
     [
-      13.94,
+      12.27,
       0,
-      -27.83
+      -24.49
     ],
     [
-      -14,
+      -12.32,
       0,
-      -24.75
+      -21.78
     ],
     [
-      3.53,
+      3.11,
       0,
-      -22.84
+      -20.1
     ],
     [
-      -20,
+      -17.6,
       0,
-      -32
+      -28.16
     ],
     [
-      20,
+      17.6,
       0,
-      -32
+      -28.16
     ],
     [
+      0.0,
       0,
-      0,
-      -34
+      -29.92
     ]
   ],
   "sightlines": [
     {
       "from": "an_roof_a",
       "to": "an_car_b",
-      "lengthMetres": 27.5,
+      "lengthMetres": 24.2,
       "_note": "The signature shot of this map: a two-storey holdover onto a target crossing an alley."
     },
     {
       "from": "an_roof_b",
       "to": "an_planter_a",
-      "lengthMetres": 29.6
+      "lengthMetres": 26.05
     },
     {
       "from": "an_roof_c",
       "to": "an_barrier_c",
-      "lengthMetres": 44.6
+      "lengthMetres": 39.25
     },
     {
       "from": "an_alley_l",
       "to": "an_alley_r",
-      "lengthMetres": 54.0,
+      "lengthMetres": 47.52,
       "_note": "Longest lane on the map. Nearly Woods range; this is the bridge between the two."
     },
     {
       "from": "an_market_s",
       "to": "an_roof_d",
-      "lengthMetres": 21.5
+      "lengthMetres": 18.92
     },
     {
       "from": "an_roof_d",
       "to": "an_car_a",
-      "lengthMetres": 26.3
+      "lengthMetres": 23.14
     }
   ],
   "prePlacementAngles": [
     {
       "anchorId": "an_roof_a",
       "watch": [
-        -6,
+        -5.28,
         1,
-        -6
+        -5.28
       ],
       "priority": 1
     },
     {
       "anchorId": "an_roof_b",
       "watch": [
-        7,
+        6.16,
         1,
-        -2
+        -1.76
       ],
       "priority": 1
     },
     {
       "anchorId": "an_roof_c",
       "watch": [
-        -14,
+        -12.32,
         1,
-        -20
+        -17.6
       ],
       "priority": 1
     },
     {
       "anchorId": "an_roof_d",
       "watch": [
-        4,
+        3.52,
         1,
-        -24
+        -21.12
       ],
       "priority": 2
     },
     {
       "anchorId": "an_barrier_c",
       "watch": [
-        12,
+        10.56,
         1,
-        -20
+        -17.6
       ],
       "priority": 2
     },
     {
       "anchorId": "an_market_s",
       "watch": [
-        0,
+        0.0,
         1,
-        -18
+        -15.84
       ],
       "priority": 1
     }
@@ -1080,49 +1152,49 @@
         "id": "MarketStreet",
         "points": [
           [
+            0.0,
             0,
-            0,
-            -37
+            -32.56
           ],
           [
+            0.0,
             0,
-            0,
-            -24
+            -21.12
           ],
           [
-            -3,
+            -2.64,
             0,
-            -14
+            -12.32
           ],
           [
-            -3,
+            -2.64,
             0,
-            -4
+            -3.52
           ]
         ],
-        "widthMetres": 5,
+        "widthMetres": 4.4,
         "color": "gravel"
       },
       {
         "id": "EastStreet",
         "points": [
           [
-            30,
+            26.4,
             0,
-            -34
+            -29.92
           ],
           [
-            30,
+            26.4,
             0,
-            -4
+            -3.52
           ],
           [
-            28,
+            24.64,
             0,
-            10
+            8.8
           ]
         ],
-        "widthMetres": 4,
+        "widthMetres": 3.52,
         "color": "gravel"
       }
     ],
@@ -1159,7 +1231,116 @@
       }
     ]
   },
-  "_botSpawns": "Every bot starts on the ground. Structures are somewhere bots MOVE to, never somewhere they begin: a squad that opens the round already on a roof reads as spawning in the sky and gives the player nothing to walk into. Positions were found by tools/ground-spawns and are re-checked by tools/map-validate.",
+  "_botSpawns": "Twelve spawn points, not six: the squad size doubled. The original six are authored; the rest were taken from this map's own ground navNodes, in the enemy half, clear of cover and at least a few metres from every other spawn, so nobody starts the round inside a container or inside a team-mate.",
   "_flow": "Three street-level pieces were added here to cut a 60.4m diagonal against a 52m band, and then removed: they took the map from 29 sim engagements to ZERO. A 16 percent band overshoot is a tuning note; a map that produces no fights is a broken map. Urban keeps its long diagonal on purpose. Measured with tools/probe-map.",
-  "_botSpawnDepth": "The two spawns relocated off the rooftops sit at the back of the bots' half rather than level with the others. Measured: 29 engagements at a 24.0m median becomes 34 at 26.9m, against a declared target of 27. Better on both counts."
+  "_botSpawnDepth": "The two spawns relocated off the rooftops sit at the back of the bots' half rather than level with the others. Measured: 29 engagements at a 24.0m median becomes 34 at 26.9m, against a declared target of 27. Better on both counts.",
+  "_scale": "Field rescaled to 88% of its footprint on 2026-09-07. Positions AND plan-view sizes (X and Z) were scaled together; Y was left alone everywhere. Scaling positions without sizes was tried first and was wrong: it left cover at full size in a smaller field, which pushed nav nodes into buildings and disconnected the nav graphs on Dustline and Holdfast. Scaling both preserves every gap, every clearance and every ratio exactly, and only the world gets smaller. Y is untouched because heights carry tuned see-over relationships -- a snake tops at 1.30 m against a 1.32 m crouched eye line -- and shrinking them would retune the game without saying so.",
+  "course": {
+    "_comment": "The Shoothouse route through Urban. Four stages, fourteen defenders, fought from the near end to the far. Rules live in Data/course.json.",
+    "_stagesAreAnchors": "Every stage is a slice of this map's own anchors list, sorted by depth. No cover moved and no positions were invented for this mode -- the field plays as itself, met in order.",
+    "spanMetres": 44.0,
+    "defenders": 28,
+    "parSeconds": {
+      "gold": 160,
+      "silver": 215,
+      "bronze": 295
+    },
+    "_parSeconds": "Derived, not hand-picked: gold = 44.0m span / 2.4 m/s + 28 defenders x 5.08s, where the per-defender figure scales with this map's 23.76 m engagement band. Silver is gold x 1.35, bronze x 1.85. See Data/course.json medals._derivation. First-pass estimate from geometry, never yet run by a human; retune against real times and keep the derivation, not the number.",
+    "stages": [
+      {
+        "id": "theApproach",
+        "displayName": "The Approach",
+        "_note": "A roof and a dead car, both looking down the road you have to walk up.",
+        "tierOffset": 0,
+        "checkpoint": {
+          "position": [
+            0.0,
+            0,
+            -29.92
+          ],
+          "lookAt": [
+            6.16,
+            0,
+            -7.48
+          ]
+        },
+        "anchors": [
+          "an_roof_d",
+          "an_car_a"
+        ]
+      },
+      {
+        "id": "theMarket",
+        "displayName": "The Market",
+        "_note": "Second car, second roof, and the south end of the market. The cover here is chest-high and continuous, which is worse than it sounds.",
+        "tierOffset": 0,
+        "checkpoint": {
+          "position": [
+            -1.45,
+            0,
+            -17.6
+          ],
+          "lookAt": [
+            -4.4,
+            0,
+            -3.96
+          ]
+        },
+        "anchors": [
+          "an_car_b",
+          "an_roof_c",
+          "an_market_s"
+        ]
+      },
+      {
+        "id": "theSquare",
+        "displayName": "The Square",
+        "_note": "Planters, the barrier and the left alley. Four, and two of them can rotate behind the stalls without ever showing you a silhouette.",
+        "tierOffset": 1,
+        "checkpoint": {
+          "position": [
+            -5.28,
+            0,
+            -7.48
+          ],
+          "lookAt": [
+            -1.1,
+            0,
+            -0.44
+          ]
+        },
+        "anchors": [
+          "an_planter_a",
+          "an_barrier_c",
+          "an_alley_l",
+          "an_planter_b"
+        ]
+      },
+      {
+        "id": "theRoofs",
+        "displayName": "The Roofs",
+        "_note": "The right alley, the north market, a car and both high roofs. Everything you know about lead on the flat is wrong again the moment they are above you.",
+        "tierOffset": 1,
+        "checkpoint": {
+          "position": [
+            0.0,
+            0,
+            -1.32
+          ],
+          "lookAt": [
+            4.05,
+            0,
+            5.28
+          ]
+        },
+        "anchors": [
+          "an_alley_r",
+          "an_market_n",
+          "an_car_c",
+          "an_roof_a",
+          "an_roof_b"
+        ]
+      }
+    ]
+  }
 }

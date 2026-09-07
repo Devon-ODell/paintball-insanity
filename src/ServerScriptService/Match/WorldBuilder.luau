@@ -63,6 +63,12 @@ local SURFACE: { [string]: { material: Enum.Material, reflectance: number } } = 
 	mossRock = { material = Enum.Material.Slate, reflectance = 0 },
 	sheetMetal = { material = Enum.Material.Metal, reflectance = 0.03 },
 	rust = { material = Enum.Material.CorrodedMetal, reflectance = 0.03 },
+	-- These three were used by the maps but declared in neither table, so every
+	-- thicket, copse, outcrop and rusted screen rendered as concrete-grey smooth
+	-- plastic. Woods and Holdfast were drawing their scrub as pale grey boxes.
+	brush = { material = Enum.Material.LeafyGrass, reflectance = 0 },
+	stone = { material = Enum.Material.Slate, reflectance = 0 },
+	containerRust = { material = Enum.Material.CorrodedMetal, reflectance = 0.03 },
 	foliage = { material = Enum.Material.Grass, reflectance = 0 },
 	foliageDeep = { material = Enum.Material.LeafyGrass, reflectance = 0 },
 	netting = { material = Enum.Material.Fabric, reflectance = 0 },

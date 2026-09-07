@@ -8,9 +8,9 @@
   ],
   "_intent": "Long sightlines, elevation, and concealment that is NOT cover -- foliage hides you and stops nothing. Maximum range means maximum time of flight, which means the lead and the holdover are both enormous. This is the pump marker's map and the final exam of the whole curriculum.",
   "engagementBand": {
-    "minMetres": 14,
-    "targetMedianMetres": 44,
-    "maxMetres": 78,
+    "minMetres": 12.32,
+    "targetMedianMetres": 38.72,
+    "maxMetres": 68.64,
     "_postureBias": "Measured correction on top of the band-derived posture. 1.0 means the derivation lands it; anything else is geometry having the last word. Set from tools/engagement-report, then re-measure.",
     "postureBias": {
       "range": 1.0,
@@ -18,8 +18,8 @@
     }
   },
   "bounds": {
-    "widthMetres": 100,
-    "lengthMetres": 120,
+    "widthMetres": 88.0,
+    "lengthMetres": 105.6,
     "heightMetres": 30
   },
   "ground": {
@@ -36,14 +36,14 @@
       "id": "hill_n",
       "shape": "box",
       "position": [
-        -26,
+        -22.88,
         2.0,
-        34
+        29.92
       ],
       "size": [
-        34,
+        29.92,
         4,
-        26
+        22.88
       ],
       "colorKey": "ground",
       "walkable": true
@@ -52,14 +52,14 @@
       "id": "hill_ne",
       "shape": "box",
       "position": [
-        24,
+        21.12,
         2.75,
-        40
+        35.2
       ],
       "size": [
-        30,
+        26.4,
         5.5,
-        24
+        21.12
       ],
       "colorKey": "groundAlt",
       "walkable": true
@@ -68,14 +68,14 @@
       "id": "ridge_e",
       "shape": "box",
       "position": [
-        36,
+        31.68,
         2.5,
-        4
+        3.52
       ],
       "size": [
-        20,
+        17.6,
         5,
-        44
+        38.72
       ],
       "colorKey": "ground",
       "walkable": true
@@ -84,14 +84,14 @@
       "id": "hollow",
       "shape": "box",
       "position": [
-        0,
+        0.0,
         -1.18,
-        -6
+        -5.28
       ],
       "size": [
-        40,
+        35.2,
         2.4,
-        30
+        26.4
       ],
       "colorKey": "groundAlt",
       "walkable": true,
@@ -101,14 +101,14 @@
       "id": "hill_s",
       "shape": "box",
       "position": [
-        -30,
+        -26.4,
         1.5,
-        -34
+        -29.92
       ],
       "size": [
-        28,
+        24.64,
         3,
-        22
+        19.36
       ],
       "colorKey": "ground",
       "walkable": true
@@ -119,14 +119,14 @@
       "id": "tower_n",
       "shape": "box",
       "position": [
-        -26,
+        -22.88,
         6.0,
-        34
+        29.92
       ],
       "size": [
+        3.52,
         4,
-        4,
-        4
+        3.52
       ],
       "colorKey": "timber",
       "cover": true
@@ -135,14 +135,14 @@
       "id": "tower_n_dk",
       "shape": "box",
       "position": [
-        -26,
+        -22.88,
         8.2,
-        34
+        29.92
       ],
       "size": [
-        6,
+        5.28,
         0.4,
-        6
+        5.28
       ],
       "colorKey": "timberDark",
       "cover": true,
@@ -152,14 +152,14 @@
       "id": "tower_n_rl",
       "shape": "box",
       "position": [
-        -26,
+        -22.88,
         8.9,
-        31.2
+        27.46
       ],
       "size": [
-        6,
+        5.28,
         1.0,
-        0.4
+        0.35
       ],
       "colorKey": "timber",
       "cover": true
@@ -168,14 +168,14 @@
       "id": "tower_e",
       "shape": "box",
       "position": [
-        36,
+        31.68,
         5.0,
-        10
+        8.8
       ],
       "size": [
-        4,
+        3.52,
         5,
-        4
+        3.52
       ],
       "colorKey": "timber",
       "cover": true
@@ -184,14 +184,14 @@
       "id": "tower_e_dk",
       "shape": "box",
       "position": [
-        36,
+        31.68,
         7.7,
-        10
+        8.8
       ],
       "size": [
-        6,
+        5.28,
         0.4,
-        6
+        5.28
       ],
       "colorKey": "timberDark",
       "cover": true,
@@ -201,14 +201,14 @@
       "id": "tower_e_rl",
       "shape": "box",
       "position": [
-        33.2,
+        29.22,
         8.4,
-        10
+        8.8
       ],
       "size": [
-        0.4,
+        0.35,
         1.0,
-        6
+        5.28
       ],
       "colorKey": "timber",
       "cover": true
@@ -217,14 +217,14 @@
       "id": "shack_mid",
       "shape": "box",
       "position": [
-        2,
+        1.76,
         1.6,
-        6
+        5.28
       ],
       "size": [
-        8,
+        7.04,
         3.2,
-        6
+        5.28
       ],
       "rotationY": 20,
       "colorKey": "timberDark",
@@ -234,14 +234,14 @@
       "id": "shack_w",
       "shape": "box",
       "position": [
-        -34,
+        -29.92,
         1.6,
-        2
+        1.76
       ],
       "size": [
-        7,
+        6.16,
         3.2,
-        7
+        6.16
       ],
       "rotationY": -15,
       "colorKey": "timber",
@@ -251,14 +251,14 @@
       "id": "shack_s",
       "shape": "box",
       "position": [
-        14,
+        12.32,
         1.6,
-        -30
+        -26.4
       ],
       "size": [
-        6,
+        5.28,
         3.2,
-        8
+        7.04
       ],
       "rotationY": 8,
       "colorKey": "timberDark",
@@ -268,14 +268,14 @@
       "id": "log_a",
       "shape": "cylinder",
       "position": [
-        -12,
+        -10.56,
         0.7,
-        14
+        12.32
       ],
       "size": [
-        1.4,
+        1.23,
         9,
-        1.4
+        1.23
       ],
       "rotationY": 90,
       "rotationZ": 90,
@@ -286,14 +286,14 @@
       "id": "log_b",
       "shape": "cylinder",
       "position": [
-        18,
+        15.84,
         0.7,
-        -8
+        -7.04
       ],
       "size": [
-        1.4,
+        1.23,
         8,
-        1.4
+        1.23
       ],
       "rotationY": 30,
       "rotationZ": 90,
@@ -304,14 +304,14 @@
       "id": "log_c",
       "shape": "cylinder",
       "position": [
-        -6,
+        -5.28,
         0.7,
-        -22
+        -19.36
       ],
       "size": [
-        1.4,
+        1.23,
         10,
-        1.4
+        1.23
       ],
       "rotationY": 115,
       "rotationZ": 90,
@@ -322,14 +322,14 @@
       "id": "rock_a",
       "shape": "box",
       "position": [
-        8,
+        7.04,
         1.1,
-        22
+        19.36
       ],
       "size": [
-        3.5,
+        3.08,
         2.2,
-        3.0
+        2.64
       ],
       "rotationY": 25,
       "colorKey": "rock",
@@ -339,14 +339,14 @@
       "id": "rock_b",
       "shape": "box",
       "position": [
-        -18,
+        -15.84,
         1.3,
-        -12
+        -10.56
       ],
       "size": [
-        4.0,
+        3.52,
         2.6,
-        3.5
+        3.08
       ],
       "rotationY": -40,
       "colorKey": "rock",
@@ -356,14 +356,14 @@
       "id": "rock_c",
       "shape": "box",
       "position": [
-        28,
+        24.64,
         1.1,
-        -20
+        -17.6
       ],
       "size": [
-        3.5,
+        3.08,
         2.2,
-        3.0
+        2.64
       ],
       "rotationY": 60,
       "colorKey": "rock",
@@ -373,14 +373,14 @@
       "id": "tree_a",
       "shape": "cylinder",
       "position": [
-        -8,
+        -7.04,
         4,
-        24
+        21.12
       ],
       "size": [
-        1.2,
+        1.06,
         8,
-        1.2
+        1.06
       ],
       "colorKey": "timberDark",
       "cover": true
@@ -389,14 +389,14 @@
       "id": "tree_b",
       "shape": "cylinder",
       "position": [
-        12,
+        10.56,
         4,
-        30
+        26.4
       ],
       "size": [
-        1.2,
+        1.06,
         8,
-        1.2
+        1.06
       ],
       "colorKey": "timberDark",
       "cover": true
@@ -405,14 +405,14 @@
       "id": "tree_c",
       "shape": "cylinder",
       "position": [
-        -20,
+        -17.6,
         4,
-        6
+        5.28
       ],
       "size": [
-        1.2,
+        1.06,
         8,
-        1.2
+        1.06
       ],
       "colorKey": "timberDark",
       "cover": true
@@ -421,14 +421,14 @@
       "id": "tree_d",
       "shape": "cylinder",
       "position": [
-        22,
+        19.36,
         4,
-        -4
+        -3.52
       ],
       "size": [
-        1.2,
+        1.06,
         8,
-        1.2
+        1.06
       ],
       "colorKey": "timberDark",
       "cover": true
@@ -437,14 +437,14 @@
       "id": "tree_e",
       "shape": "cylinder",
       "position": [
-        -14,
+        -12.32,
         4,
-        -28
+        -24.64
       ],
       "size": [
-        1.2,
+        1.06,
         8,
-        1.2
+        1.06
       ],
       "colorKey": "timberDark",
       "cover": true
@@ -453,14 +453,14 @@
       "id": "tree_f",
       "shape": "cylinder",
       "position": [
-        6,
+        5.28,
         4,
-        -40
+        -35.2
       ],
       "size": [
-        1.2,
+        1.06,
         8,
-        1.2
+        1.06
       ],
       "colorKey": "timberDark",
       "cover": true
@@ -469,14 +469,14 @@
       "id": "brush_a",
       "shape": "box",
       "position": [
-        -4,
+        -3.52,
         1.0,
-        18
+        15.84
       ],
       "size": [
-        9,
+        7.92,
         2.0,
-        5
+        4.4
       ],
       "colorKey": "foliage",
       "cover": false,
@@ -486,14 +486,14 @@
       "id": "brush_b",
       "shape": "box",
       "position": [
-        16,
+        14.08,
         1.0,
-        4
+        3.52
       ],
       "size": [
-        7,
+        6.16,
         2.0,
-        6
+        5.28
       ],
       "colorKey": "foliage",
       "cover": false,
@@ -503,14 +503,14 @@
       "id": "brush_c",
       "shape": "box",
       "position": [
-        -24,
+        -21.12,
         1.0,
-        -18
+        -15.84
       ],
       "size": [
-        10,
+        8.8,
         2.0,
-        5
+        4.4
       ],
       "colorKey": "foliageDeep",
       "cover": false,
@@ -520,14 +520,14 @@
       "id": "brush_d",
       "shape": "box",
       "position": [
-        4,
+        3.52,
         1.0,
-        -34
+        -29.92
       ],
       "size": [
-        12,
+        10.56,
         2.0,
-        6
+        5.28
       ],
       "colorKey": "foliage",
       "cover": false,
@@ -537,14 +537,14 @@
       "id": "brush_e",
       "shape": "box",
       "position": [
-        30,
+        26.4,
         1.0,
-        26
+        22.88
       ],
       "size": [
-        8,
+        7.04,
         2.0,
-        7
+        6.16
       ],
       "colorKey": "foliageDeep",
       "cover": false,
@@ -554,14 +554,14 @@
       "id": "thicket_spawn_screen",
       "shape": "box",
       "position": [
-        -14.0,
+        -12.32,
         2.2,
-        -18.0
+        -15.84
       ],
       "size": [
-        9.0,
+        7.92,
         4.4,
-        5.0
+        4.4
       ],
       "rotationY": 28,
       "colorKey": "brush",
@@ -572,14 +572,14 @@
       "id": "deadfall_mid",
       "shape": "box",
       "position": [
-        -6.0,
+        -5.28,
         1.1,
-        -4.0
+        -3.52
       ],
       "size": [
-        8.0,
+        7.04,
         2.2,
-        2.0
+        1.76
       ],
       "rotationY": -52,
       "colorKey": "timber",
@@ -589,14 +589,14 @@
       "id": "boulder_mid",
       "shape": "box",
       "position": [
-        -18.0,
+        -15.84,
         1.4,
-        6.0
+        5.28
       ],
       "size": [
-        4.0,
+        3.52,
         2.8,
-        3.6
+        3.17
       ],
       "rotationY": 16,
       "colorKey": "stone",
@@ -606,14 +606,14 @@
       "id": "thicket_north",
       "shape": "box",
       "position": [
-        -22.0,
+        -19.36,
         2.0,
-        20.0
+        17.6
       ],
       "size": [
-        8.0,
+        7.04,
         4.0,
-        5.0
+        4.4
       ],
       "rotationY": -14,
       "colorKey": "brush",
@@ -624,14 +624,14 @@
       "id": "thicket_east_mid",
       "shape": "box",
       "position": [
-        25.0,
+        22.0,
         2.2,
-        2.0
+        1.76
       ],
       "size": [
-        8.0,
+        7.04,
         4.4,
-        6.0
+        5.28
       ],
       "rotationY": -18,
       "colorKey": "brush",
@@ -642,14 +642,14 @@
       "id": "boulder_east",
       "shape": "box",
       "position": [
-        23.5,
+        20.68,
         1.4,
-        -22.0
+        -19.36
       ],
       "size": [
-        4.4,
+        3.87,
         2.8,
-        3.4
+        2.99
       ],
       "rotationY": 34,
       "colorKey": "stone",
@@ -659,125 +659,197 @@
   "_concealmentNote": "Pieces with concealment:true block line of sight but not projectiles. Bots treat them as vision blockers only; a shot through brush hits. That distinction is the entire lesson of this map.",
   "playerSpawn": {
     "position": [
+      0.0,
       0,
-      0,
-      -52
+      -45.76
     ],
     "lookAt": [
+      0.0,
       0,
-      0,
-      0
+      0.0
     ]
   },
   "playerRespawns": [
     {
       "position": [
+        0.0,
         0,
-        0,
-        -52
+        -45.76
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        -30,
+        -26.4,
         3,
-        -40
+        -35.2
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        26,
+        22.88,
         0,
-        -46
+        -40.48
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     }
   ],
   "botSpawns": [
     {
       "position": [
-        -24.0,
+        -21.12,
         0,
-        34.0
+        29.92
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        38.0,
+        33.44,
         0,
-        10.0
+        8.8
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        -21.9,
+        -19.27,
         0,
-        40.5
+        35.64
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        26.0,
+        22.88,
         0,
-        44.0
+        38.72
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        2,
+        1.76,
         0,
-        30
+        26.4
       ],
       "lookAt": [
+        0.0,
         0,
-        0,
-        0
+        0.0
       ]
     },
     {
       "position": [
-        -36,
+        -31.68,
         0,
-        12
+        10.56
       ],
       "lookAt": [
+        0.0,
         0,
+        0.0
+      ]
+    },
+    {
+      "position": [
+        -9.2,
         0,
-        0
+        10.56
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
+      ]
+    },
+    {
+      "position": [
+        -17.6,
+        0,
+        19.36
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
+      ]
+    },
+    {
+      "position": [
+        7.04,
+        0,
+        17.16
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
+      ]
+    },
+    {
+      "position": [
+        11.84,
+        0,
+        26.4
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
+      ]
+    },
+    {
+      "position": [
+        -5.76,
+        0,
+        21.12
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
+      ]
+    },
+    {
+      "position": [
+        31.68,
+        0,
+        17.6
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
       ]
     }
   ],
@@ -785,9 +857,9 @@
     {
       "id": "an_tower_n",
       "position": [
-        -26,
+        -22.88,
         13.0,
-        31.5
+        27.72
       ],
       "faces": [
         0.35,
@@ -803,9 +875,9 @@
     {
       "id": "an_tower_e",
       "position": [
-        33.5,
+        29.48,
         13.0,
-        10
+        8.8
       ],
       "faces": [
         -1,
@@ -820,9 +892,9 @@
     {
       "id": "an_ridge_e",
       "position": [
-        30,
+        26.4,
         5.0,
-        -6
+        -5.28
       ],
       "faces": [
         -1,
@@ -836,9 +908,9 @@
     {
       "id": "an_hill_n",
       "position": [
-        -20,
+        -17.6,
         4.0,
-        22
+        19.36
       ],
       "faces": [
         0.2,
@@ -853,9 +925,9 @@
     {
       "id": "an_shack_mid",
       "position": [
-        2,
+        1.76,
         0,
-        2.5
+        2.2
       ],
       "faces": [
         0,
@@ -869,9 +941,9 @@
     {
       "id": "an_shack_w",
       "position": [
-        -34,
+        -29.92,
         0,
-        -1.5
+        -1.32
       ],
       "faces": [
         0.5,
@@ -885,9 +957,9 @@
     {
       "id": "an_log_a",
       "position": [
-        -12,
+        -10.56,
         0,
-        12.0
+        10.56
       ],
       "faces": [
         0,
@@ -902,9 +974,9 @@
     {
       "id": "an_log_b",
       "position": [
-        18,
+        15.84,
         0,
-        -10.0
+        -8.8
       ],
       "faces": [
         -0.3,
@@ -919,9 +991,9 @@
     {
       "id": "an_rock_a",
       "position": [
-        8,
+        7.04,
         0,
-        19.5
+        17.16
       ],
       "faces": [
         0,
@@ -935,9 +1007,9 @@
     {
       "id": "an_rock_b",
       "position": [
-        -18,
+        -15.84,
         0,
-        -14.5
+        -12.76
       ],
       "faces": [
         0.3,
@@ -951,9 +1023,9 @@
     {
       "id": "an_rock_c",
       "position": [
-        28,
+        24.64,
         0,
-        -22.5
+        -19.8
       ],
       "faces": [
         -0.4,
@@ -967,9 +1039,9 @@
     {
       "id": "an_tree_c",
       "position": [
-        -20,
+        -17.6,
         0,
-        4.5
+        3.96
       ],
       "faces": [
         0.2,
@@ -983,9 +1055,9 @@
     {
       "id": "an_tree_d",
       "position": [
-        22,
+        19.36,
         0,
-        -6.5
+        -5.72
       ],
       "faces": [
         -0.2,
@@ -999,9 +1071,9 @@
     {
       "id": "an_shack_s",
       "position": [
-        14,
+        12.32,
         0,
-        -33
+        -29.04
       ],
       "faces": [
         -0.4,
@@ -1013,173 +1085,173 @@
       "coverId": "shack_s"
     }
   ],
-  "_navLinkRadius": "Woods is 100x120 m of open ground. A short radius here shreds the graph into islands.",
+  "_navLinkRadius": "Held at its pre-rescale value rather than scaled with the field. This radius is a THREE-dimensional reach and the rescale was horizontal only, so a link between two nodes at different heights shrank by less than the radius would have -- which dropped tower and roof nodes out of reach and disconnected Holdfast's nav graph outright. Holding the reach is what compensates for the height axis not moving.",
   "navLinkRadiusMetres": 30,
   "navNodes": [
     [
-      -26,
+      -22.88,
       13,
-      31.5
+      27.72
     ],
     [
-      36,
+      31.68,
       13,
-      10
+      8.8
     ],
     [
-      -23.15,
+      -20.37,
       4,
-      34
+      29.92
     ],
     [
-      24,
+      21.12,
       7,
-      40
+      35.2
     ],
     [
-      -20,
+      -17.6,
       4,
-      22
+      19.36
     ],
     [
-      30,
+      26.4,
       5,
-      -6
+      -5.28
     ],
     [
-      36,
+      31.68,
       5,
-      20
+      17.6
     ],
     [
-      2,
+      1.76,
       0,
-      30
+      26.4
     ],
     [
-      -36,
+      -31.68,
       0,
-      12
+      10.56
     ],
     [
-      13.45,
+      11.84,
       0,
-      30
+      26.4
     ],
     [
-      -6.55,
+      -5.76,
       0,
-      24
+      21.12
     ],
     [
-      8,
+      7.04,
       0,
-      19.5
+      17.16
     ],
     [
-      -10.45,
+      -9.2,
       0,
-      12
+      10.56
     ],
     [
-      16,
+      14.08,
       0,
-      4
+      3.52
     ],
     [
-      -4,
+      -3.52,
       0,
-      18
+      15.84
     ],
     [
-      2,
+      1.76,
       0,
-      2.5
+      2.2
     ],
     [
-      -34.25,
+      -30.14,
       0,
-      -2.44
+      -2.15
     ],
     [
-      -20,
+      -17.6,
       0,
-      4.5
+      3.96
     ],
     [
-      22,
+      19.36,
       0,
-      -6.5
+      -5.72
     ],
     [
-      18,
+      15.84,
       0,
-      -10
+      -8.8
     ],
     [
-      -18,
+      -15.84,
       0,
-      -14.5
+      -12.76
     ],
     [
+      0.0,
       0,
-      0,
-      -6
+      -5.28
     ],
     [
-      28,
+      24.64,
       0,
-      -22.5
+      -19.8
     ],
     [
-      -24,
+      -21.12,
       0,
-      -18
+      -15.84
     ],
     [
-      -7.4,
+      -6.51,
       0,
-      -22.66
+      -19.94
     ],
     [
-      14.26,
+      12.55,
       0,
-      -34.86
+      -30.68
     ],
     [
-      4,
+      3.52,
       0,
-      -34
+      -29.92
     ],
     [
-      -30,
+      -26.4,
       3,
-      -34
+      -29.92
     ],
     [
-      -12.55,
+      -11.04,
       0,
-      -28
+      -24.64
     ],
     [
-      7.45,
+      6.56,
       0,
-      -40
+      -35.2
     ],
     [
-      26,
+      22.88,
       0,
-      -46
+      -40.48
     ],
     [
-      -30,
+      -26.4,
       3,
-      -40
+      -35.2
     ],
     [
+      0.0,
       0,
-      0,
-      -52
+      -45.76
     ]
   ],
   "_navLinks": "Hand-authored vertical links -- the tower ladders. Indices are zero-based into navNodes. The automatic linker probes a straight line at walking height and correctly refuses to connect a tower deck to the ground under it, so anything a bot climbs must be declared.",
@@ -1197,88 +1269,88 @@
     {
       "from": "an_tower_n",
       "to": "an_rock_c",
-      "lengthMetres": 76.0,
+      "lengthMetres": 66.88,
       "_note": "Maximum range in the game. Time of flight is over a second with the mechanical; the pump is why you bought the pump."
     },
     {
       "from": "an_tower_e",
       "to": "an_shack_w",
-      "lengthMetres": 70.9
+      "lengthMetres": 62.39
     },
     {
       "from": "an_ridge_e",
       "to": "an_rock_b",
-      "lengthMetres": 48.7
+      "lengthMetres": 42.86
     },
     {
       "from": "an_hill_n",
       "to": "an_shack_s",
-      "lengthMetres": 65.0
+      "lengthMetres": 57.2
     },
     {
       "from": "an_shack_mid",
       "to": "an_tree_d",
-      "lengthMetres": 22.5,
+      "lengthMetres": 19.8,
       "_note": "The one short lane. Bots collapse to it when they have lost the long game."
     },
     {
       "from": "an_tower_n",
       "to": "an_shack_mid",
-      "lengthMetres": 42.0
+      "lengthMetres": 36.96
     }
   ],
   "prePlacementAngles": [
     {
       "anchorId": "an_tower_n",
       "watch": [
-        -6,
+        -5.28,
         1,
-        -22
+        -19.36
       ],
       "priority": 1
     },
     {
       "anchorId": "an_tower_e",
       "watch": [
-        4,
+        3.52,
         1,
-        -34
+        -29.92
       ],
       "priority": 1
     },
     {
       "anchorId": "an_ridge_e",
       "watch": [
-        14,
+        12.32,
         1,
-        -33
+        -29.04
       ],
       "priority": 1
     },
     {
       "anchorId": "an_hill_n",
       "watch": [
-        -14,
+        -12.32,
         1,
-        -28
+        -24.64
       ],
       "priority": 2
     },
     {
       "anchorId": "an_shack_mid",
       "watch": [
-        0,
+        0.0,
         1,
-        -22
+        -19.36
       ],
       "priority": 2
     },
     {
       "anchorId": "an_rock_b",
       "watch": [
-        0,
+        0.0,
         1,
-        -40
+        -35.2
       ],
       "priority": 2
     }
@@ -1298,96 +1370,96 @@
         "id": "TimberTrail",
         "points": [
           [
+            0.0,
             0,
-            0,
-            -55
+            -48.4
           ],
           [
+            0.0,
             0,
-            0,
-            -44
+            -38.72
           ],
           [
-            -9,
+            -7.92,
             0,
-            -35
+            -30.8
           ],
           [
-            -16,
+            -14.08,
             0,
-            -24
+            -21.12
           ],
           [
-            -8,
+            -7.04,
             0,
-            -12
+            -10.56
           ],
           [
-            -5,
+            -4.4,
             0,
-            0
+            0.0
           ],
           [
-            -8,
+            -7.04,
             0,
-            10
+            8.8
           ]
         ],
-        "widthMetres": 3,
+        "widthMetres": 2.64,
         "color": "trail"
       },
       {
         "id": "EastTrail",
         "points": [
           [
-            3,
+            2.64,
             0,
-            -49
+            -43.12
           ],
           [
-            18,
+            15.84,
             0,
-            -39
+            -34.32
           ],
           [
-            25,
+            22.0,
             0,
-            -29
+            -25.52
           ],
           [
-            22,
+            19.36,
             0,
-            -17
+            -14.96
           ],
           [
-            26,
+            22.88,
             0,
-            -7
+            -6.16
           ]
         ],
-        "widthMetres": 2.4,
+        "widthMetres": 2.11,
         "color": "trail"
       },
       {
         "id": "NorthTrail",
         "points": [
           [
-            -6,
+            -5.28,
             0,
-            25
+            22.0
           ],
           [
-            1,
+            0.88,
             0,
-            34
+            29.92
           ],
           [
-            9,
+            7.92,
             0,
-            38
+            33.44
           ]
         ],
-        "widthMetres": 2.4,
+        "widthMetres": 2.11,
         "color": "trail"
       }
     ],
@@ -1424,7 +1496,116 @@
       }
     ]
   },
-  "_botSpawns": "Every bot starts on the ground. Structures are somewhere bots MOVE to, never somewhere they begin: a squad that opens the round already on a roof reads as spawning in the sky and gives the player nothing to walk into. Positions were found by tools/ground-spawns and are re-checked by tools/map-validate.",
+  "_botSpawns": "Twelve spawn points, not six: the squad size doubled. The original six are authored; the rest were taken from this map's own ground navNodes, in the enemy half, clear of cover and at least a few metres from every other spawn, so nobody starts the round inside a container or inside a team-mate.",
   "_flow": "The player's spawn had clear sight to an enemy spawn 89.3m away -- the single worst sightline in the game and, at that range, an enemy you cannot resolve shooting at you before you have moved. Two thickets screen it (concealment, so paint still passes and the lane stays honest) and two hard pieces break the middle. Measured by tools/flow-report.",
-  "_verticality": "Two timber stands, not fire towers. Their decks were at 12.2m and 12.7m -- on a woods map that reads as climbing a building, and bots used to spawn up there. Both are stands on ground that is already high (hill_n tops at 4m, ridge_e at 5m), so the stand only ever needed to be a stand: decks now sit at 8.2m and 7.7m. hill_ne came down from 7m to 5.5m with them."
+  "_verticality": "Two timber stands, not fire towers. Their decks were at 12.2m and 12.7m -- on a woods map that reads as climbing a building, and bots used to spawn up there. Both are stands on ground that is already high (hill_n tops at 4m, ridge_e at 5m), so the stand only ever needed to be a stand: decks now sit at 8.2m and 7.7m. hill_ne came down from 7m to 5.5m with them.",
+  "_scale": "Field rescaled to 88% of its footprint on 2026-09-07. Positions AND plan-view sizes (X and Z) were scaled together; Y was left alone everywhere. Scaling positions without sizes was tried first and was wrong: it left cover at full size in a smaller field, which pushed nav nodes into buildings and disconnected the nav graphs on Dustline and Holdfast. Scaling both preserves every gap, every clearance and every ratio exactly, and only the world gets smaller. Y is untouched because heights carry tuned see-over relationships -- a snake tops at 1.30 m against a 1.32 m crouched eye line -- and shrinking them would retune the game without saying so.",
+  "course": {
+    "_comment": "The Shoothouse route through Woods. Four stages, fourteen defenders, fought from the near end to the far. Rules live in Data/course.json.",
+    "_stagesAreAnchors": "Every stage is a slice of this map's own anchors list, sorted by depth. No cover moved and no positions were invented for this mode -- the field plays as itself, met in order.",
+    "spanMetres": 73.5,
+    "defenders": 28,
+    "parSeconds": {
+      "gold": 205,
+      "silver": 275,
+      "bronze": 380
+    },
+    "_parSeconds": "Derived, not hand-picked: gold = 73.5m span / 2.4 m/s + 28 defenders x 6.2s, where the per-defender figure scales with this map's 38.72 m engagement band. Silver is gold x 1.35, bronze x 1.85. See Data/course.json medals._derivation. First-pass estimate from geometry, never yet run by a human; retune against real times and keep the derivation, not the number.",
+    "stages": [
+      {
+        "id": "theTreeline",
+        "displayName": "The Treeline",
+        "_note": "The south shack and a rock, at range, in trees. You will hear this stage before you see it.",
+        "tierOffset": 0,
+        "checkpoint": {
+          "position": [
+            0.0,
+            0,
+            -45.76
+          ],
+          "lookAt": [
+            18.48,
+            0,
+            -29.04
+          ]
+        },
+        "anchors": [
+          "an_shack_s",
+          "an_rock_c"
+        ]
+      },
+      {
+        "id": "theDraw",
+        "displayName": "The Draw",
+        "_note": "Two rocks and a log across the draw. The ground starts working against your holdover here.",
+        "tierOffset": 0,
+        "checkpoint": {
+          "position": [
+            3.52,
+            0,
+            -29.92
+          ],
+          "lookAt": [
+            6.45,
+            0,
+            -12.76
+          ]
+        },
+        "anchors": [
+          "an_rock_b",
+          "an_log_b",
+          "an_tree_d"
+        ]
+      },
+      {
+        "id": "theClearing",
+        "displayName": "The Clearing",
+        "_note": "The east ridge, both shacks and a treeline -- four defenders spread across a field a hundred metres wide.",
+        "tierOffset": 1,
+        "checkpoint": {
+          "position": [
+            -6.51,
+            0,
+            -19.94
+          ],
+          "lookAt": [
+            -4.84,
+            0,
+            -5.28
+          ]
+        },
+        "anchors": [
+          "an_ridge_e",
+          "an_shack_w",
+          "an_shack_mid",
+          "an_tree_c"
+        ]
+      },
+      {
+        "id": "theHighGround",
+        "displayName": "The High Ground",
+        "_note": "The east tower, a log, a rock, the north hill and the north tower. They are above you and they got there first.",
+        "tierOffset": 1,
+        "checkpoint": {
+          "position": [
+            0.0,
+            0,
+            -5.28
+          ],
+          "lookAt": [
+            -2.9,
+            0,
+            8.8
+          ]
+        },
+        "anchors": [
+          "an_tower_e",
+          "an_log_a",
+          "an_rock_a",
+          "an_hill_n",
+          "an_tower_n"
+        ]
+      }
+    ]
+  }
 }
