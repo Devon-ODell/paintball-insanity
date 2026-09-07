@@ -27,7 +27,9 @@
       "greeting": "You again.",
       "voice": "Dry. Forty years of this. Has seen every kind of person walk through that door and has stopped being surprised by any of them.",
       "unlocksChapters": true,
-      "sellsAt": "markers"
+      "sellsAt": "markers",
+      "_outfit": "Flannel, apron, readers on her head, clipboard. The only person here dressed for a job.",
+      "outfit": "marge"
     },
     "tildy": {
       "displayName": "Tildy",
@@ -47,7 +49,9 @@
       "idlePose": "bouncing",
       "greeting": "Okay so I have been thinking.",
       "voice": "Nineteen, over-caffeinated, genuinely brilliant with a wrench, absolutely should not be allowed near the drone.",
-      "sellsAt": "paintAndAir"
+      "sellsAt": "paintAndAir",
+      "_outfit": "Goggles up, headphones down, bandolier of pods she does not need, drone controller already clipped on.",
+      "outfit": "tildy"
     },
     "wheels": {
       "displayName": "Wheels",
@@ -67,7 +71,9 @@
       "idlePose": "crouched",
       "greeting": "Don't touch that, it's timed.",
       "voice": "Obsessive. Will explain dwell to anyone who stands still. Has never once been wrong about a marker.",
-      "sellsAt": "markers"
+      "sellsAt": "markers",
+      "_outfit": "Coveralls, thigh tool roll, headlamp on in daylight, one boot untied.",
+      "outfit": "wheels"
     },
     "coachRuiz": {
       "displayName": "Coach Ruiz",
@@ -87,7 +93,9 @@
       "idlePose": "armsFolded",
       "greeting": "Show me the last ten shots.",
       "voice": "Was regional-level in the nineties. Quiet, precise, entirely uninterested in how you feel about your performance.",
-      "deliversPrescriptions": true
+      "deliversPrescriptions": true,
+      "_outfit": "The nineties team jersey, whistle, stopwatch, backwards cap, one knee brace older than the knee.",
+      "outfit": "coachRuiz"
     },
     "denny": {
       "displayName": "Denny",
@@ -107,7 +115,9 @@
       "idlePose": "sitting",
       "greeting": "Hey. Hey. Did you see that?",
       "voice": "One of the six you keep eliminating. Bears no grudge whatsoever. Delighted to be here. Comic relief and, occasionally, an accidentally excellent tip.",
-      "isFromEnemyRoster": true
+      "isFromEnemyRoster": true,
+      "_outfit": "Night vision flipped DOWN, in daylight, for rec league. Everything at once. This is the joke.",
+      "outfit": "denny"
     },
     "theMarshal": {
       "displayName": "The Marshal",
@@ -128,7 +138,9 @@
       "greeting": "...",
       "voice": "Never speaks. Communicates entirely in gestures at the notice board. Unlocks horde by simply walking to the back gate and holding it open.",
       "silent": true,
-      "unlocksHorde": true
+      "unlocksHorde": true,
+      "_outfit": "A white armband and nothing else, on a field where everyone is wearing three hundred dollars of nylon.",
+      "outfit": "theMarshal"
     }
   },
   "_dialogue": "Trees keyed by npc. Each node has lines, and options that either move to another node, fire an action, or end. `requires` gates a node or an option on campaign state, so the same NPC says different things as you progress -- which is the whole point of having them.",
@@ -710,5 +722,6 @@
       }
     }
   },
-  "_entryNote": "A node with entry:true is an alternate OPENING for that npc, chosen over root when its requires are met. A node with only `requires` is still just a gated sub-node reached from somewhere else -- Tildy's drone talk is gated but you still get to it by asking her about it."
+  "_entryNote": "A node with entry:true is an alternate OPENING for that npc, chosen over root when its requires are met. A node with only `requires` is still just a gated sub-node reached from somewhere else -- Tildy's drone talk is gated but you still get to it by asking her about it.",
+  "_outfitNote": "Each person's outfit lives in Data/wardrobe.json under the same id. Written against the `voice` field above it -- the clothes are supposed to be the same joke as the dialogue."
 }

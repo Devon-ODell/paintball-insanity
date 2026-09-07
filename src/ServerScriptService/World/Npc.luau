@@ -15,6 +15,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
+local Wardrobe = require(script.Parent.Wardrobe)
 
 local log = Log.scope("LiveRound.Hub")
 
@@ -63,26 +64,6 @@ function Npc.build(id: string, cfg: any, palette: { [string]: Color3 }, parent: 
 	local model = Instance.new("Model")
 	model.Name = `Npc_{id}`
 
-	local function part(name: string, size: Vector3, colour: Color3, ball: boolean?): Part
-		local p = Instance.new("Part")
-		p.Name = name
-		p.Size = Units.vectorToStuds(size)
-		p.Color = colour
-		p.Material = Enum.Material.SmoothPlastic
-		p.Anchored = true
-		p.CanCollide = false
-		p.CanQuery = false
-		p.CanTouch = false
-		p.TopSurface = Enum.SurfaceType.Smooth
-		p.BottomSurface = Enum.SurfaceType.Smooth
-		if ball then
-			p.Shape = Enum.PartType.Ball
-		end
-		p.Parent = model
-		return p
-	end
-
-	local width = hitbox.bodyWidthMetres
 	local at = Vector3.new(cfg.position[1], cfg.position[2], cfg.position[3])
 	local lookAt = Vector3.new(cfg.lookAt[1], cfg.lookAt[2], cfg.lookAt[3])
 	local facing = lookAt - at
@@ -92,25 +73,37 @@ function Npc.build(id: string, cfg: any, palette: { [string]: Color3 }, parent: 
 	local flat = Vector3.new(facing.X, 0, facing.Z).Unit
 	local base = CFrame.lookAt(Units.vectorToStuds(at), Units.vectorToStuds(at) + flat)
 
-	local function place(p: BasePart, heightMetres: number, forward: number?)
-		p.CFrame = base
-			* CFrame.new(0, Units.metresToStuds(heightMetres + pose.lift), Units.metresToStuds(forward or 0))
-			* CFrame.Angles(pose.lean, 0, 0)
-	end
+	--[[
+		Everyone at The Landing is built on the same figure as the enemy team
+		(World/Wardrobe) and then dressed from their own outfit. The outfits are
+		written against the dialogue: Denny is in full night-raid kit for rec
+		league on a Tuesday, and the Marshal -- who never says a word -- is the
+		only person on the property wearing nothing but an armband.
 
-	local legs = part("Legs", Vector3.new(width * 0.8, hitbox.bodyHeightMetres * 0.46 * (1 - pose.crouch * 0.5), width * 0.5), accent)
-	local hips = part("Hips", Vector3.new(width * 0.86, width * 0.5, width * 0.54), shade(body, 0.8), true)
-	local torso = part("Torso", Vector3.new(width * 0.9, hitbox.bodyHeightMetres * 0.38, width * 0.54), body)
-	local shoulders = part("Shoulders", Vector3.new(width * 1.02, hitbox.bodyHeightMetres * 0.24, width * 0.58), body, true)
-	local head = part("Head", Vector3.new(0.34, 0.36, 0.34), skin, true)
-	local hair = part("Hair", Vector3.new(0.36, 0.2, 0.36), shade(accent, 0.6), true)
+		The pose offsets stay here because they belong to this NPC, not to the
+		wardrobe: Marge leans on her counter, Denny sits on a bench, Wheels is
+		crouched over something.
+	]]
+	local outfitName = cfg.outfit or id
+	local build = Wardrobe.buildOf(outfitName)
+	local figure = Wardrobe.body(model, {
+		build = build,
+		torsoColour = body,
+		limbColour = accent,
+		skinColour = skin,
+		handsForward = false,
+	})
+	local worn = Wardrobe.dress(outfitName, model, build.height)
 
-	place(legs, hitbox.bodyHeightMetres * 0.24)
-	place(hips, hitbox.bodyHeightMetres * 0.5)
-	place(torso, hitbox.chestHeightMetres)
-	place(shoulders, hitbox.chestHeightMetres + 0.17)
-	place(head, hitbox.headTopMetres - 0.17)
-	place(hair, hitbox.headTopMetres - 0.06)
+	-- The idle pose is a lift, a lean and a crouch applied to the whole figure.
+	local posed = base
+		* CFrame.new(0, Units.metresToStuds(pose.lift - pose.crouch * 0.5), 0)
+		* CFrame.Angles(pose.lean, 0, 0)
+	figure.pose(posed)
+	Wardrobe.place(worn, figure.anchors(posed))
+
+	local head = figure.byName.Head
+	local torso = figure.byName.Torso
 
 	--- A silent NPC gets no nameplate role line -- the Marshal does not
 	--- introduce herself and that is the whole character.

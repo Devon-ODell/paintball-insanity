@@ -1,0 +1,2849 @@
+{
+  "_comment": "The wardrobe. One set of clothes, two kinds of wearer: the people at The Landing (World/Npc) and the enemy team (Match/BotAvatar). Anything added here is available to both.",
+  "_anchors": "Pieces hang off a named anchor on the body -- head, chest, hips, legs or feet -- and `at` is an offset from that anchor in METRES, with -Z forward, +X right, +Y up. The wearer owns the anchor frames, so the same outfit works on a static NPC and on a bot being re-placed every tick.",
+  "_rating": "Fashion only. Nothing in here is armour, nothing changes a hitbox, and nothing is a firearm or firearm accessory. Night vision, camo and pads are how paintball players actually dress, and on Denny they are a joke about how they dress. LiveRulesSpec asserts no piece declares a stat.",
+  "palette": {
+    "gearBlack": [
+      30,
+      32,
+      36
+    ],
+    "gearGrey": [
+      88,
+      94,
+      100
+    ],
+    "gearTan": [
+      176,
+      150,
+      106
+    ],
+    "gearOlive": [
+      86,
+      96,
+      68
+    ],
+    "camoDark": [
+      54,
+      62,
+      44
+    ],
+    "camoDesertMid": [
+      166,
+      138,
+      92
+    ],
+    "lensGreen": [
+      110,
+      224,
+      146
+    ],
+    "lensSmoke": [
+      38,
+      46,
+      54
+    ],
+    "rubber": [
+      38,
+      40,
+      44
+    ],
+    "boot": [
+      74,
+      56,
+      42
+    ],
+    "strap": [
+      48,
+      44,
+      40
+    ],
+    "flannelRed": [
+      152,
+      66,
+      58
+    ],
+    "flannelCream": [
+      216,
+      200,
+      170
+    ],
+    "apron": [
+      102,
+      88,
+      74
+    ],
+    "apronDark": [
+      70,
+      60,
+      50
+    ],
+    "coverall": [
+      72,
+      86,
+      100
+    ],
+    "hiVis": [
+      228,
+      198,
+      58
+    ],
+    "brass": [
+      188,
+      152,
+      84
+    ],
+    "steel": [
+      180,
+      188,
+      194
+    ],
+    "white": [
+      238,
+      236,
+      228
+    ],
+    "teamRed": [
+      178,
+      62,
+      58
+    ],
+    "teamCream": [
+      228,
+      220,
+      198
+    ],
+    "teamBlue": [
+      58,
+      104,
+      168
+    ],
+    "podYellow": [
+      232,
+      196,
+      62
+    ],
+    "podTeal": [
+      86,
+      178,
+      168
+    ],
+    "podCoral": [
+      224,
+      118,
+      96
+    ],
+    "podLime": [
+      168,
+      208,
+      86
+    ],
+    "hairDark": [
+      58,
+      44,
+      36
+    ],
+    "hairGrey": [
+      168,
+      164,
+      158
+    ],
+    "hairGinger": [
+      176,
+      102,
+      54
+    ]
+  },
+  "pieces": {
+    "bumpHelmet": [
+      {
+        "name": "HelmetShell",
+        "anchor": "head",
+        "size": [
+          0.4,
+          0.34,
+          0.42
+        ],
+        "at": [
+          0,
+          0.1,
+          0
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Ball"
+      },
+      {
+        "name": "HelmetBrim",
+        "anchor": "head",
+        "size": [
+          0.34,
+          0.04,
+          0.1
+        ],
+        "at": [
+          0,
+          0.06,
+          -0.19
+        ],
+        "colorKey": "gearBlack"
+      },
+      {
+        "name": "RailL",
+        "anchor": "head",
+        "size": [
+          0.02,
+          0.03,
+          0.26
+        ],
+        "at": [
+          -0.19,
+          0.09,
+          0.01
+        ],
+        "colorKey": "gearGrey"
+      },
+      {
+        "name": "RailR",
+        "anchor": "head",
+        "size": [
+          0.02,
+          0.03,
+          0.26
+        ],
+        "at": [
+          0.19,
+          0.09,
+          0.01
+        ],
+        "colorKey": "gearGrey"
+      },
+      {
+        "name": "ChinStrap",
+        "anchor": "head",
+        "size": [
+          0.3,
+          0.03,
+          0.03
+        ],
+        "at": [
+          0,
+          -0.14,
+          -0.02
+        ],
+        "colorKey": "strap"
+      }
+    ],
+    "nvgMount": [
+      {
+        "name": "NvgShroud",
+        "anchor": "head",
+        "size": [
+          0.13,
+          0.06,
+          0.05
+        ],
+        "at": [
+          0,
+          0.14,
+          -0.19
+        ],
+        "colorKey": "gearBlack"
+      },
+      {
+        "name": "NvgArm",
+        "anchor": "head",
+        "size": [
+          0.04,
+          0.13,
+          0.04
+        ],
+        "at": [
+          0,
+          0.08,
+          -0.21
+        ],
+        "colorKey": "gearBlack"
+      }
+    ],
+    "nvgDown": [
+      {
+        "name": "NvgTubeL",
+        "anchor": "head",
+        "size": [
+          0.11,
+          0.07,
+          0.07
+        ],
+        "at": [
+          -0.05,
+          0.02,
+          -0.23
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          90,
+          0
+        ]
+      },
+      {
+        "name": "NvgTubeR",
+        "anchor": "head",
+        "size": [
+          0.11,
+          0.07,
+          0.07
+        ],
+        "at": [
+          0.05,
+          0.02,
+          -0.23
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          90,
+          0
+        ]
+      },
+      {
+        "name": "NvgLensL",
+        "anchor": "head",
+        "size": [
+          0.01,
+          0.055,
+          0.055
+        ],
+        "at": [
+          -0.05,
+          0.02,
+          -0.285
+        ],
+        "colorKey": "lensGreen",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          90,
+          0
+        ],
+        "material": "Neon"
+      },
+      {
+        "name": "NvgLensR",
+        "anchor": "head",
+        "size": [
+          0.01,
+          0.055,
+          0.055
+        ],
+        "at": [
+          0.05,
+          0.02,
+          -0.285
+        ],
+        "colorKey": "lensGreen",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          90,
+          0
+        ],
+        "material": "Neon"
+      },
+      {
+        "name": "NvgBridge",
+        "anchor": "head",
+        "size": [
+          0.06,
+          0.03,
+          0.05
+        ],
+        "at": [
+          0,
+          0.05,
+          -0.22
+        ],
+        "colorKey": "gearGrey"
+      }
+    ],
+    "nvgUp": [
+      {
+        "name": "NvgTubeL",
+        "anchor": "head",
+        "size": [
+          0.11,
+          0.07,
+          0.07
+        ],
+        "at": [
+          -0.05,
+          0.19,
+          -0.14
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          90,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "NvgTubeR",
+        "anchor": "head",
+        "size": [
+          0.11,
+          0.07,
+          0.07
+        ],
+        "at": [
+          0.05,
+          0.19,
+          -0.14
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          90,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "NvgBridge",
+        "anchor": "head",
+        "size": [
+          0.06,
+          0.03,
+          0.05
+        ],
+        "at": [
+          0,
+          0.16,
+          -0.16
+        ],
+        "colorKey": "gearGrey"
+      }
+    ],
+    "paintballMask": [
+      {
+        "name": "MaskShell",
+        "anchor": "head",
+        "size": [
+          0.38,
+          0.4,
+          0.4
+        ],
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Ball"
+      },
+      {
+        "name": "MaskLens",
+        "anchor": "head",
+        "size": [
+          0.31,
+          0.15,
+          0.1
+        ],
+        "at": [
+          0,
+          0.01,
+          -0.16
+        ],
+        "colorKey": "lensSmoke",
+        "material": "Glass",
+        "reflectance": 0.35
+      },
+      {
+        "name": "MaskVentL",
+        "anchor": "head",
+        "size": [
+          0.05,
+          0.1,
+          0.06
+        ],
+        "at": [
+          -0.16,
+          -0.09,
+          -0.12
+        ],
+        "colorKey": "gearGrey"
+      },
+      {
+        "name": "MaskVentR",
+        "anchor": "head",
+        "size": [
+          0.05,
+          0.1,
+          0.06
+        ],
+        "at": [
+          0.16,
+          -0.09,
+          -0.12
+        ],
+        "colorKey": "gearGrey"
+      },
+      {
+        "name": "MaskStrap",
+        "anchor": "head",
+        "size": [
+          0.36,
+          0.06,
+          0.06
+        ],
+        "at": [
+          0,
+          0.02,
+          0.17
+        ],
+        "colorKey": "strap"
+      }
+    ],
+    "gogglesOnForehead": [
+      {
+        "name": "GoggleBand",
+        "anchor": "head",
+        "size": [
+          0.32,
+          0.09,
+          0.09
+        ],
+        "at": [
+          0,
+          0.15,
+          -0.13
+        ],
+        "colorKey": "lensSmoke",
+        "material": "Glass",
+        "reflectance": 0.3
+      },
+      {
+        "name": "GoggleStrap",
+        "anchor": "head",
+        "size": [
+          0.34,
+          0.05,
+          0.05
+        ],
+        "at": [
+          0,
+          0.13,
+          0.14
+        ],
+        "colorKey": "hiVis"
+      }
+    ],
+    "sunglasses": [
+      {
+        "name": "Shades",
+        "anchor": "head",
+        "size": [
+          0.3,
+          0.06,
+          0.04
+        ],
+        "at": [
+          0,
+          0.02,
+          -0.17
+        ],
+        "colorKey": "lensSmoke",
+        "material": "Glass",
+        "reflectance": 0.45
+      }
+    ],
+    "glassesOnHead": [
+      {
+        "name": "Readers",
+        "anchor": "head",
+        "size": [
+          0.28,
+          0.05,
+          0.03
+        ],
+        "at": [
+          0,
+          0.15,
+          -0.12
+        ],
+        "colorKey": "steel",
+        "material": "Metal",
+        "reflectance": 0.2
+      }
+    ],
+    "capForward": [
+      {
+        "name": "CapCrown",
+        "anchor": "head",
+        "size": [
+          0.36,
+          0.2,
+          0.36
+        ],
+        "at": [
+          0,
+          0.11,
+          0
+        ],
+        "colorKey": "teamRed",
+        "shape": "Ball"
+      },
+      {
+        "name": "CapBrim",
+        "anchor": "head",
+        "size": [
+          0.3,
+          0.03,
+          0.16
+        ],
+        "at": [
+          0,
+          0.05,
+          -0.22
+        ],
+        "colorKey": "teamRed"
+      }
+    ],
+    "capBackward": [
+      {
+        "name": "CapCrown",
+        "anchor": "head",
+        "size": [
+          0.36,
+          0.2,
+          0.36
+        ],
+        "at": [
+          0,
+          0.11,
+          0
+        ],
+        "colorKey": "gearOlive",
+        "shape": "Ball"
+      },
+      {
+        "name": "CapBrim",
+        "anchor": "head",
+        "size": [
+          0.3,
+          0.03,
+          0.16
+        ],
+        "at": [
+          0,
+          0.05,
+          0.22
+        ],
+        "colorKey": "gearOlive"
+      }
+    ],
+    "beanie": [
+      {
+        "name": "Beanie",
+        "anchor": "head",
+        "size": [
+          0.37,
+          0.24,
+          0.37
+        ],
+        "at": [
+          0,
+          0.12,
+          0
+        ],
+        "colorKey": "flannelRed",
+        "shape": "Ball"
+      },
+      {
+        "name": "BeanieCuff",
+        "anchor": "head",
+        "size": [
+          0.38,
+          0.07,
+          0.38
+        ],
+        "at": [
+          0,
+          0.04,
+          0
+        ],
+        "colorKey": "flannelCream",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      }
+    ],
+    "headlamp": [
+      {
+        "name": "LampBand",
+        "anchor": "head",
+        "size": [
+          0.36,
+          0.05,
+          0.36
+        ],
+        "at": [
+          0,
+          0.12,
+          0
+        ],
+        "colorKey": "strap",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      },
+      {
+        "name": "LampBody",
+        "anchor": "head",
+        "size": [
+          0.09,
+          0.06,
+          0.05
+        ],
+        "at": [
+          0,
+          0.13,
+          -0.19
+        ],
+        "colorKey": "gearGrey"
+      },
+      {
+        "name": "LampGlow",
+        "anchor": "head",
+        "size": [
+          0.06,
+          0.05,
+          0.02
+        ],
+        "at": [
+          0,
+          0.13,
+          -0.22
+        ],
+        "colorKey": "hiVis",
+        "material": "Neon"
+      }
+    ],
+    "headphones": [
+      {
+        "name": "HpBand",
+        "anchor": "head",
+        "size": [
+          0.4,
+          0.06,
+          0.06
+        ],
+        "at": [
+          0,
+          0.15,
+          0.02
+        ],
+        "colorKey": "gearBlack"
+      },
+      {
+        "name": "HpCupL",
+        "anchor": "head",
+        "size": [
+          0.05,
+          0.13,
+          0.13
+        ],
+        "at": [
+          -0.2,
+          0.02,
+          0.02
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          90,
+          0
+        ]
+      },
+      {
+        "name": "HpCupR",
+        "anchor": "head",
+        "size": [
+          0.05,
+          0.13,
+          0.13
+        ],
+        "at": [
+          0.2,
+          0.02,
+          0.02
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          90,
+          0
+        ]
+      }
+    ],
+    "shemagh": [
+      {
+        "name": "NeckWrap",
+        "anchor": "chest",
+        "size": [
+          0.36,
+          0.16,
+          0.34
+        ],
+        "at": [
+          0,
+          0.3,
+          0
+        ],
+        "colorKey": "gearTan",
+        "shape": "Ball"
+      },
+      {
+        "name": "WrapTail",
+        "anchor": "chest",
+        "size": [
+          0.14,
+          0.2,
+          0.06
+        ],
+        "at": [
+          0.1,
+          0.2,
+          -0.13
+        ],
+        "colorKey": "gearTan"
+      }
+    ],
+    "hairShort": [
+      {
+        "name": "Hair",
+        "anchor": "head",
+        "size": [
+          0.37,
+          0.2,
+          0.37
+        ],
+        "at": [
+          0,
+          0.11,
+          0
+        ],
+        "colorKey": "hairDark",
+        "shape": "Ball"
+      }
+    ],
+    "hairGrey": [
+      {
+        "name": "Hair",
+        "anchor": "head",
+        "size": [
+          0.37,
+          0.18,
+          0.37
+        ],
+        "at": [
+          0,
+          0.11,
+          0
+        ],
+        "colorKey": "hairGrey",
+        "shape": "Ball"
+      }
+    ],
+    "ponytail": [
+      {
+        "name": "Hair",
+        "anchor": "head",
+        "size": [
+          0.37,
+          0.21,
+          0.37
+        ],
+        "at": [
+          0,
+          0.1,
+          0
+        ],
+        "colorKey": "hairGinger",
+        "shape": "Ball"
+      },
+      {
+        "name": "Tail",
+        "anchor": "head",
+        "size": [
+          0.1,
+          0.26,
+          0.1
+        ],
+        "at": [
+          0,
+          0.02,
+          0.2
+        ],
+        "colorKey": "hairGinger",
+        "shape": "Ball"
+      }
+    ],
+    "bun": [
+      {
+        "name": "Hair",
+        "anchor": "head",
+        "size": [
+          0.37,
+          0.2,
+          0.37
+        ],
+        "at": [
+          0,
+          0.1,
+          0
+        ],
+        "colorKey": "hairGrey",
+        "shape": "Ball"
+      },
+      {
+        "name": "Bun",
+        "anchor": "head",
+        "size": [
+          0.15,
+          0.15,
+          0.15
+        ],
+        "at": [
+          0,
+          0.12,
+          0.19
+        ],
+        "colorKey": "hairGrey",
+        "shape": "Ball"
+      }
+    ],
+    "beard": [
+      {
+        "name": "Beard",
+        "anchor": "head",
+        "size": [
+          0.26,
+          0.14,
+          0.18
+        ],
+        "at": [
+          0,
+          -0.11,
+          -0.11
+        ],
+        "colorKey": "hairDark",
+        "shape": "Ball"
+      }
+    ],
+    "plateCarrier": [
+      {
+        "name": "CarrierFront",
+        "anchor": "chest",
+        "size": [
+          0.46,
+          0.44,
+          0.1
+        ],
+        "at": [
+          0,
+          0.02,
+          -0.17
+        ],
+        "colorKey": "gearOlive"
+      },
+      {
+        "name": "CarrierBack",
+        "anchor": "chest",
+        "size": [
+          0.46,
+          0.44,
+          0.09
+        ],
+        "at": [
+          0,
+          0.02,
+          0.17
+        ],
+        "colorKey": "gearOlive"
+      },
+      {
+        "name": "StrapL",
+        "anchor": "chest",
+        "size": [
+          0.09,
+          0.3,
+          0.05
+        ],
+        "at": [
+          -0.17,
+          0.22,
+          0
+        ],
+        "colorKey": "gearOlive"
+      },
+      {
+        "name": "StrapR",
+        "anchor": "chest",
+        "size": [
+          0.09,
+          0.3,
+          0.05
+        ],
+        "at": [
+          0.17,
+          0.22,
+          0
+        ],
+        "colorKey": "gearOlive"
+      },
+      {
+        "name": "Cummerbund",
+        "anchor": "chest",
+        "size": [
+          0.5,
+          0.14,
+          0.36
+        ],
+        "at": [
+          0,
+          -0.2,
+          0
+        ],
+        "colorKey": "gearOlive"
+      }
+    ],
+    "chestPods": [
+      {
+        "name": "PodA",
+        "anchor": "chest",
+        "size": [
+          0.09,
+          0.2,
+          0.09
+        ],
+        "at": [
+          -0.14,
+          0.04,
+          -0.23
+        ],
+        "colorKey": "podYellow",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      },
+      {
+        "name": "PodB",
+        "anchor": "chest",
+        "size": [
+          0.09,
+          0.2,
+          0.09
+        ],
+        "at": [
+          0,
+          0.04,
+          -0.23
+        ],
+        "colorKey": "podTeal",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      },
+      {
+        "name": "PodC",
+        "anchor": "chest",
+        "size": [
+          0.09,
+          0.2,
+          0.09
+        ],
+        "at": [
+          0.14,
+          0.04,
+          -0.23
+        ],
+        "colorKey": "podYellow",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      }
+    ],
+    "podBelt": [
+      {
+        "name": "Belt",
+        "anchor": "hips",
+        "size": [
+          0.56,
+          0.1,
+          0.42
+        ],
+        "at": [
+          0,
+          0.06,
+          0
+        ],
+        "colorKey": "strap"
+      },
+      {
+        "name": "PodL",
+        "anchor": "hips",
+        "size": [
+          0.09,
+          0.2,
+          0.09
+        ],
+        "at": [
+          -0.2,
+          0.02,
+          0.16
+        ],
+        "colorKey": "podTeal",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      },
+      {
+        "name": "PodM",
+        "anchor": "hips",
+        "size": [
+          0.09,
+          0.2,
+          0.09
+        ],
+        "at": [
+          0,
+          0.02,
+          0.21
+        ],
+        "colorKey": "podYellow",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      },
+      {
+        "name": "PodR",
+        "anchor": "hips",
+        "size": [
+          0.09,
+          0.2,
+          0.09
+        ],
+        "at": [
+          0.2,
+          0.02,
+          0.16
+        ],
+        "colorKey": "podTeal",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      }
+    ],
+    "bandolier": [
+      {
+        "name": "Sash",
+        "anchor": "chest",
+        "size": [
+          0.44,
+          0.13,
+          0.34
+        ],
+        "at": [
+          0,
+          0.04,
+          0
+        ],
+        "colorKey": "strap",
+        "rotationDeg": [
+          0,
+          0,
+          26
+        ]
+      },
+      {
+        "name": "SashPodA",
+        "anchor": "chest",
+        "size": [
+          0.08,
+          0.17,
+          0.08
+        ],
+        "at": [
+          -0.13,
+          0.14,
+          -0.19
+        ],
+        "colorKey": "podCoral",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      },
+      {
+        "name": "SashPodB",
+        "anchor": "chest",
+        "size": [
+          0.08,
+          0.17,
+          0.08
+        ],
+        "at": [
+          0.04,
+          -0.04,
+          -0.21
+        ],
+        "colorKey": "podLime",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ]
+      }
+    ],
+    "apron": [
+      {
+        "name": "ApronBib",
+        "anchor": "chest",
+        "size": [
+          0.36,
+          0.3,
+          0.06
+        ],
+        "at": [
+          0,
+          0.06,
+          -0.19
+        ],
+        "colorKey": "apron"
+      },
+      {
+        "name": "ApronSkirt",
+        "anchor": "hips",
+        "size": [
+          0.46,
+          0.44,
+          0.06
+        ],
+        "at": [
+          0,
+          -0.06,
+          -0.2
+        ],
+        "colorKey": "apron"
+      },
+      {
+        "name": "ApronNeck",
+        "anchor": "chest",
+        "size": [
+          0.22,
+          0.16,
+          0.04
+        ],
+        "at": [
+          0,
+          0.28,
+          -0.16
+        ],
+        "colorKey": "apron"
+      },
+      {
+        "name": "ApronPocket",
+        "anchor": "hips",
+        "size": [
+          0.26,
+          0.14,
+          0.04
+        ],
+        "at": [
+          0,
+          0.0,
+          -0.24
+        ],
+        "colorKey": "apronDark"
+      },
+      {
+        "name": "PenA",
+        "anchor": "hips",
+        "size": [
+          0.02,
+          0.1,
+          0.02
+        ],
+        "at": [
+          -0.05,
+          0.08,
+          -0.24
+        ],
+        "colorKey": "teamBlue"
+      },
+      {
+        "name": "PenB",
+        "anchor": "hips",
+        "size": [
+          0.02,
+          0.1,
+          0.02
+        ],
+        "at": [
+          0.01,
+          0.08,
+          -0.24
+        ],
+        "colorKey": "flannelRed"
+      }
+    ],
+    "flannel": [
+      {
+        "name": "FlannelBody",
+        "anchor": "chest",
+        "size": [
+          0.66,
+          0.5,
+          0.42
+        ],
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "colorKey": "flannelRed"
+      },
+      {
+        "name": "FlannelPlacket",
+        "anchor": "chest",
+        "size": [
+          0.06,
+          0.5,
+          0.04
+        ],
+        "at": [
+          0,
+          0,
+          -0.22
+        ],
+        "colorKey": "flannelCream"
+      },
+      {
+        "name": "CuffL",
+        "anchor": "chest",
+        "size": [
+          0.14,
+          0.14,
+          0.14
+        ],
+        "at": [
+          -0.32,
+          -0.1,
+          0
+        ],
+        "colorKey": "flannelCream"
+      },
+      {
+        "name": "CuffR",
+        "anchor": "chest",
+        "size": [
+          0.14,
+          0.14,
+          0.14
+        ],
+        "at": [
+          0.32,
+          -0.1,
+          0
+        ],
+        "colorKey": "flannelCream"
+      }
+    ],
+    "coveralls": [
+      {
+        "name": "CoverallTorso",
+        "anchor": "chest",
+        "size": [
+          0.64,
+          0.52,
+          0.42
+        ],
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "colorKey": "coverall"
+      },
+      {
+        "name": "CoverallLegs",
+        "anchor": "legs",
+        "size": [
+          0.54,
+          0.8,
+          0.36
+        ],
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "colorKey": "coverall"
+      },
+      {
+        "name": "ZipStrip",
+        "anchor": "chest",
+        "size": [
+          0.04,
+          0.48,
+          0.03
+        ],
+        "at": [
+          0,
+          0,
+          -0.22
+        ],
+        "colorKey": "steel",
+        "material": "Metal",
+        "reflectance": 0.2
+      },
+      {
+        "name": "NamePatch",
+        "anchor": "chest",
+        "size": [
+          0.12,
+          0.06,
+          0.03
+        ],
+        "at": [
+          0.14,
+          0.16,
+          -0.22
+        ],
+        "colorKey": "flannelCream"
+      }
+    ],
+    "teamJersey": [
+      {
+        "name": "JerseyBody",
+        "anchor": "chest",
+        "size": [
+          0.66,
+          0.5,
+          0.44
+        ],
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "colorKey": "teamRed"
+      },
+      {
+        "name": "JerseyPanelL",
+        "anchor": "chest",
+        "size": [
+          0.1,
+          0.48,
+          0.42
+        ],
+        "at": [
+          -0.28,
+          0,
+          0
+        ],
+        "colorKey": "teamCream"
+      },
+      {
+        "name": "JerseyPanelR",
+        "anchor": "chest",
+        "size": [
+          0.1,
+          0.48,
+          0.42
+        ],
+        "at": [
+          0.28,
+          0,
+          0
+        ],
+        "colorKey": "teamCream"
+      },
+      {
+        "name": "JerseyNumber",
+        "anchor": "chest",
+        "size": [
+          0.14,
+          0.16,
+          0.03
+        ],
+        "at": [
+          0,
+          0.04,
+          0.23
+        ],
+        "colorKey": "teamCream"
+      }
+    ],
+    "armband": [
+      {
+        "name": "Armband",
+        "anchor": "chest",
+        "size": [
+          0.1,
+          0.14,
+          0.24
+        ],
+        "at": [
+          0.29,
+          0.14,
+          0
+        ],
+        "colorKey": "white"
+      }
+    ],
+    "patches": [
+      {
+        "name": "PatchA",
+        "anchor": "chest",
+        "size": [
+          0.07,
+          0.05,
+          0.03
+        ],
+        "at": [
+          -0.13,
+          0.18,
+          -0.22
+        ],
+        "colorKey": "hiVis"
+      },
+      {
+        "name": "PatchB",
+        "anchor": "chest",
+        "size": [
+          0.06,
+          0.06,
+          0.03
+        ],
+        "at": [
+          -0.04,
+          0.18,
+          -0.22
+        ],
+        "colorKey": "flannelRed"
+      },
+      {
+        "name": "PatchC",
+        "anchor": "chest",
+        "size": [
+          0.08,
+          0.04,
+          0.03
+        ],
+        "at": [
+          0.07,
+          0.18,
+          -0.22
+        ],
+        "colorKey": "lensGreen"
+      }
+    ],
+    "radio": [
+      {
+        "name": "ShoulderMic",
+        "anchor": "chest",
+        "size": [
+          0.06,
+          0.08,
+          0.04
+        ],
+        "at": [
+          -0.22,
+          0.24,
+          -0.14
+        ],
+        "colorKey": "gearBlack"
+      },
+      {
+        "name": "MicCord",
+        "anchor": "chest",
+        "size": [
+          0.02,
+          0.16,
+          0.02
+        ],
+        "at": [
+          -0.22,
+          0.14,
+          -0.12
+        ],
+        "colorKey": "gearBlack"
+      },
+      {
+        "name": "Antenna",
+        "anchor": "chest",
+        "size": [
+          0.015,
+          0.26,
+          0.015
+        ],
+        "at": [
+          0.22,
+          0.3,
+          0.12
+        ],
+        "colorKey": "gearBlack"
+      }
+    ],
+    "whistle": [
+      {
+        "name": "Cord",
+        "anchor": "chest",
+        "size": [
+          0.24,
+          0.22,
+          0.04
+        ],
+        "at": [
+          0,
+          0.24,
+          -0.15
+        ],
+        "colorKey": "strap"
+      },
+      {
+        "name": "WhistleBody",
+        "anchor": "chest",
+        "size": [
+          0.06,
+          0.04,
+          0.09
+        ],
+        "at": [
+          0,
+          0.12,
+          -0.21
+        ],
+        "colorKey": "brass",
+        "material": "Metal",
+        "reflectance": 0.25
+      }
+    ],
+    "clipboard": [
+      {
+        "name": "Board",
+        "anchor": "chest",
+        "size": [
+          0.26,
+          0.34,
+          0.03
+        ],
+        "at": [
+          0.3,
+          -0.06,
+          -0.08
+        ],
+        "colorKey": "apronDark",
+        "rotationDeg": [
+          0,
+          0,
+          14
+        ]
+      },
+      {
+        "name": "Paper",
+        "anchor": "chest",
+        "size": [
+          0.22,
+          0.28,
+          0.02
+        ],
+        "at": [
+          0.3,
+          -0.08,
+          -0.1
+        ],
+        "colorKey": "white",
+        "rotationDeg": [
+          0,
+          0,
+          14
+        ]
+      },
+      {
+        "name": "Clip",
+        "anchor": "chest",
+        "size": [
+          0.1,
+          0.04,
+          0.03
+        ],
+        "at": [
+          0.31,
+          0.09,
+          -0.1
+        ],
+        "colorKey": "steel",
+        "material": "Metal",
+        "reflectance": 0.25
+      }
+    ],
+    "stopwatch": [
+      {
+        "name": "WatchCord",
+        "anchor": "chest",
+        "size": [
+          0.2,
+          0.18,
+          0.03
+        ],
+        "at": [
+          0,
+          0.25,
+          -0.14
+        ],
+        "colorKey": "strap"
+      },
+      {
+        "name": "WatchBody",
+        "anchor": "chest",
+        "size": [
+          0.07,
+          0.07,
+          0.03
+        ],
+        "at": [
+          0,
+          0.14,
+          -0.21
+        ],
+        "colorKey": "steel",
+        "material": "Metal",
+        "reflectance": 0.3
+      }
+    ],
+    "droneController": [
+      {
+        "name": "CtrlBody",
+        "anchor": "hips",
+        "size": [
+          0.22,
+          0.11,
+          0.05
+        ],
+        "at": [
+          -0.24,
+          0.02,
+          -0.1
+        ],
+        "colorKey": "gearBlack",
+        "rotationDeg": [
+          0,
+          0,
+          18
+        ]
+      },
+      {
+        "name": "CtrlStickL",
+        "anchor": "hips",
+        "size": [
+          0.03,
+          0.05,
+          0.03
+        ],
+        "at": [
+          -0.29,
+          0.08,
+          -0.11
+        ],
+        "colorKey": "hiVis",
+        "rotationDeg": [
+          0,
+          0,
+          18
+        ]
+      },
+      {
+        "name": "CtrlStickR",
+        "anchor": "hips",
+        "size": [
+          0.03,
+          0.05,
+          0.03
+        ],
+        "at": [
+          -0.19,
+          0.06,
+          -0.11
+        ],
+        "colorKey": "hiVis",
+        "rotationDeg": [
+          0,
+          0,
+          18
+        ]
+      }
+    ],
+    "toolRoll": [
+      {
+        "name": "Roll",
+        "anchor": "legs",
+        "size": [
+          0.14,
+          0.3,
+          0.1
+        ],
+        "at": [
+          0.2,
+          0.1,
+          -0.04
+        ],
+        "colorKey": "gearTan"
+      },
+      {
+        "name": "RollStrapA",
+        "anchor": "legs",
+        "size": [
+          0.15,
+          0.03,
+          0.11
+        ],
+        "at": [
+          0.2,
+          0.18,
+          -0.04
+        ],
+        "colorKey": "strap"
+      },
+      {
+        "name": "RollStrapB",
+        "anchor": "legs",
+        "size": [
+          0.15,
+          0.03,
+          0.11
+        ],
+        "at": [
+          0.2,
+          0.02,
+          -0.04
+        ],
+        "colorKey": "strap"
+      },
+      {
+        "name": "SpannerHead",
+        "anchor": "legs",
+        "size": [
+          0.04,
+          0.07,
+          0.02
+        ],
+        "at": [
+          0.2,
+          0.27,
+          -0.04
+        ],
+        "colorKey": "steel",
+        "material": "Metal",
+        "reflectance": 0.3
+      }
+    ],
+    "kneePads": [
+      {
+        "name": "KneeL",
+        "anchor": "legs",
+        "size": [
+          0.17,
+          0.16,
+          0.12
+        ],
+        "at": [
+          -0.13,
+          -0.16,
+          -0.14
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Ball"
+      },
+      {
+        "name": "KneeR",
+        "anchor": "legs",
+        "size": [
+          0.17,
+          0.16,
+          0.12
+        ],
+        "at": [
+          0.13,
+          -0.16,
+          -0.14
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Ball"
+      }
+    ],
+    "kneeBrace": [
+      {
+        "name": "BraceStrapTop",
+        "anchor": "legs",
+        "size": [
+          0.19,
+          0.05,
+          0.19
+        ],
+        "at": [
+          0.13,
+          -0.06,
+          0
+        ],
+        "colorKey": "gearGrey"
+      },
+      {
+        "name": "BracePad",
+        "anchor": "legs",
+        "size": [
+          0.18,
+          0.18,
+          0.13
+        ],
+        "at": [
+          0.13,
+          -0.16,
+          -0.13
+        ],
+        "colorKey": "gearGrey",
+        "shape": "Ball"
+      },
+      {
+        "name": "BraceStrapLow",
+        "anchor": "legs",
+        "size": [
+          0.19,
+          0.05,
+          0.19
+        ],
+        "at": [
+          0.13,
+          -0.26,
+          0
+        ],
+        "colorKey": "gearGrey"
+      }
+    ],
+    "elbowPads": [
+      {
+        "name": "ElbowL",
+        "anchor": "chest",
+        "size": [
+          0.14,
+          0.14,
+          0.13
+        ],
+        "at": [
+          -0.31,
+          -0.14,
+          0
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Ball"
+      },
+      {
+        "name": "ElbowR",
+        "anchor": "chest",
+        "size": [
+          0.14,
+          0.14,
+          0.13
+        ],
+        "at": [
+          0.31,
+          -0.14,
+          0
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Ball"
+      }
+    ],
+    "gloves": [
+      {
+        "name": "GloveL",
+        "anchor": "chest",
+        "size": [
+          0.13,
+          0.13,
+          0.15
+        ],
+        "at": [
+          -0.33,
+          -0.26,
+          -0.04
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Ball"
+      },
+      {
+        "name": "GloveR",
+        "anchor": "chest",
+        "size": [
+          0.13,
+          0.13,
+          0.15
+        ],
+        "at": [
+          0.33,
+          -0.26,
+          -0.04
+        ],
+        "colorKey": "gearBlack",
+        "shape": "Ball"
+      }
+    ],
+    "boots": [
+      {
+        "name": "BootL",
+        "anchor": "feet",
+        "size": [
+          0.16,
+          0.16,
+          0.3
+        ],
+        "at": [
+          -0.12,
+          0.06,
+          -0.03
+        ],
+        "colorKey": "boot"
+      },
+      {
+        "name": "BootR",
+        "anchor": "feet",
+        "size": [
+          0.16,
+          0.16,
+          0.3
+        ],
+        "at": [
+          0.12,
+          0.06,
+          -0.03
+        ],
+        "colorKey": "boot"
+      },
+      {
+        "name": "SoleL",
+        "anchor": "feet",
+        "size": [
+          0.17,
+          0.04,
+          0.31
+        ],
+        "at": [
+          -0.12,
+          -0.02,
+          -0.03
+        ],
+        "colorKey": "rubber"
+      },
+      {
+        "name": "SoleR",
+        "anchor": "feet",
+        "size": [
+          0.17,
+          0.04,
+          0.31
+        ],
+        "at": [
+          0.12,
+          -0.02,
+          -0.03
+        ],
+        "colorKey": "rubber"
+      },
+      {
+        "name": "LaceL",
+        "anchor": "feet",
+        "size": [
+          0.1,
+          0.03,
+          0.12
+        ],
+        "at": [
+          -0.12,
+          0.13,
+          -0.08
+        ],
+        "colorKey": "gearTan"
+      },
+      {
+        "name": "LaceR",
+        "anchor": "feet",
+        "size": [
+          0.1,
+          0.03,
+          0.12
+        ],
+        "at": [
+          0.12,
+          0.13,
+          -0.08
+        ],
+        "colorKey": "gearTan"
+      }
+    ],
+    "bootsUntied": [
+      {
+        "name": "BootL",
+        "anchor": "feet",
+        "size": [
+          0.16,
+          0.16,
+          0.3
+        ],
+        "at": [
+          -0.12,
+          0.06,
+          -0.03
+        ],
+        "colorKey": "boot"
+      },
+      {
+        "name": "BootR",
+        "anchor": "feet",
+        "size": [
+          0.16,
+          0.16,
+          0.3
+        ],
+        "at": [
+          0.12,
+          0.06,
+          -0.03
+        ],
+        "colorKey": "boot"
+      },
+      {
+        "name": "SoleL",
+        "anchor": "feet",
+        "size": [
+          0.17,
+          0.04,
+          0.31
+        ],
+        "at": [
+          -0.12,
+          -0.02,
+          -0.03
+        ],
+        "colorKey": "rubber"
+      },
+      {
+        "name": "SoleR",
+        "anchor": "feet",
+        "size": [
+          0.17,
+          0.04,
+          0.31
+        ],
+        "at": [
+          0.12,
+          -0.02,
+          -0.03
+        ],
+        "colorKey": "rubber"
+      },
+      {
+        "name": "LaceL",
+        "anchor": "feet",
+        "size": [
+          0.1,
+          0.03,
+          0.12
+        ],
+        "at": [
+          -0.12,
+          0.13,
+          -0.08
+        ],
+        "colorKey": "gearTan"
+      },
+      {
+        "name": "LooseLace",
+        "anchor": "feet",
+        "size": [
+          0.03,
+          0.02,
+          0.18
+        ],
+        "at": [
+          0.16,
+          0.02,
+          -0.14
+        ],
+        "colorKey": "gearTan"
+      }
+    ],
+    "sneakers": [
+      {
+        "name": "ShoeL",
+        "anchor": "feet",
+        "size": [
+          0.15,
+          0.11,
+          0.28
+        ],
+        "at": [
+          -0.12,
+          0.05,
+          -0.03
+        ],
+        "colorKey": "hiVis"
+      },
+      {
+        "name": "ShoeR",
+        "anchor": "feet",
+        "size": [
+          0.15,
+          0.11,
+          0.28
+        ],
+        "at": [
+          0.12,
+          0.05,
+          -0.03
+        ],
+        "colorKey": "hiVis"
+      },
+      {
+        "name": "SoleL",
+        "anchor": "feet",
+        "size": [
+          0.16,
+          0.04,
+          0.29
+        ],
+        "at": [
+          -0.12,
+          -0.01,
+          -0.03
+        ],
+        "colorKey": "flannelCream"
+      },
+      {
+        "name": "SoleR",
+        "anchor": "feet",
+        "size": [
+          0.16,
+          0.04,
+          0.29
+        ],
+        "at": [
+          0.12,
+          -0.01,
+          -0.03
+        ],
+        "colorKey": "flannelCream"
+      }
+    ],
+    "camoTorsoWoodland": [
+      {
+        "name": "CamoT0",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.106,
+          -0.154,
+          0.066
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoT1",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.257,
+          0.016,
+          -0.059
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoT2",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.265,
+          0.003,
+          -0.204
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoT3",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.04,
+          -0.189,
+          -0.18
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoT4",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.045,
+          0.144,
+          -0.166
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoT5",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.166,
+          0.056,
+          0.197
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoT6",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          0.046,
+          -0.045,
+          0.21
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      }
+    ],
+    "camoLegsWoodland": [
+      {
+        "name": "CamoL0",
+        "anchor": "legs",
+        "size": [
+          0.15,
+          0.13,
+          0.15
+        ],
+        "at": [
+          -0.023,
+          0.041,
+          0.153
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoL1",
+        "anchor": "legs",
+        "size": [
+          0.15,
+          0.13,
+          0.15
+        ],
+        "at": [
+          -0.016,
+          0.005,
+          0.031
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoL2",
+        "anchor": "legs",
+        "size": [
+          0.15,
+          0.13,
+          0.15
+        ],
+        "at": [
+          -0.151,
+          0.008,
+          0.047
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoL3",
+        "anchor": "legs",
+        "size": [
+          0.15,
+          0.13,
+          0.15
+        ],
+        "at": [
+          0.141,
+          -0.276,
+          -0.071
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoL4",
+        "anchor": "legs",
+        "size": [
+          0.15,
+          0.13,
+          0.15
+        ],
+        "at": [
+          -0.196,
+          0.211,
+          0.07
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoL5",
+        "anchor": "legs",
+        "size": [
+          0.15,
+          0.13,
+          0.15
+        ],
+        "at": [
+          -0.22,
+          0.328,
+          0.167
+        ],
+        "colorKey": "camoDark",
+        "shape": "Ball"
+      }
+    ],
+    "camoTorsoDesert": [
+      {
+        "name": "CamoDT0",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.106,
+          -0.154,
+          0.066
+        ],
+        "colorKey": "camoDesertMid",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoDT1",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.257,
+          0.016,
+          -0.059
+        ],
+        "colorKey": "camoDesertMid",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoDT2",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.265,
+          0.003,
+          -0.204
+        ],
+        "colorKey": "camoDesertMid",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoDT3",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.04,
+          -0.189,
+          -0.18
+        ],
+        "colorKey": "camoDesertMid",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoDT4",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.045,
+          0.144,
+          -0.166
+        ],
+        "colorKey": "camoDesertMid",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoDT5",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          -0.166,
+          0.056,
+          0.197
+        ],
+        "colorKey": "camoDesertMid",
+        "shape": "Ball"
+      },
+      {
+        "name": "CamoDT6",
+        "anchor": "chest",
+        "size": [
+          0.16,
+          0.13,
+          0.16
+        ],
+        "at": [
+          0.046,
+          -0.045,
+          0.21
+        ],
+        "colorKey": "camoDesertMid",
+        "shape": "Ball"
+      }
+    ]
+  },
+  "_outfits": "Who wears what. `wears` is a list of piece names in draw order; `tint` recolours palette keys for this outfit only; `build` nudges the wearer's proportions so six people are six silhouettes rather than one silhouette in six colours.",
+  "outfits": {
+    "marge": {
+      "_note": "Owns the place, forty years of it, and wears exactly none of the gear the shop sells. Flannel, apron, readers pushed up on her head, clipboard she never puts down. The joke is that she is the only person here dressed for a job rather than for a photograph.",
+      "wears": [
+        "bun",
+        "glassesOnHead",
+        "flannel",
+        "apron",
+        "clipboard",
+        "boots"
+      ],
+      "tint": {
+        "flannelRed": [
+          142,
+          78,
+          66
+        ],
+        "apron": [
+          104,
+          92,
+          78
+        ]
+      },
+      "build": {
+        "shoulders": 1.0,
+        "height": 0.99
+      }
+    },
+    "tildy": {
+      "_note": "Nineteen and over-equipped. Goggles pushed up on her forehead all day, headphones round her neck, a bandolier of pods for a job that needs none, and the drone controller already clipped on. Mismatched bright kit, because she bought it one piece at a time and enjoyed every one.",
+      "wears": [
+        "ponytail",
+        "gogglesOnForehead",
+        "headphones",
+        "bandolier",
+        "droneController",
+        "gloves",
+        "sneakers"
+      ],
+      "tint": {
+        "podCoral": [
+          226,
+          120,
+          98
+        ],
+        "podLime": [
+          172,
+          212,
+          88
+        ],
+        "hiVis": [
+          238,
+          206,
+          64
+        ]
+      },
+      "build": {
+        "shoulders": 0.94,
+        "height": 0.95
+      }
+    },
+    "wheels": {
+      "_note": "Coveralls, tool roll on the thigh, and a headlamp that is on. It is the middle of the afternoon and the headlamp is on. One boot is untied and has been all week.",
+      "wears": [
+        "hairShort",
+        "beard",
+        "headlamp",
+        "coveralls",
+        "toolRoll",
+        "bootsUntied"
+      ],
+      "tint": {
+        "coverall": [
+          68,
+          82,
+          96
+        ]
+      },
+      "build": {
+        "shoulders": 1.06,
+        "height": 1.01
+      }
+    },
+    "coachRuiz": {
+      "_note": "Regional-level in the nineties and still wearing the jersey, which no longer quite fits and belongs to a team that no longer exists. Whistle, stopwatch, backwards cap, and one knee brace that has outlasted the knee.",
+      "wears": [
+        "hairGrey",
+        "capBackward",
+        "teamJersey",
+        "whistle",
+        "stopwatch",
+        "kneeBrace",
+        "boots"
+      ],
+      "tint": {
+        "teamRed": [
+          132,
+          58,
+          54
+        ],
+        "teamCream": [
+          212,
+          204,
+          182
+        ],
+        "gearOlive": [
+          78,
+          88,
+          62
+        ]
+      },
+      "build": {
+        "shoulders": 1.08,
+        "height": 1.0
+      }
+    },
+    "denny": {
+      "_note": "Rec league. Dressed for a night raid. Bump helmet with the night vision flipped DOWN, in daylight, over a paintball mask he is not wearing. Chest rig full of pods he will not use, knee pads, elbow pads, gloves, a shemagh, and a shoulder radio connected to nothing. Delighted about all of it. Every single piece is somebody else's good idea.",
+      "wears": [
+        "bumpHelmet",
+        "nvgMount",
+        "nvgDown",
+        "shemagh",
+        "camoTorsoWoodland",
+        "camoLegsWoodland",
+        "plateCarrier",
+        "chestPods",
+        "radio",
+        "patches",
+        "elbowPads",
+        "kneePads",
+        "gloves",
+        "boots"
+      ],
+      "tint": {
+        "gearOlive": [
+          92,
+          102,
+          72
+        ]
+      },
+      "build": {
+        "shoulders": 1.02,
+        "height": 0.98
+      }
+    },
+    "theMarshal": {
+      "_note": "A white armband and nothing else. No helmet, no camo, no pods, no gear of any kind, on a field where everyone including the referee is wearing three hundred dollars of nylon. Never speaks. Does not need to.",
+      "wears": [
+        "hairShort",
+        "sunglasses",
+        "armband",
+        "boots"
+      ],
+      "tint": {
+        "white": [
+          242,
+          240,
+          234
+        ]
+      },
+      "build": {
+        "shoulders": 1.04,
+        "height": 1.03
+      }
+    },
+    "botRec": {
+      "_note": "Rental gear. A house mask, a jersey that does not match anyone else's, and no pads. Rec-tier bots should look like they turned up on the day, because they play like it.",
+      "wears": [
+        "paintballMask",
+        "podBelt",
+        "sneakers"
+      ]
+    },
+    "botAmateur": {
+      "_note": "Their own mask and their own pods, and they have started buying pads. Halfway to a team.",
+      "wears": [
+        "paintballMask",
+        "podBelt",
+        "kneePads",
+        "boots"
+      ]
+    },
+    "botSemipro": {
+      "_note": "Matching kit, a chest rig, gloves. Reads as a squad rather than six people.",
+      "wears": [
+        "paintballMask",
+        "camoTorsoWoodland",
+        "plateCarrier",
+        "chestPods",
+        "kneePads",
+        "elbowPads",
+        "gloves",
+        "boots"
+      ]
+    },
+    "botPro": {
+      "_note": "Full team kit with the night vision mount on the helmet -- unused, and worn anyway, because at this tier they are the ones being tacticool at YOU. A pro squad should be readable as trouble from across the field before anyone fires.",
+      "wears": [
+        "bumpHelmet",
+        "nvgMount",
+        "nvgUp",
+        "paintballMask",
+        "camoTorsoWoodland",
+        "camoLegsWoodland",
+        "plateCarrier",
+        "chestPods",
+        "radio",
+        "patches",
+        "kneePads",
+        "elbowPads",
+        "gloves",
+        "boots"
+      ]
+    },
+    "botMarshal": {
+      "_note": "The boss. The Marshal's kit, on the field: padded everywhere, and the only thing that counts is the hopper. Same austerity as the person in the hub -- no camo, no patches, just black.",
+      "wears": [
+        "bumpHelmet",
+        "paintballMask",
+        "plateCarrier",
+        "kneePads",
+        "elbowPads",
+        "gloves",
+        "boots"
+      ],
+      "tint": {
+        "gearOlive": [
+          38,
+          40,
+          44
+        ],
+        "gearBlack": [
+          24,
+          26,
+          30
+        ]
+      }
+    }
+  }
+}
