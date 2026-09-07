@@ -1,8 +1,11 @@
 {
   "_comment": "Bots do not cheat. Every parameter here is something a human could match. There is no wallhack term, no perfect-aim term, and no damage term. Their entire advantage is that there are six of them and they talk to each other.",
-
-  "tierOrder": ["rec", "amateur", "semipro", "pro"],
-
+  "tierOrder": [
+    "rec",
+    "amateur",
+    "semipro",
+    "pro"
+  ],
   "tiers": {
     "rec": {
       "displayName": "Rec Ballers",
@@ -93,41 +96,89 @@
       "payoutMultiplier": 4.2
     }
   },
-
   "squad": {
     "size": 6,
     "roles": {
-      "anchor":   { "count": 2, "holdsAngle": true,  "advanceChance": 0.05, "preferredRangeMetres": [18, 45] },
-      "flanker":  { "count": 2, "holdsAngle": false, "advanceChance": 0.55, "preferredRangeMetres": [8, 26] },
-      "pressure": { "count": 2, "holdsAngle": false, "advanceChance": 0.35, "preferredRangeMetres": [12, 32] }
+      "anchor": {
+        "count": 2,
+        "holdsAngle": true,
+        "advanceChance": 0.05,
+        "preferredRangeMetres": [
+          18,
+          45
+        ]
+      },
+      "flanker": {
+        "count": 2,
+        "holdsAngle": false,
+        "advanceChance": 0.55,
+        "preferredRangeMetres": [
+          8,
+          26
+        ]
+      },
+      "pressure": {
+        "count": 2,
+        "holdsAngle": false,
+        "advanceChance": 0.35,
+        "preferredRangeMetres": [
+          12,
+          32
+        ]
+      }
     },
     "_crossfire": "A crossfire is declared when two living bots hold anchors whose bearings to the player differ by more than crossfireMinSeparationDeg. Holding one angle against a declared crossfire is what punishes camping.",
     "crossfireMinSeparationDeg": 55,
     "crossfireRewardWeight": 1.4,
     "focusFireWindowSeconds": 2.5,
     "contactShareRadiusMetres": 100,
-    "contactShareDelayMs": { "rec": 2200, "amateur": 1100, "semipro": 500, "pro": 220 },
-    "_contactShareDelay": "How long before one bot's sighting reaches the rest. This, not vision range, is what makes higher tiers feel omniscient -- and it is bounded by something a human squad could do over voice comms."
+    "contactShareDelayMs": {
+      "rec": 2200,
+      "amateur": 1100,
+      "semipro": 500,
+      "pro": 220
+    },
+    "_contactShareDelay": "How long before one bot's sighting reaches the rest. This, not vision range, is what makes higher tiers feel omniscient -- and it is bounded by something a human squad could do over voice comms.",
+    "_postureAttempt": "Per-map posture scaling was added here -- role range bands scaled by each map's engagementBand -- and reverted. It moved no map's median engagement distance measurably (speedball 28.99 -> 31.1 with the sign wrong) and it broke two difficulty-curve specs. Engagement distance is set by when line of sight first exists, not by how eagerly bots push. Do not re-add without a measurement showing otherwise; tools/engagement-report is the instrument."
   },
-
   "movement": {
     "walkSpeedMps": 3.4,
     "sprintSpeedMps": 6.0,
     "crouchSpeedMps": 1.9,
-    "peekDwellSeconds": { "min": 0.55, "max": 2.4 },
+    "peekDwellSeconds": {
+      "min": 0.55,
+      "max": 2.4
+    },
     "repositionCooldownSeconds": 4.0,
     "stopToShootDelayMs": 120
   },
-
   "morale": {
     "_comment": "Drives which chatter bank the squad draws from. Keyed on living bot count.",
     "thresholds": [
-      { "atLeast": 6, "state": "cocky" },
-      { "atLeast": 5, "state": "cocky" },
-      { "atLeast": 4, "state": "rattled" },
-      { "atLeast": 3, "state": "blaming" },
-      { "atLeast": 2, "state": "blaming" },
-      { "atLeast": 1, "state": "broken" }
+      {
+        "atLeast": 6,
+        "state": "cocky"
+      },
+      {
+        "atLeast": 5,
+        "state": "cocky"
+      },
+      {
+        "atLeast": 4,
+        "state": "rattled"
+      },
+      {
+        "atLeast": 3,
+        "state": "blaming"
+      },
+      {
+        "atLeast": 2,
+        "state": "blaming"
+      },
+      {
+        "atLeast": 1,
+        "state": "broken"
+      }
     ],
     "aimErrorPenaltyByState": {
       "cocky": 1.0,

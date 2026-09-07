@@ -195,36 +195,81 @@ local function buildSnake(model: Model, size: Vector3, colour: Color3)
 end
 
 --[[
-	TEMPLE -- the big centre bunker. A tall four-sided body with heavily rounded
-	vertical edges and a domed top, so it holds a silhouette from every angle.
+	BALL -- the big round one. A pressurised sphere with welded panel seams,
+	squashed very slightly where it sits on the ground.
+
+	This replaced a "temple" bunker that had a domed top on a four-sided body
+	with heavily rounded corners: at distance it read as a turret, which is not
+	what is on a paintball field. A speedball field is simple shapes -- tubes,
+	wedges, blocks and balls -- and the read should be immediate.
 ]]
-local function buildTemple(model: Model, size: Vector3, colour: Color3)
+local function buildBall(model: Model, size: Vector3, colour: Color3)
+	local diameter = math.min(size.X, size.Z)
+	local height = size.Y
+
+	local body = blob(model, "Body", CFrame.new(), Vector3.new(diameter, height * 0.98, diameter), colour)
+	body.Reflectance = VINYL_REFLECTANCE * 1.4
+
+	--[[
+		Panel seams. A beach ball's whole read is its panels, so it gets a ring
+		around the equator and two over the top at right angles -- the same
+		welded-seam trick the tubes use, wrapped around a sphere.
+	]]
+	seam(model, CFrame.new(), diameter * 0.99, colour, "y")
+	seam(model, CFrame.Angles(0, 0, math.pi / 2), diameter * 0.99, colour, "y")
+	seam(model, CFrame.Angles(math.pi / 2, 0, 0), diameter * 0.99, colour, "y")
+
+	-- Flattened contact patch: an inflated ball spreads a little under its own
+	-- weight, and a sphere sitting on a perfect tangent looks like it is hovering.
+	local base = tube(model, "Base", CFrame.new(0, -height * 0.44, 0), Units.metresToStuds(0.08), diameter * 0.55, shade(colour, 0.9), "y")
+	base.Reflectance = 0.02
+	anchorStrap(model, CFrame.new(0, -height / 2 + Units.metresToStuds(0.04), 0), diameter * 0.6, colour)
+end
+
+--[[
+	STANDUP -- an upright rectangle. The tall flat one you shoot around rather
+	than over, built as a pressurised pillow: bulged faces, rounded edges, and a
+	seam across the middle where the two panels are welded together.
+]]
+local function buildStandup(model: Model, size: Vector3, colour: Color3)
 	local width, height, depth = size.X, size.Y, size.Z
-	local edge = math.min(width, depth) * 0.3
+	local edge = math.min(width, depth) * 0.5
 
 	local core = newPart("Core", model)
 	core.Shape = Enum.PartType.Block
-	core.Size = Vector3.new(width * 0.86, height * 0.82, depth * 0.86)
+	core.Size = Vector3.new(width - edge, height - edge, depth * 0.86)
 	core.Color = colour
 	core.CFrame = CFrame.new()
 
-	local hx, hz = width / 2 - edge / 2, depth / 2 - edge / 2
-	local corners = {
-		Vector3.new(hx, 0, hz),
-		Vector3.new(-hx, 0, hz),
-		Vector3.new(hx, 0, -hz),
-		Vector3.new(-hx, 0, -hz),
-	}
-	for i, offset in ipairs(corners) do
-		tube(model, `Edge{i}`, CFrame.new(offset), height * 0.82, edge, colour, "y")
-		blob(model, `EdgeTop{i}`, CFrame.new(offset + Vector3.new(0, height * 0.41, 0)), Vector3.new(edge, edge, edge), colour)
+	-- Rounded vertical edges down both sides.
+	local hx = width / 2 - edge / 2
+	for i, x in ipairs({ -hx, hx }) do
+		tube(model, `Edge{i}`, CFrame.new(x, 0, 0), height - edge, math.min(edge, depth * 0.86), colour, "y")
+	end
+	-- Rounded top and bottom rails.
+	for i, y in ipairs({ -(height / 2 - edge / 2), height / 2 - edge / 2 }) do
+		tube(model, `Rail{i}`, CFrame.new(0, y, 0), width - edge, math.min(edge, depth * 0.86), colour, "x")
+	end
+	-- Corner blobs, so the outline is continuous rather than four tubes meeting.
+	for i, corner in ipairs({
+		Vector3.new(-hx, -(height / 2 - edge / 2), 0), Vector3.new(hx, -(height / 2 - edge / 2), 0),
+		Vector3.new(-hx, height / 2 - edge / 2, 0), Vector3.new(hx, height / 2 - edge / 2, 0),
+	}) do
+		blob(model, `Corner{i}`, CFrame.new(corner), Vector3.new(edge, edge, math.min(edge, depth * 0.86)), colour)
 	end
 
-	blob(model, "Dome", CFrame.new(0, height * 0.38, 0), Vector3.new(width * 0.9, height * 0.36, depth * 0.9), colour)
+	--[[
+		The bulge. A welded pillow is fattest in the middle of each face, and
+		without this the shape reads as a flat board with rounded edges rather
+		than as something with air in it.
+	]]
+	for i, z in ipairs({ -depth * 0.5, depth * 0.5 }) do
+		blob(model, `Bulge{i}`, CFrame.new(0, 0, z * 0.55),
+			Vector3.new(width * 0.82, height * 0.86, depth * 0.9), colour)
+	end
 
-	seam(model, CFrame.new(0, height * 0.12, 0), math.max(width, depth) * 0.92, colour, "y")
-	seam(model, CFrame.new(0, -height * 0.18, 0), math.max(width, depth) * 0.92, colour, "y")
-	anchorStrap(model, CFrame.new(0, -height / 2 + Units.metresToStuds(0.04), 0), width * 0.95, colour)
+	seam(model, CFrame.new(), width * 0.98, colour, "x")
+	anchorStrap(model, CFrame.new(0, -height / 2 + Units.metresToStuds(0.04), 0), width * 0.9, colour)
 end
 
 --[[
@@ -266,7 +311,8 @@ local BUILDERS: { [string]: (Model, Vector3, Color3) -> () } = {
 	can = buildCan,
 	dorito = buildDorito,
 	snake = buildSnake,
-	temple = buildTemple,
+	ball = buildBall,
+	standup = buildStandup,
 	brick = buildBrick,
 }
 
