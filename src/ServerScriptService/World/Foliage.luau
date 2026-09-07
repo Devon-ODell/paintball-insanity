@@ -26,9 +26,35 @@ export type ScatterContext = {
 	exclusions: { any },
 	trails: { any },
 	trailClearance: number,
+	--- Rejection-sampling budget per instance. Nil falls back to the default.
+	placementAttempts: number?,
 	--- Optional predicate the caller can add on top of the standard rules.
 	allow: ((Vector3) -> boolean)?,
 }
+
+export type LayerReport = { id: string, requested: number, placed: number }
+
+local DEFAULT_PLACEMENT_ATTEMPTS = 40
+
+--[[
+	Shape coefficients, hoisted out of the builders.
+
+	These are shared with `Foliage.footprintRadius` below. That sharing is the
+	whole point: the padding is only correct while it matches the geometry the
+	builder actually draws, and two copies of "the bottom canopy tier is 6.1
+	trunk diameters wide" would drift the first time someone retuned a tree.
+]]
+local CANOPY_TIERS = 3
+local CANOPY_BASE = 7.5
+local CANOPY_TAPER = 4.2
+local CROWN_WIDTH_FACTOR = 2.4
+local CROWN_HEIGHT_FRACTION = 0.94
+local SAPLING_BUSH_FACTOR = 0.7
+local FERN_FROND_SPREAD = 0.5
+local FERN_MAX_TILT_DEGREES = 28
+local ROCK_MAX_WIDTH_FACTOR = 2.4
+local CATTAIL_JITTER_METRES = 0.2
+local CATTAIL_MAX_TILT_DEGREES = 9
 
 local MATERIALS: { [string]: Enum.Material } = {
 	trunk = Enum.Material.Wood,
@@ -55,15 +81,60 @@ end
 -- Placement rules
 --------------------------------------------------------------------------------
 
-local function insideExclusion(point: Vector3, exclusion: any): boolean
-	if exclusion.shape == "circle" then
-		local centre = Vector3.new(exclusion.position[1], 0, exclusion.position[3])
-		return (Vector3.new(point.X, 0, point.Z) - centre).Magnitude <= exclusion.radiusMetres
-	end
+--[[
+	Does this instance overlap the exclusion?
+
+	`footprint` is the instance's own horizontal radius, and passing it is the
+	difference between "the trunk is outside the barn" and "the tree is outside
+	the barn". A canopy pine whose trunk centre lands a metre clear of the barn
+	rect still puts three metres of crown through the wall, which is what the
+	unpadded version of this test allowed.
+]]
+local function insideExclusion(point: Vector3, exclusion: any, footprint: number): boolean
 	local centre = Vector3.new(exclusion.position[1], 0, exclusion.position[3])
-	local half = Vector3.new(exclusion.size[1] / 2, 0, exclusion.size[2] / 2)
+	if exclusion.shape == "circle" then
+		return (Vector3.new(point.X, 0, point.Z) - centre).Magnitude <= exclusion.radiusMetres + footprint
+	end
+	local half = Vector3.new(exclusion.size[1] / 2 + footprint, 0, exclusion.size[2] / 2 + footprint)
 	local delta = point - centre
 	return math.abs(delta.X) <= half.X and math.abs(delta.Z) <= half.Z
+end
+
+--[[
+	How far this layer's widest instance reaches from its own centre, in metres.
+
+	Read off the layer's own dimensions and the shape coefficients above rather
+	than a tuned constant, and always from the TOP of each range: placement is
+	tested before the builder rolls its dice, so the estimate has to hold for the
+	largest thing the layer can produce.
+]]
+function Foliage.footprintRadius(layer: any): number
+	local kind = layer.kind
+	local tallest = layer.heightMetres and layer.heightMetres[2] or 0
+
+	if kind == "tree" then
+		local diameter = layer.trunkDiameterMetres[2]
+		-- Widest tier is the lowest one, at fraction = 1 / CANOPY_TIERS.
+		local widestTier = diameter * (CANOPY_BASE - (1 / CANOPY_TIERS) * CANOPY_TAPER)
+		local canopy = math.max(widestTier, diameter * CROWN_WIDTH_FACTOR) / 2
+		-- A leaning tree carries its crown sideways as well as up.
+		local lean = math.rad(layer.leanDegrees or 0)
+		return canopy + math.sin(lean) * tallest * CROWN_HEIGHT_FRACTION
+	elseif kind == "sapling" then
+		local lean = math.rad(layer.leanDegrees or 0)
+		return tallest * SAPLING_BUSH_FACTOR / 2 + math.sin(lean) * tallest * 0.78
+	elseif kind == "fern" then
+		-- Half the frond span, plus how far the tilt throws the tall axis over.
+		return tallest * FERN_FROND_SPREAD / 2 + math.sin(math.rad(FERN_MAX_TILT_DEGREES)) * tallest / 2
+	elseif kind == "rock" then
+		return tallest * ROCK_MAX_WIDTH_FACTOR / 2
+	elseif kind == "fallenLog" then
+		-- Logs lie down, so the layer's "height" range is their length.
+		return tallest / 2
+	elseif kind == "cattail" then
+		return CATTAIL_JITTER_METRES + math.sin(math.rad(CATTAIL_MAX_TILT_DEGREES)) * tallest / 2
+	end
+	return 0
 end
 
 --- Distance from a point to a line segment, flattened to the XZ plane.
@@ -88,16 +159,21 @@ end
 	extra predicate the caller supplied. Trails are cleared by distance to the
 	path segments rather than by a big exclusion box, so a winding trail stays
 	winding instead of mowing a rectangle through the woods.
+
+	`footprint` is the caller's horizontal reach and defaults to zero, so a bare
+	two-argument call still asks the old question -- "is this POINT clear?" --
+	while the scatter asks the one that matters: "does this THING fit?"
 ]]
-function Foliage.canPlace(point: Vector3, ctx: ScatterContext): boolean
+function Foliage.canPlace(point: Vector3, ctx: ScatterContext, footprint: number?): boolean
+	local reach = footprint or 0
 	for _, exclusion in ipairs(ctx.exclusions) do
-		if insideExclusion(point, exclusion) then
+		if insideExclusion(point, exclusion, reach) then
 			return false
 		end
 	end
 
 	for _, trail in ipairs(ctx.trails) do
-		local clearance = ctx.trailClearance + trail.widthMetres / 2
+		local clearance = ctx.trailClearance + trail.widthMetres / 2 + reach
 		local points = trail.points
 		for i = 1, #points - 1 do
 			local a = Vector3.new(points[i][1], 0, points[i][3])
@@ -141,10 +217,9 @@ local function buildTree(model: Model, rng: Rng.Generator, layer: any, palette: 
 	trunk.CanQuery = true
 	trunk.CFrame = CFrame.new(0, Units.metresToStuds(height / 2), 0) * CFrame.Angles(0, 0, math.pi / 2)
 
-	local tiers = 3
-	for i = 1, tiers do
-		local fraction = i / tiers
-		local tierWidth = diameter * (7.5 - fraction * 4.2)
+	for i = 1, CANOPY_TIERS do
+		local fraction = i / CANOPY_TIERS
+		local tierWidth = diameter * (CANOPY_BASE - fraction * CANOPY_TAPER)
 		local tierHeight = height * 0.3
 		local at = height * (0.42 + fraction * 0.2)
 		local cone = part(`Canopy{i}`, model)
@@ -158,10 +233,10 @@ local function buildTree(model: Model, rng: Rng.Generator, layer: any, palette: 
 
 	local crown = part("Crown", model)
 	crown.Shape = Enum.PartType.Ball
-	crown.Size = Units.vectorToStuds(Vector3.new(diameter * 2.4, height * 0.2, diameter * 2.4))
+	crown.Size = Units.vectorToStuds(Vector3.new(diameter * CROWN_WIDTH_FACTOR, height * 0.2, diameter * CROWN_WIDTH_FACTOR))
 	crown.Color = palette[canopyKey]
 	crown.Material = MATERIALS.canopy
-	crown.CFrame = CFrame.new(0, Units.metresToStuds(height * 0.94), 0)
+	crown.CFrame = CFrame.new(0, Units.metresToStuds(height * CROWN_HEIGHT_FRACTION), 0)
 end
 
 local function buildSapling(model: Model, rng: Rng.Generator, layer: any, palette: Palette)
@@ -177,7 +252,7 @@ local function buildSapling(model: Model, rng: Rng.Generator, layer: any, palett
 
 	local bush = part("Bush", model)
 	bush.Shape = Enum.PartType.Ball
-	bush.Size = Units.vectorToStuds(Vector3.new(height * 0.7, height * 0.6, height * 0.7))
+	bush.Size = Units.vectorToStuds(Vector3.new(height * SAPLING_BUSH_FACTOR, height * 0.6, height * SAPLING_BUSH_FACTOR))
 	bush.Color = palette[key]
 	bush.Material = MATERIALS.canopy
 	bush.CFrame = CFrame.new(0, Units.metresToStuds(height * 0.78), 0)
@@ -190,11 +265,11 @@ local function buildFern(model: Model, rng: Rng.Generator, layer: any, palette: 
 	local key = layer.colorKeys[rng:nextInt(1, #layer.colorKeys)]
 	for i = 1, 3 do
 		local frond = part(`Frond{i}`, model)
-		frond.Size = Units.vectorToStuds(Vector3.new(height * 0.18, height, height * 0.5))
+		frond.Size = Units.vectorToStuds(Vector3.new(height * 0.18, height, height * FERN_FROND_SPREAD))
 		frond.Color = palette[key]
 		frond.Material = MATERIALS.fern
 		frond.CFrame = CFrame.new(0, Units.metresToStuds(height * 0.45), 0)
-			* CFrame.Angles(0, (i / 3) * math.pi * 2 + rng:nextRange(-0.3, 0.3), math.rad(rng:nextRange(12, 28)))
+			* CFrame.Angles(0, (i / 3) * math.pi * 2 + rng:nextRange(-0.3, 0.3), math.rad(rng:nextRange(12, FERN_MAX_TILT_DEGREES)))
 	end
 end
 
@@ -203,7 +278,7 @@ local function buildRock(model: Model, rng: Rng.Generator, layer: any, palette: 
 	local key = layer.colorKeys[rng:nextInt(1, #layer.colorKeys)]
 	local rock = part("Rock", model)
 	rock.Shape = Enum.PartType.Ball
-	rock.Size = Units.vectorToStuds(Vector3.new(height * rng:nextRange(1.4, 2.4), height, height * rng:nextRange(1.3, 2.1)))
+	rock.Size = Units.vectorToStuds(Vector3.new(height * rng:nextRange(1.4, ROCK_MAX_WIDTH_FACTOR), height, height * rng:nextRange(1.3, 2.1)))
 	rock.Color = palette[key]
 	rock.Material = MATERIALS.rock
 	rock.CanCollide = true
@@ -237,10 +312,14 @@ local function buildCattail(model: Model, rng: Rng.Generator, layer: any, palett
 		blade.Color = palette[key]
 		blade.Material = MATERIALS.fern
 		blade.CFrame = CFrame.new(
-			Units.metresToStuds(rng:nextRange(-0.2, 0.2)),
+			Units.metresToStuds(rng:nextRange(-CATTAIL_JITTER_METRES, CATTAIL_JITTER_METRES)),
 			Units.metresToStuds(height / 2),
-			Units.metresToStuds(rng:nextRange(-0.2, 0.2))
-		) * CFrame.Angles(math.rad(rng:nextRange(-9, 9)), 0, math.rad(rng:nextRange(-9, 9)))
+			Units.metresToStuds(rng:nextRange(-CATTAIL_JITTER_METRES, CATTAIL_JITTER_METRES))
+		) * CFrame.Angles(
+			math.rad(rng:nextRange(-CATTAIL_MAX_TILT_DEGREES, CATTAIL_MAX_TILT_DEGREES)),
+			0,
+			math.rad(rng:nextRange(-CATTAIL_MAX_TILT_DEGREES, CATTAIL_MAX_TILT_DEGREES))
+		)
 	end
 	local head = part("Head", model)
 	head.Shape = Enum.PartType.Cylinder
@@ -290,10 +369,20 @@ function Foliage.scatterLayer(layer: any, ctx: ScatterContext, rng: Rng.Generato
 	folder.Name = layer.id
 	folder.Parent = parent
 
+	--[[
+		Padding raises the rejection rate, so the attempt cap stopped being a
+		safety valve and started being the thing that decides how dense the woods
+		are. It lives in the data now, and `Foliage.scatter` reports what each
+		layer actually managed so a shortfall shows up in the log instead of just
+		looking like a thin forest.
+	]]
+	local attempts = ctx.placementAttempts or DEFAULT_PLACEMENT_ATTEMPTS
+	local footprint = Foliage.footprintRadius(layer)
+
 	local placed = 0
 	for _ = 1, layer.count do
 		local point: Vector3? = nil
-		for _ = 1, 12 do
+		for _ = 1, attempts do
 			local angle = rng:nextNumber() * math.pi * 2
 			-- Square-root the radius so points spread evenly by area rather
 			-- than bunching toward the middle of the ring.
@@ -302,7 +391,7 @@ function Foliage.scatterLayer(layer: any, ctx: ScatterContext, rng: Rng.Generato
 			local outer = layer.outerRadiusMetres
 			local radius = math.sqrt(inner * inner + u * (outer * outer - inner * inner))
 			local candidate = centre + Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
-			if Foliage.canPlace(candidate, ctx) then
+			if Foliage.canPlace(candidate, ctx, footprint) then
 				point = candidate
 				break
 			end
@@ -339,21 +428,26 @@ function Foliage.scatterLayer(layer: any, ctx: ScatterContext, rng: Rng.Generato
 	return placed
 end
 
---- Scatters every layer in a scatter block. Returns the total placed.
-function Foliage.scatter(scatter: any, palette: Palette, trails: { any }, parent: Instance): number
+--- Scatters every layer in a scatter block. Returns the total placed and a
+--- per-layer report, so the caller can say which layer came up short.
+function Foliage.scatter(scatter: any, palette: Palette, trails: { any }, parent: Instance): (number, { LayerReport })
 	local rng = Rng.new(scatter.seed)
 	local ctx: ScatterContext = {
 		palette = palette,
 		exclusions = scatter.exclusions,
 		trails = trails,
 		trailClearance = scatter.trailClearanceMetres,
+		placementAttempts = scatter.placementAttempts,
 	}
 
 	local total = 0
+	local report: { LayerReport } = {}
 	for _, layer in ipairs(scatter.layers) do
-		total += Foliage.scatterLayer(layer, ctx, rng, parent)
+		local placed = Foliage.scatterLayer(layer, ctx, rng, parent)
+		total += placed
+		table.insert(report, { id = layer.id, requested = layer.count, placed = placed })
 	end
-	return total
+	return total, report
 end
 
 return Foliage

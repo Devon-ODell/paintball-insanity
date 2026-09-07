@@ -223,6 +223,119 @@ return function()
 		end)
 	end)
 
+	describe("foliage footprints", function()
+		local ctx = scatterContext()
+
+		it("gives every scatter layer a footprint, and the big ones the bigger one", function()
+			local radii = {}
+			for _, layer in ipairs(hub().scatter.layers) do
+				local r = Foliage.footprintRadius(layer)
+				expect(r > 0).to.equal(true)
+				radii[layer.id] = r
+			end
+			-- A canopy pine reaches further than a fern. If that ever inverts,
+			-- the coefficients and the builders have drifted apart.
+			expect(radii.canopy > radii.saplings).to.equal(true)
+			expect(radii.saplings > radii.ferns).to.equal(true)
+			expect(radii.canopy > radii.cattails).to.equal(true)
+		end)
+
+		it("measures a tree from its canopy, not its trunk", function()
+			--[[
+				The whole bug: the old test asked whether the TRUNK CENTRE was
+				clear. A pine with a 1.1m trunk carries a 6.7m bottom tier, so the
+				footprint has to be several times the trunk radius or the crown
+				goes through the wall it was placed next to.
+			]]
+			local layer
+			for _, candidate in ipairs(hub().scatter.layers) do
+				if candidate.id == "canopy" then layer = candidate end
+			end
+			local footprint = Foliage.footprintRadius(layer)
+			expect(footprint > layer.trunkDiameterMetres[2] * 2).to.equal(true)
+		end)
+
+		it("refuses a point the trunk alone would have been allowed", function()
+			--[[
+				Walk outward from the barn until the unpadded test says yes, then
+				assert the padded test still says no for a canopy tree. That gap
+				is exactly the crown that used to end up inside the building.
+			]]
+			local layer
+			for _, candidate in ipairs(hub().scatter.layers) do
+				if candidate.id == "canopy" then layer = candidate end
+			end
+			local footprint = Foliage.footprintRadius(layer)
+			local found = false
+			-- Due south of the barn, walking OUT from the apron edge at z = -63.
+			-- Inside the rect both tests refuse; the gap opens just beyond it.
+			for step = 0, 400 do
+				local point = Vector3.new(0, 0, -63 - step * 0.05)
+				if Foliage.canPlace(point, ctx) and not Foliage.canPlace(point, ctx, footprint) then
+					found = true
+					break
+				end
+			end
+			expect(found).to.equal(true)
+		end)
+
+		it("keeps every layer's own footprint off every building and gate", function()
+			--[[
+				The real assertion: for each exclusion and each layer, a candidate
+				sitting just outside the bare exclusion is refused once its own
+				reach is taken into account.
+			]]
+			for _, exclusion in ipairs(hub().scatter.exclusions) do
+				if exclusion.shape == "circle" then
+					local centre = Vector3.new(exclusion.position[1], 0, exclusion.position[3])
+					for _, layer in ipairs(hub().scatter.layers) do
+						local footprint = Foliage.footprintRadius(layer)
+						local justOutside = centre
+							+ Vector3.new(exclusion.radiusMetres + footprint * 0.5, 0, 0)
+						expect(Foliage.canPlace(justOutside, ctx, footprint)).to.equal(false)
+					end
+				end
+			end
+		end)
+
+		it("gives every gate its own clearing", function()
+			--[[
+				Gates had no exclusion at all. The trail that reaches one clears
+				about five metres, and the arch is six metres wide, so trees grew
+				through the posts and the plaque.
+			]]
+			for _, gate in ipairs(hub().gates) do
+				local at = vec(gate.position)
+				expect(Foliage.canPlace(at, ctx)).to.equal(false)
+			end
+		end)
+
+		it("still leaves the woods worth walking through", function()
+			--[[
+				Padding raises the rejection rate, and the failure mode is a bald
+				forest. Sample the canopy annulus and require a healthy share of
+				it to still accept a full-size tree.
+			]]
+			local layer
+			for _, candidate in ipairs(hub().scatter.layers) do
+				if candidate.id == "canopy" then layer = candidate end
+			end
+			local footprint = Foliage.footprintRadius(layer)
+			local rng = Rng.new(hub().scatter.seed)
+			local accepted, samples = 0, 600
+			for _ = 1, samples do
+				local angle = rng:nextNumber() * math.pi * 2
+				local inner, outer = layer.innerRadiusMetres, layer.outerRadiusMetres
+				local radius = math.sqrt(inner * inner + rng:nextNumber() * (outer * outer - inner * inner))
+				local point = Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+				if Foliage.canPlace(point, ctx, footprint) then
+					accepted += 1
+				end
+			end
+			expect(accepted > samples * 0.5).to.equal(true)
+		end)
+	end)
+
 	describe("the shop counters", function()
 		local Shop = require(Server.Economy.Shop)
 		local Profile = require(Server.Economy.Profile)

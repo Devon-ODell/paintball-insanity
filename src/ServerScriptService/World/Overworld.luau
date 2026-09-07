@@ -253,7 +253,19 @@ function Overworld.build(parent: Instance?): Hub
 	local foliageFolder = Instance.new("Folder")
 	foliageFolder.Name = "Foliage"
 	foliageFolder.Parent = root
-	local placed = Foliage.scatter(cfg.scatter, palette, cfg.trails, foliageFolder)
+	--[[
+		Layers are ceilings, not promises: every instance is rejection-sampled
+		against the exclusions, the trails and its own footprint, and gives up
+		after a fixed number of tries. A layer that comes up well short is a
+		tuning problem -- too many exclusions, too small an annulus -- and it is
+		invisible from inside the game, so say so here.
+	]]
+	local placed, scatterReport = Foliage.scatter(cfg.scatter, palette, cfg.trails, foliageFolder)
+	for _, layer in ipairs(scatterReport) do
+		if layer.placed < layer.requested * 0.85 then
+			log.warn(`foliage layer '{layer.id}' placed {layer.placed} of {layer.requested} -- crowded out`)
+		end
+	end
 
 	----------------------------------------------------------------------------
 	-- Buildings
