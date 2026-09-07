@@ -67,7 +67,13 @@ function ViewMarker.equip(id: string, camo: string?)
 	local marker = markerData.markers[id] or markerData.markers.mechanical
 	local tuning = markerData.viewModel
 	local models = Config.get("venue").markerModels
-	local spec = marker.model or models[id] or models[marker.archetype] or models.mechanical
+	--[[
+		Cosmetic variants (the yard colourways) carry their own `model` block,
+		which sets dimensions and colour but no archetype hardware. Keep the
+		archetype spec alongside so a teal mechanical still wears a bolt handle.
+	]]
+	local archetypeSpec = models[marker.archetype] or models.mechanical
+	local spec = marker.model or models[id] or archetypeSpec
 	markerColour = colour(if marker.cosmetic then marker.cosmetic.bodyColour else spec.color)
 	barrelColour = colour(if marker.cosmetic then marker.cosmetic.barrelColour else tuning.darkColor)
 	local dark = colour(tuning.darkColor)
@@ -89,15 +95,74 @@ function ViewMarker.equip(id: string, camo: string?)
 			tint = tint,
 		})
 	end
-	piece("Receiver", vector(spec.body), Vector3.zero, "body")
-	piece("Barrel", Vector3.new(spec.barrel, tuning.barrelDiameterMetres, tuning.barrelDiameterMetres),
-		Vector3.new(0, tuning.barrelHeightMetres, -spec.barrel / 2 - spec.body[3] / 2), "barrel", "Cylinder", CFrame.Angles(0, math.pi / 2, 0))
-	for _, part in ipairs(tuning.pieces) do
-		local at = vector(part.at)
-		if part.colour == "accent" then
-			at = Vector3.new(math.sign(at.X) * (spec.body[1] / 2 + part.size[1] / 2), at.Y, at.Z)
+	--- A piece's own rotation, declared in degrees in the data. This is what
+	--- lets a cylinder lie along Z (an air tank) or stand along Y (a hopper)
+	--- instead of every round thing having to be a sphere.
+	local function rotationOf(entry: any): CFrame?
+		local r = entry.rotationDeg
+		if not r then
+			return nil
 		end
-		piece(part.name, vector(part.size), at, part.colour, part.shape)
+		return CFrame.Angles(math.rad(r[1]), math.rad(r[2]), math.rad(r[3]))
+	end
+
+	piece("Receiver", vector(spec.body), Vector3.zero, "body")
+
+	--[[
+		The barrel, in three parts rather than one smooth tube.
+
+		A single cylinder reads as a length of pipe. What makes a muzzle look
+		like hardware is the step up to a ported shroud and a bore you can see
+		into -- and the muzzle is the part of this model the player stares at for
+		the whole match, so it is worth the four extra parts.
+	]]
+	local axis = CFrame.Angles(0, math.pi / 2, 0)
+	local dia = tuning.barrelDiameterMetres
+	local barrelY = tuning.barrelHeightMetres
+	local barrelBase = spec.body[3] / 2
+	local shroudLength = math.min(tuning.muzzleShroudMetres, spec.barrel * 0.4)
+	local rearLength = spec.barrel - shroudLength
+
+	piece("Barrel", Vector3.new(rearLength, dia, dia),
+		Vector3.new(0, barrelY, -barrelBase - rearLength / 2), "barrel", "Cylinder", axis)
+
+	local shroudDia = dia * tuning.shroudDiameterScale
+	local shroudZ = -barrelBase - rearLength - shroudLength / 2
+	piece("MuzzleShroud", Vector3.new(shroudLength, shroudDia, shroudDia),
+		Vector3.new(0, barrelY, shroudZ), "metal", "Cylinder", axis)
+
+	-- Porting: slots cut across the top of the shroud, which is where a real
+	-- ported barrel vents.
+	local port = vector(tuning.portSizeMetres)
+	for i = 1, tuning.portCount do
+		local along = (i - (tuning.portCount + 1) / 2) * (shroudLength / (tuning.portCount + 1))
+		piece(`Port{i}`, port, Vector3.new(0, barrelY + shroudDia * 0.34, shroudZ + along), "dark")
+	end
+
+	-- The bore. Inset at the muzzle face so the barrel reads as open.
+	piece("Bore", Vector3.new(tuning.boreDepthMetres, dia * 0.6, dia * 0.6),
+		Vector3.new(0, barrelY, -barrelBase - spec.barrel + tuning.boreDepthMetres / 2), "dark", "Cylinder", axis)
+
+	--[[
+		Shared hardware first, then whatever this archetype adds on top. `hide`
+		lets an archetype drop a shared piece it has no business wearing -- the
+		squared electronic body does not carry the stack tube's valve cap.
+	]]
+	local hidden: { [string]: boolean } = {}
+	for _, name in ipairs(spec.hide or archetypeSpec.hide or {}) do
+		hidden[name] = true
+	end
+	for _, part in ipairs(tuning.pieces) do
+		if not hidden[part.name] then
+			local at = vector(part.at)
+			if part.colour == "accent" then
+				at = Vector3.new(math.sign(at.X) * (spec.body[1] / 2 + part.size[1] / 2), at.Y, at.Z)
+			end
+			piece(part.name, vector(part.size), at, part.colour, part.shape, rotationOf(part))
+		end
+	end
+	for _, part in ipairs(spec.pieces or archetypeSpec.pieces or {}) do
+		piece(part.name, vector(part.size), vector(part.at), part.colour, part.shape, rotationOf(part))
 	end
 	for index, panel in ipairs(tuning.camoPanels) do
 		local at = vector(panel.at)
@@ -129,7 +194,15 @@ function ViewMarker.step(camera: Camera, visible: boolean)
 	local tuning = Config.get("markers").viewModel
 	local now = os.clock()
 	local kick = math.clamp(1 - (now - kickAt) / tuning.kickSeconds, 0, 1)
+	--[[
+		`offsetStuds` is in STUDS. Everything else in this module is metres run
+		through Units.vectorToStuds; this one is applied raw to the camera CFrame,
+		which is why it reads small next to the part sizes. Do not "fix" it by
+		converting -- retune it, and read the note in markers.json beside it.
+	]]
+	local tilt = vector(tuning.tiltDegrees)
 	local at = camera.CFrame * CFrame.new(vector(tuning.offsetStuds))
+		* CFrame.Angles(math.rad(tilt.Y), math.rad(tilt.Z), math.rad(tilt.X))
 		* CFrame.new(0, 0, kick * tuning.kickBackStuds)
 		* CFrame.Angles(math.rad(kick * tuning.kickDegrees), 0, 0)
 	for _, item in ipairs(parts) do item.part.CFrame = at * item.offset end

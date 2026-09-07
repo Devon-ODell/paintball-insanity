@@ -314,7 +314,64 @@
         0.17,
         0.36
       ],
-      "barrel": 0.55
+      "barrel": 0.55,
+      "_reads_as": "Workhorse blowback. Side bolt handle, fat valve tube, squared-off body.",
+      "pieces": [
+        {
+          "name": "BoltHandle",
+          "size": [
+            0.055,
+            0.03,
+            0.03
+          ],
+          "at": [
+            0.085,
+            0.045,
+            0.02
+          ],
+          "colour": "metal",
+          "shape": "Cylinder",
+          "rotationDeg": [
+            0,
+            90,
+            0
+          ]
+        },
+        {
+          "name": "BoltTrack",
+          "size": [
+            0.012,
+            0.05,
+            0.2
+          ],
+          "at": [
+            0.062,
+            0.045,
+            0.0
+          ],
+          "colour": "dark"
+        },
+        {
+          "name": "ValveTube",
+          "size": [
+            0.1,
+            0.075,
+            0.075
+          ],
+          "at": [
+            0,
+            -0.055,
+            0.16
+          ],
+          "colour": "body",
+          "shape": "Cylinder",
+          "rotationDeg": [
+            0,
+            90,
+            0
+          ]
+        }
+      ]
     },
     "electronic": {
       "color": [
@@ -327,7 +384,83 @@
         0.15,
         0.3
       ],
-      "barrel": 0.6
+      "barrel": 0.6,
+      "_reads_as": "Compact and squared. Board rail on the spine, eye-cover blister on the side, no round tube anywhere.",
+      "pieces": [
+        {
+          "name": "BoardRail",
+          "size": [
+            0.055,
+            0.022,
+            0.24
+          ],
+          "at": [
+            0,
+            0.088,
+            0.01
+          ],
+          "colour": "metal"
+        },
+        {
+          "name": "EyeCover",
+          "size": [
+            0.028,
+            0.055,
+            0.075
+          ],
+          "at": [
+            0.062,
+            -0.015,
+            -0.09
+          ],
+          "colour": "dark"
+        },
+        {
+          "name": "EyeCoverL",
+          "size": [
+            0.028,
+            0.055,
+            0.075
+          ],
+          "at": [
+            -0.062,
+            -0.015,
+            -0.09
+          ],
+          "colour": "dark"
+        },
+        {
+          "name": "FrameFoot",
+          "size": [
+            0.075,
+            0.02,
+            0.2
+          ],
+          "at": [
+            0,
+            -0.082,
+            0.02
+          ],
+          "colour": "dark"
+        },
+        {
+          "name": "Display",
+          "size": [
+            0.03,
+            0.022,
+            0.018
+          ],
+          "at": [
+            0.055,
+            0.055,
+            0.09
+          ],
+          "colour": "accent"
+        }
+      ],
+      "hide": [
+        "ValveCap"
+      ]
     },
     "pump": {
       "color": [
@@ -340,7 +473,99 @@
         0.12,
         0.42
       ],
-      "barrel": 0.75
-    }
+      "barrel": 0.75,
+      "_reads_as": "Long, thin, and unmistakably a pump: a sliding forend under the barrel on twin rods. The handle is the archetype.",
+      "pieces": [
+        {
+          "name": "PumpHandle",
+          "size": [
+            0.115,
+            0.062,
+            0.062
+          ],
+          "at": [
+            0,
+            -0.052,
+            -0.3
+          ],
+          "colour": "dark",
+          "shape": "Cylinder",
+          "rotationDeg": [
+            0,
+            90,
+            0
+          ]
+        },
+        {
+          "name": "PumpGrip",
+          "size": [
+            0.03,
+            0.012,
+            0.09
+          ],
+          "at": [
+            0,
+            -0.086,
+            -0.3
+          ],
+          "colour": "dark"
+        },
+        {
+          "name": "PumpRodL",
+          "size": [
+            0.3,
+            0.016,
+            0.016
+          ],
+          "at": [
+            -0.034,
+            -0.052,
+            -0.19
+          ],
+          "colour": "metal",
+          "shape": "Cylinder",
+          "rotationDeg": [
+            0,
+            90,
+            0
+          ]
+        },
+        {
+          "name": "PumpRodR",
+          "size": [
+            0.3,
+            0.016,
+            0.016
+          ],
+          "at": [
+            0.034,
+            -0.052,
+            -0.19
+          ],
+          "colour": "metal",
+          "shape": "Cylinder",
+          "rotationDeg": [
+            0,
+            90,
+            0
+          ]
+        },
+        {
+          "name": "PumpYoke",
+          "size": [
+            0.085,
+            0.03,
+            0.022
+          ],
+          "at": [
+            0,
+            -0.052,
+            -0.055
+          ],
+          "colour": "metal"
+        }
+      ]
+    },
+    "_comment": "Per-archetype silhouettes. `body` and `barrel` are the shared block; `pieces` are additions layered on top of viewModel.pieces, and `hide` drops a shared piece by name. The three must read apart in first person WITHOUT the HUD -- that is the whole job of this table. None of it touches GearStats: the marker's look is cosmetic and Shop.assertNoPayToWin keeps it that way."
   }
 }
