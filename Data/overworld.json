@@ -158,6 +158,81 @@
       186,
       148,
       84
+    ],
+    "pegboard": [
+      176,
+      142,
+      96
+    ],
+    "paintCase": [
+      198,
+      160,
+      110
+    ],
+    "podPlastic": [
+      232,
+      196,
+      62
+    ],
+    "podPlasticAlt": [
+      86,
+      178,
+      168
+    ],
+    "maskLens": [
+      46,
+      58,
+      70
+    ],
+    "maskShell": [
+      34,
+      42,
+      50
+    ],
+    "jerseyRed": [
+      178,
+      62,
+      58
+    ],
+    "jerseyBlue": [
+      58,
+      104,
+      168
+    ],
+    "jerseyOchre": [
+      206,
+      152,
+      60
+    ],
+    "steelTank": [
+      186,
+      194,
+      198
+    ],
+    "chalkboard": [
+      46,
+      54,
+      48
+    ],
+    "extinguisher": [
+      170,
+      48,
+      40
+    ],
+    "clockFace": [
+      232,
+      226,
+      206
+    ],
+    "gaugeFace": [
+      226,
+      232,
+      226
+    ],
+    "paper": [
+      234,
+      226,
+      202
     ]
   },
   "lighting": {
@@ -672,6 +747,12 @@
     "name": "PARSONS FIELD SUPPLY",
     "subtitle": "MARKERS \u00b7 PAINT & AIR \u00b7 PROTECTIVE \u00b7 EST. 1998",
     "doorWidthMetres": 9,
+    "_roof": "The ridge runs along X, so the door wall is an eave and the short walls are the gables. eaveOverhangMetres lengthens the sheets past the wall so water runs off rather than down the panels.",
+    "eaveOverhangMetres": 0.55,
+    "_sign": "There is no gable triangle above the door to hang a sign in, so the board stands proud of the eave on brackets. signStandoffMetres is the gap between the eave line and the bottom of the board.",
+    "signWidthFraction": 0.62,
+    "signHeightMetres": 2.4,
+    "signStandoffMetres": 0.35,
     "counterDepthMetres": 1.1,
     "bays": [
       {
@@ -692,6 +773,130 @@
         "categories": [
           "markers",
           "barrels"
+        ],
+        "_stock": "Rust wall: marker bodies on hooks, loose barrels, socks, and a chrono on the counter. A player should learn 'rust wall = markers' without reading the sign.",
+        "shelfProps": [
+          {
+            "kind": "markerRack",
+            "at": [
+              -2.6,
+              2.49,
+              -0.95
+            ],
+            "count": 4
+          },
+          {
+            "kind": "markerRack",
+            "at": [
+              2.6,
+              3.44,
+              -0.95
+            ],
+            "count": 4
+          },
+          {
+            "kind": "barrelBin",
+            "at": [
+              -3.6,
+              2.49,
+              -0.95
+            ]
+          },
+          {
+            "kind": "barrelBin",
+            "at": [
+              3.7,
+              4.39,
+              -0.95
+            ]
+          },
+          {
+            "kind": "barrelSocks",
+            "at": [
+              0.5,
+              4.39,
+              -0.95
+            ],
+            "count": 5
+          },
+          {
+            "kind": "barrelSocks",
+            "at": [
+              -0.9,
+              3.44,
+              -0.95
+            ],
+            "count": 5
+          },
+          {
+            "kind": "chronoReadout",
+            "at": [
+              3.1,
+              1.23,
+              0.06
+            ],
+            "readout": "284 FPS"
+          },
+          {
+            "kind": "register",
+            "at": [
+              -3.2,
+              1.23,
+              0.02
+            ]
+          },
+          {
+            "kind": "squeegeeJar",
+            "at": [
+              -2.3,
+              1.23,
+              0.08
+            ]
+          },
+          {
+            "kind": "coffeeCup",
+            "at": [
+              1.6,
+              1.23,
+              0.1
+            ],
+            "rotationY": 20
+          },
+          {
+            "kind": "priceList",
+            "at": [
+              -3.4,
+              3.9,
+              -1.15
+            ],
+            "width": 1.7,
+            "height": 1.2,
+            "title": "BARREL KITS",
+            "lines": [
+              "Bore + porting",
+              "Sound only",
+              "Never accuracy"
+            ]
+          },
+          {
+            "kind": "corkboard",
+            "at": [
+              3.4,
+              3.9,
+              -1.15
+            ],
+            "width": 1.5,
+            "height": 1.1,
+            "count": 5
+          },
+          {
+            "kind": "fireExtinguisher",
+            "at": [
+              4.4,
+              1.5,
+              -1.1
+            ]
+          }
         ]
       },
       {
@@ -715,6 +920,137 @@
           "pods",
           "paintColors",
           "consumables"
+        ],
+        "_stock": "Tarp wall: cases of paint stacked on the floor of the shelf, pods in a rack, tanks standing in a row, and a fill station with a gauge.",
+        "shelfProps": [
+          {
+            "kind": "paintCases",
+            "at": [
+              -3.2,
+              2.49,
+              -0.9
+            ],
+            "rows": 3
+          },
+          {
+            "kind": "paintCases",
+            "at": [
+              3.3,
+              2.49,
+              -0.9
+            ],
+            "rows": 2,
+            "rotationY": 8
+          },
+          {
+            "kind": "podRack",
+            "at": [
+              -1.2,
+              3.44,
+              -0.95
+            ],
+            "count": 8
+          },
+          {
+            "kind": "podRack",
+            "at": [
+              1.4,
+              4.39,
+              -0.95
+            ],
+            "count": 8
+          },
+          {
+            "kind": "tankRow",
+            "at": [
+              0.0,
+              2.49,
+              -0.95
+            ],
+            "count": 6
+          },
+          {
+            "kind": "tankRow",
+            "at": [
+              3.4,
+              3.44,
+              -0.95
+            ],
+            "count": 5
+          },
+          {
+            "kind": "fillStation",
+            "at": [
+              -4.0,
+              0.0,
+              -0.8
+            ]
+          },
+          {
+            "kind": "register",
+            "at": [
+              3.0,
+              1.23,
+              0.02
+            ]
+          },
+          {
+            "kind": "tapeRoll",
+            "at": [
+              2.1,
+              1.23,
+              0.06
+            ]
+          },
+          {
+            "kind": "squeegeeJar",
+            "at": [
+              -2.8,
+              1.23,
+              0.06
+            ]
+          },
+          {
+            "kind": "coffeeCup",
+            "at": [
+              -1.9,
+              1.23,
+              0.12
+            ],
+            "rotationY": -14
+          },
+          {
+            "kind": "priceList",
+            "at": [
+              3.5,
+              3.9,
+              -1.15
+            ],
+            "width": 1.7,
+            "height": 1.2,
+            "title": "PAINT & AIR",
+            "lines": [
+              "Fills while you wait",
+              "Pods by the case",
+              "Ask about the hopper"
+            ]
+          },
+          {
+            "kind": "wallClock",
+            "at": [
+              -4.3,
+              5.2,
+              -1.14
+            ]
+          },
+          {
+            "kind": "fireExtinguisher",
+            "at": [
+              -4.5,
+              1.5,
+              -1.1
+            ]
+          }
         ]
       },
       {
@@ -739,9 +1075,134 @@
           "shoulders",
           "masks",
           "markerSkins"
+        ],
+        "_stock": "Beam wall: masks on the shelf, jerseys hung on a rail, pads stacked. Nothing here stops paint and the price list says so.",
+        "shelfProps": [
+          {
+            "kind": "maskShelf",
+            "at": [
+              -2.8,
+              2.49,
+              -0.95
+            ],
+            "count": 4
+          },
+          {
+            "kind": "maskShelf",
+            "at": [
+              2.9,
+              3.44,
+              -0.95
+            ],
+            "count": 4
+          },
+          {
+            "kind": "jerseyRail",
+            "at": [
+              -0.4,
+              3.3899999999999997,
+              -0.95
+            ],
+            "count": 5,
+            "width": 2.4
+          },
+          {
+            "kind": "padStack",
+            "at": [
+              3.6,
+              2.49,
+              -0.9
+            ],
+            "count": 4
+          },
+          {
+            "kind": "padStack",
+            "at": [
+              3.6,
+              4.39,
+              -0.9
+            ],
+            "count": 3
+          },
+          {
+            "kind": "padStack",
+            "at": [
+              -4.0,
+              3.44,
+              -0.9
+            ],
+            "count": 4
+          },
+          {
+            "kind": "register",
+            "at": [
+              2.9,
+              1.23,
+              0.02
+            ]
+          },
+          {
+            "kind": "tapeRoll",
+            "at": [
+              -3.4,
+              1.23,
+              0.06
+            ]
+          },
+          {
+            "kind": "coffeeCup",
+            "at": [
+              1.4,
+              1.23,
+              0.08
+            ],
+            "rotationY": 32
+          },
+          {
+            "kind": "priceList",
+            "at": [
+              -3.5,
+              3.9,
+              -1.15
+            ],
+            "width": 1.7,
+            "height": 1.2,
+            "title": "PROTECTIVE",
+            "lines": [
+              "Quiet or quick",
+              "Pick one",
+              "None of it stops paint"
+            ]
+          },
+          {
+            "kind": "corkboard",
+            "at": [
+              0.2,
+              5.1,
+              -1.15
+            ],
+            "width": 1.4,
+            "height": 1.0,
+            "count": 4
+          },
+          {
+            "kind": "fireExtinguisher",
+            "at": [
+              4.4,
+              1.5,
+              -1.1
+            ]
+          }
         ]
       }
-    ]
+    ],
+    "_interiorLights": "Shop lights hung off the rafters down the length of the barn. Count is deliberate -- each one is a PointLight, and the roof is already the heaviest part of the model.",
+    "interiorLights": {
+      "count": 6,
+      "heightMetres": 6.4,
+      "rangeMetres": 16,
+      "brightness": 1.1
+    }
   },
   "_gates": "Trailheads to the three fields. Each is a signed arch at the end of its trail; walking into one and holding the interact key starts a match there.",
   "gates": [

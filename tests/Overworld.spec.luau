@@ -15,6 +15,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local GearStats = require(ReplicatedStorage.Shared.GearStats)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local Foliage = require(Server.World.Foliage)
+local PoleBarn = require(Server.World.PoleBarn)
 
 local function hub()
 	return Config.get("overworld")
@@ -223,6 +224,70 @@ return function()
 		end)
 	end)
 
+	describe("the barn roof", function()
+		--[[
+			Standing in for the screenshot nobody can take from here.
+
+			The roof was inverted: both slopes fell toward the centre, which is a
+			valley, and the ridge cap floated over the trough. `roofline` and
+			`roofHeightAt` are pure, so the shape of the building is checkable as
+			arithmetic instead of by eye.
+		]]
+		local barn = function() return hub().barn end
+
+		it("puts the ridge above the eaves", function()
+			local roof = PoleBarn.roofline(barn())
+			expect(roof.ridgeHeightMetres > roof.eaveHeightMetres).to.equal(true)
+			expect(roof.ridgeHeightMetres).to.be.near(barn().wallHeightMetres + barn().roofRiseMetres, 1e-9)
+			expect(roof.eaveHeightMetres).to.be.near(barn().wallHeightMetres, 1e-9)
+		end)
+
+		it("falls away from the ridge in both directions, so water runs off", function()
+			local cfg = barn()
+			local halfD = cfg.depthMetres / 2
+			local previous = PoleBarn.roofHeightAt(cfg, 0)
+			expect(previous).to.be.near(cfg.wallHeightMetres + cfg.roofRiseMetres, 1e-9)
+			for step = 1, 40 do
+				local z = halfD * (step / 40)
+				local height = PoleBarn.roofHeightAt(cfg, z)
+				expect(height < previous).to.equal(true)
+				-- Symmetric: a gable is the same shape on both sides.
+				expect(PoleBarn.roofHeightAt(cfg, -z)).to.be.near(height, 1e-9)
+				previous = height
+			end
+			expect(previous).to.be.near(cfg.wallHeightMetres, 1e-9)
+		end)
+
+		it("cuts sheets long enough to reach the eave, plus the overhang", function()
+			--[[
+				The sheet is the hypotenuse. Too short and it stops in mid-air
+				before the wall; too long and it runs past the ridge.
+			]]
+			local cfg = barn()
+			local roof = PoleBarn.roofline(cfg)
+			local halfD = cfg.depthMetres / 2
+			local bare = math.sqrt(halfD * halfD + cfg.roofRiseMetres * cfg.roofRiseMetres)
+			expect(roof.slopeLengthMetres).to.be.near(bare + (cfg.eaveOverhangMetres or 0), 1e-6)
+			expect(roof.slopeLengthMetres > halfD).to.equal(true)
+		end)
+
+		it("hangs the sign clear of the roof instead of floating it over the trough", function()
+			--[[
+				The door is on the long wall, so the front is an eave and there is
+				no gable triangle to sit a sign in. The board therefore stands
+				proud of the eave -- but its bottom edge has to be ABOVE the eave
+				line, or it clips through the metal.
+			]]
+			local cfg = barn()
+			local roof = PoleBarn.roofline(cfg)
+			local bottom = roof.sign.centreHeightMetres - roof.sign.heightMetres / 2
+			expect(bottom > roof.eaveHeightMetres).to.equal(true)
+			expect(roof.sign.halfWidthMetres * 2 < cfg.widthMetres).to.equal(true)
+			-- And it must not out-top the ridge, which would read as a billboard.
+			expect(roof.sign.centreHeightMetres + roof.sign.heightMetres / 2 < roof.ridgeHeightMetres + 1).to.equal(true)
+		end)
+	end)
+
 	describe("foliage footprints", function()
 		local ctx = scatterContext()
 
@@ -376,6 +441,89 @@ return function()
 			for _, category in ipairs({ "markers", "jerseys", "pads", "helmets", "shoulders", "pods", "paintColors", "consumables" }) do
 				expect(counted[category]).to.equal(1)
 			end
+		end)
+	end)
+
+	describe("the shop interior", function()
+		it("stocks every bay", function()
+			--[[
+				Shelves with nothing on them are why the bays read as storage
+				rather than as a shop. Each one has to carry stock, counter
+				dressing and something on the wall.
+			]]
+			for _, bay in ipairs(hub().barn.bays) do
+				expect(#(bay.shelfProps or {})).to.be.a("number")
+				expect(#(bay.shelfProps or {}) >= 8).to.equal(true)
+			end
+		end)
+
+		it("only asks for props the builder can make", function()
+			for _, bay in ipairs(hub().barn.bays) do
+				for _, prop in ipairs(bay.shelfProps or {}) do
+					expect(PoleBarn.handlesProp(prop.kind)).to.equal(true)
+				end
+			end
+		end)
+
+		it("gives every bay something on the counter and something on the wall", function()
+			--[[
+				A register and a price list are what sell "a person works here".
+				Asserted per bay rather than in total, because two of three
+				dressed and one bare is the failure that would slip through.
+			]]
+			local counterKinds = { register = true, squeegeeJar = true, coffeeCup = true, tapeRoll = true, chronoReadout = true }
+			local wallKinds = { priceList = true, corkboard = true, wallClock = true, fireExtinguisher = true }
+			for _, bay in ipairs(hub().barn.bays) do
+				local counter, wall = 0, 0
+				for _, prop in ipairs(bay.shelfProps or {}) do
+					if counterKinds[prop.kind] then counter += 1 end
+					if wallKinds[prop.kind] then wall += 1 end
+				end
+				expect(counter >= 2).to.equal(true)
+				expect(wall >= 2).to.equal(true)
+			end
+		end)
+
+		it("keeps every prop inside the barn", function()
+			--[[
+				Prop positions are bay-local metres offset from the counter, so
+				an X typo puts a jersey rail out in the woods and nothing in the
+				build complains.
+			]]
+			local barn = hub().barn
+			local halfW, halfD = barn.widthMetres / 2, barn.depthMetres / 2
+			local backZ = -halfD + 1.4
+			for _, bay in ipairs(barn.bays) do
+				local localX = bay.position[1] - barn.position[1]
+				for _, prop in ipairs(bay.shelfProps or {}) do
+					local x = localX + prop.at[1]
+					local z = backZ + prop.at[3]
+					expect(math.abs(x) < halfW).to.equal(true)
+					expect(math.abs(z) < halfD).to.equal(true)
+					-- Off the floor, and under the eaves.
+					expect(prop.at[2] >= 0).to.equal(true)
+					expect(prop.at[2] < barn.wallHeightMetres).to.equal(true)
+				end
+			end
+		end)
+
+		it("paints every prop from a colour the palette actually has", function()
+			for _, bay in ipairs(hub().barn.bays) do
+				expect(hub().palette[bay.colorKey]).never.to.equal(nil)
+				for _, prop in ipairs(bay.shelfProps or {}) do
+					if prop.colorKey then
+						expect(hub().palette[prop.colorKey]).never.to.equal(nil)
+					end
+				end
+			end
+		end)
+
+		it("hangs the shop lights under the ridge, not through it", function()
+			local barn = hub().barn
+			local roof = PoleBarn.roofline(barn)
+			expect(barn.interiorLights).never.to.equal(nil)
+			expect(barn.interiorLights.heightMetres < roof.ridgeHeightMetres).to.equal(true)
+			expect(barn.interiorLights.heightMetres > 3).to.equal(true)
 		end)
 	end)
 

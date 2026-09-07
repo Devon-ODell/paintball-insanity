@@ -4,6 +4,94 @@ Updated at the end of every session, per `BUILD_PLAN.md`.
 
 ---
 
+## Session — world pass 01 (barn roof, foliage, viewmodel, shop interior)
+
+Worked `HANDOFF_worldpass_01.md`. All four tasks done. No Studio in the loop, so
+every fix is arithmetic-checked and spec-covered rather than eyeballed —
+**screenshots are still owed on all four.**
+
+**Task 1 — the barn roof was inverted, and also crashed.**
+The brief's hypothesis was right and the derivation is in `docs/PLATFORM_NOTES.md`:
+`side * -pitch` dropped both slopes toward the centre, making a valley, with
+`RidgeCap` and `RidgeBeam` left floating at the height the ridge should have been.
+Dropped the negation in the sheets and the rafters.
+
+Found a second, worse bug in the same block: the roof called a local `rotated`
+helper whose fifth parameter is `rollRadians: number`, passing `true`. That
+reaches `CFrame.Angles(true, 0, 0)`, which throws — **the barn was failing to
+build at all.** The helper had exactly one caller and the caller overwrote the
+CFrame on the next line anyway, so it is gone.
+
+Also, with the roof the right way up the two short walls became open holes into
+the attic, so they now get stepped gable infill. The ridge runs along X, which
+means the door wall is an **eave**, not a gable — there is no triangle above the
+door to hang a sign in, and the fascia was floating 1.1m above the eave line on
+nothing. It now stands proud of the eave on two braced brackets. `eaveOverhangMetres`
+lengthens the sheets past the wall so water runs off rather than down the panels.
+
+New pure `PoleBarn.roofline(cfg)` and `PoleBarn.roofHeightAt(cfg, z)` derive every
+roof number without a running Roblox, and `OverworldSpec` asserts the ridge is the
+high point from there. That is deliberately the substitute for the screenshot.
+
+**Task 2 — foliage footprints.**
+`insideExclusion` tested the trunk's centre point with no allowance for the
+instance's own size, so a pine one metre outside the barn rect put three metres of
+crown through the wall. Added `Foliage.footprintRadius(layer)`, which reads the
+layer's own dimensions, and padded the circle test, the rect test and the trail
+clearance by it.
+
+The shape coefficients are now hoisted and **shared with the builders** rather
+than duplicated — the padding is only correct while it matches the geometry that
+actually gets drawn, and two copies of "the bottom canopy tier is 6.1 trunk
+diameters wide" would drift the first time someone retuned a tree.
+
+The six gates had no exclusion at all; they have one now. The rejection sampler's
+attempt cap was a hardcoded 12, which with padding would have under-placed
+silently — it is `scatter.placementAttempts` (40) now, layer counts are raised to
+compensate, and `Foliage.scatter` returns a per-layer report so a crowded-out
+layer gets logged instead of just looking like a thin forest.
+
+**Task 3 — marker viewmodel.**
+Both bugs in the brief confirmed. `Hopper` and `AirTank` were both `shape: "Ball"`,
+so a hopper and an air tank rendered as two spheres. They are cylinders with
+explicit rotations now, which required teaching the data-driven piece list about
+`rotationDeg` at all.
+
+`offsetStuds` is genuinely in studs while every other length in the file is metres
+through `Units.vectorToStuds`; retuned it against the real model extents and left
+a note at both ends stating the unit, because the mixed convention will bite again.
+Added `tiltDegrees` — the cant walks the (genuinely large) hopper off the crosshair
+and yaws the muzzle back toward it.
+
+Barrel is a rear section, a ported shroud and a visible bore instead of one smooth
+tube. The three archetypes now carry their own hardware via `markerModels[].pieces`
+and `.hide`, layered over the shared list: a bolt handle and valve tube on the
+mechanical, a board rail and eye covers on the squared electronic, and a sliding
+forend on twin rods for the pump — which is the whole archetype.
+
+**Task 4 — shop interior.**
+Empty shelves were why the bays read as storage. Stock is `barn.bays[].shelfProps`
+in the data, built by a switch mirroring `buildProp` in `Overworld.luau`. Nineteen
+prop kinds; `PoleBarn.handlesProp` makes the set authoritative so a typo fails a
+spec instead of silently building nothing. Pegboard behind each counter, shelves
+moved forward to clear it, counter dressing, chalk price lists, corkboards, a
+clock, extinguishers, and shop lights hung off the (now correct) rafters.
+
+Folded the two existing inline `SurfaceGui` blocks into one `signFace` helper
+rather than adding a third. Moved the bay signs up to 5.6m — they were intersecting
+the top shelf.
+
+### Owed
+
+- Screenshots for all four tasks. Nothing here has been rendered.
+- The `Enum.PartType` `Size` semantics this leans on are **not documented** on the
+  pages that should carry them; the Cylinder-axis convention is corroborated only
+  by two working call sites already in the repo. See `docs/PLATFORM_NOTES.md`.
+- Foliage counts were raised by estimate. Check the `crowded out` warnings on
+  first boot and retune from what actually placed.
+
+---
+
 ## Verification
 
 ```
