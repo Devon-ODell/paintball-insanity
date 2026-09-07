@@ -1757,10 +1757,19 @@
         "colorKeys": [
           "cattail",
           "fern"
-        ]
+        ],
+        "_ignoresExclusions": "Cattails are the pond EDGE planting and their whole annulus sits inside the pond exclusion, so the rule that keeps trees out of the water was deleting all 90 of them. Trail clearance still applies.",
+        "ignoresExclusions": true
       }
     ],
     "_placementAttempts": "Rejection-sampling budget per instance. Raised from the old hardcoded 12 because footprint padding rejects far more candidates, and a low cap under-places silently.",
     "placementAttempts": 40
+  },
+  "_surfaceLayerMetres": "Ground surfaces overlap on purpose -- trail bends, trail junctions, zone patches -- and two faces on the same plane shimmer as the camera moves. These are the offsets that keep every overlapping surface on its own plane. Millimetres: enough for the depth buffer, invisible to walk on. tools/check-zfight verifies it.",
+  "surfaceLayerMetres": {
+    "trailBaseMetres": 0.14,
+    "stepMetres": 0.026,
+    "alternateMetres": 0.006,
+    "waterLiftMetres": 0.03
   }
 }

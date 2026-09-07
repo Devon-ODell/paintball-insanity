@@ -164,11 +164,22 @@ end
 	two-argument call still asks the old question -- "is this POINT clear?" --
 	while the scatter asks the one that matters: "does this THING fit?"
 ]]
-function Foliage.canPlace(point: Vector3, ctx: ScatterContext, footprint: number?): boolean
+function Foliage.canPlace(point: Vector3, ctx: ScatterContext, footprint: number?, ignoresExclusions: boolean?): boolean
 	local reach = footprint or 0
-	for _, exclusion in ipairs(ctx.exclusions) do
-		if insideExclusion(point, exclusion, reach) then
-			return false
+	--[[
+		Reeds are the exception, and they are why this flag exists.
+
+		The pond's exclusion is there to keep TREES out of the water. Cattails
+		grow in the shallows -- their whole layer is an annulus around the pond
+		centre, entirely inside that exclusion -- so the rule that protects the
+		pond was silently deleting all ninety of them. Nobody could see it while
+		`scatter` reported one total; the per-layer report is what surfaced it.
+	]]
+	if not ignoresExclusions then
+		for _, exclusion in ipairs(ctx.exclusions) do
+			if insideExclusion(point, exclusion, reach) then
+				return false
+			end
 		end
 	end
 
@@ -391,7 +402,7 @@ function Foliage.scatterLayer(layer: any, ctx: ScatterContext, rng: Rng.Generato
 			local outer = layer.outerRadiusMetres
 			local radius = math.sqrt(inner * inner + u * (outer * outer - inner * inner))
 			local candidate = centre + Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
-			if Foliage.canPlace(candidate, ctx, footprint) then
+			if Foliage.canPlace(candidate, ctx, footprint, layer.ignoresExclusions) then
 				point = candidate
 				break
 			end

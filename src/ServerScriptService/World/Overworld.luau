@@ -181,8 +181,97 @@ function Overworld.build(parent: Instance?): Hub
 	trailFolder.Name = "Trails"
 	trailFolder.Parent = root
 
-	for _, trail in ipairs(cfg.trails) do
+	--[[
+		Surface layering, and why every one of these numbers matters.
+
+		Trail segments deliberately overlap so a bend does not show a notch, and
+		trails cross each other at junctions. Every segment used to be built at
+		exactly y = 0.14, which put dozens of pairs of faces on identical planes.
+		Two coplanar faces have no stable depth winner, so the renderer picks a
+		different one per pixel per frame and the ground shimmers as you walk --
+		"one texture inside another". It is invisible in a screenshot.
+
+		Each trail gets its own layer and adjacent segments alternate within it,
+		so no two overlapping slabs ever share a plane. The step is a few
+		millimetres: enough for the depth buffer, far too small to see or trip on.
+		tools/check-zfight is what found this and what proves it stays fixed.
+	]]
+	local layer = cfg.surfaceLayerMetres
+
+	--[[
+		Which trails actually need separating from each other.
+
+		Giving all nine their own level would sink the last one below the ground
+		it is drawn on, and stacking them upward would put a 20cm kerb across
+		every junction. Only trails that TOUCH need to differ, so this is a
+		greedy graph colouring: a trail takes the lowest level not already used
+		by a trail it crosses. Three levels covers The Landing.
+	]]
+	local function segmentDistance(a1: Vector3, a2: Vector3, b1: Vector3, b2: Vector3): number
+		local function pointToSegment(p: Vector3, s: Vector3, e: Vector3): number
+			local d = Vector3.new(e.X - s.X, 0, e.Z - s.Z)
+			local lengthSq = d.X * d.X + d.Z * d.Z
+			if lengthSq < 1e-9 then
+				return (Vector3.new(p.X - s.X, 0, p.Z - s.Z)).Magnitude
+			end
+			local t = math.clamp(((p.X - s.X) * d.X + (p.Z - s.Z) * d.Z) / lengthSq, 0, 1)
+			return (Vector3.new(p.X - (s.X + d.X * t), 0, p.Z - (s.Z + d.Z * t))).Magnitude
+		end
+		return math.min(
+			pointToSegment(a1, b1, b2), pointToSegment(a2, b1, b2),
+			pointToSegment(b1, a1, a2), pointToSegment(b2, a1, a2)
+		)
+	end
+
+	local function trailsTouch(a: any, b: any): boolean
+		local clearance = (a.widthMetres + b.widthMetres) / 2 + 0.5
+		for i = 1, #a.points - 1 do
+			for j = 1, #b.points - 1 do
+				local distance = segmentDistance(
+					vec(a.points[i]), vec(a.points[i + 1]),
+					vec(b.points[j]), vec(b.points[j + 1])
+				)
+				if distance < clearance then
+					return true
+				end
+			end
+		end
+		return false
+	end
+
+	local trailLevel: { number } = {}
+	for index, trail in ipairs(cfg.trails) do
+		local taken: { [number]: boolean } = {}
+		for other = 1, index - 1 do
+			if trailsTouch(trail, cfg.trails[other]) then
+				taken[trailLevel[other]] = true
+			end
+		end
+		local level = 0
+		while taken[level] do
+			level += 1
+		end
+		trailLevel[index] = level
+	end
+
+	for trailIndex, trail in ipairs(cfg.trails) do
+		--[[
+			Each trail sinks a little further than the last rather than stacking
+			on top of it. Stacking would leave the ninth trail standing 11cm
+			proud of the first and put a kerb across every junction; sinking
+			hides the difference in the floor slab, which is two metres thick,
+			and every trail's visible surface still sits above ground level.
+		]]
+		local trailDrop = trailLevel[trailIndex] * layer.stepMetres
 		for i = 1, #trail.points - 1 do
+			local base = trail.baseMetres or layer.trailBaseMetres
+			--[[
+				Four levels rather than two. `pondLoop` is a closed loop with
+				seven segments, so its last segment is adjacent to its first --
+				and with two levels both landed on the same one and fought.
+			]]
+			local segmentY = base - trailDrop - (i % 4) * layer.alternateMetres
+			local joinY = base - trailDrop - ((i + 2) % 4) * layer.alternateMetres
 			local a = vec(trail.points[i])
 			local b = vec(trail.points[i + 1])
 			local delta = b - a
@@ -192,20 +281,20 @@ function Overworld.build(parent: Instance?): Hub
 			end
 			local segment = slab(
 				`{trail.id}_{i}`,
-				(a + b) / 2 + Vector3.new(0, 0.14, 0),
+				(a + b) / 2 + Vector3.new(0, segmentY, 0),
 				Vector3.new(trail.widthMetres, 0.1, length + trail.widthMetres * 0.5),
 				trail.colorKey,
 				trailFolder,
 				false
 			)
 			segment.CFrame = CFrame.lookAt(
-				Units.vectorToStuds((a + b) / 2 + Vector3.new(0, 0.14, 0)),
-				Units.vectorToStuds(b + Vector3.new(0, 0.14, 0))
+				Units.vectorToStuds((a + b) / 2 + Vector3.new(0, segmentY, 0)),
+				Units.vectorToStuds(b + Vector3.new(0, segmentY, 0))
 			)
 			-- Rounded joins, so a bend does not show a notch.
 			local join = slab(
 				`{trail.id}_join{i}`,
-				b + Vector3.new(0, 0.14, 0),
+				b + Vector3.new(0, joinY, 0),
 				Vector3.new(trail.widthMetres, 0.1, trail.widthMetres),
 				trail.colorKey,
 				trailFolder,

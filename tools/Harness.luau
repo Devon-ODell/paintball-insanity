@@ -250,6 +250,18 @@ function Harness.build(repoRoot: string?): Env
 		if existing then
 			return existing
 		end
+		--[[
+			Lighting is real, because world builders parent real instances into
+			it. Handing back an inert stub made every map builder unrunnable
+			headlessly -- Atmosphere.apply threw on `created.Parent = Lighting`
+			and took the whole build with it.
+		]]
+		if serviceName == "Lighting" then
+			local lighting = roblox.Instance.new("Lighting")
+			services[serviceName] = lighting :: any
+			return lighting :: any
+		end
+
 		-- Services a pure module should never touch still need to resolve so that
 		-- a module can require-and-branch. They are inert stubs; touching one from
 		-- a spec is a bug in the module, not the harness.
@@ -298,6 +310,16 @@ function Harness.build(repoRoot: string?): Env
 			-- Lune ships the real Roblox enum tree, so modules that reference
 			-- Enum.Material or Enum.PartType at module scope load headlessly.
 			Enum = roblox.Enum,
+			--[[
+				Real Roblox instances, backed by Lune's property database.
+
+				Without this every world builder -- the barn, the foliage, the
+				avatars, the wardrobe -- was unrunnable headlessly and could only
+				be checked by reading it. It is the difference between "this
+				compiles" and "this actually constructs", which for geometry code
+				is most of the bugs.
+			]]
+			Instance = roblox.Instance,
 			UDim = roblox.UDim,
 			UDim2 = roblox.UDim2,
 			Vector2int16 = roblox.Vector2int16,

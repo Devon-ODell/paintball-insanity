@@ -345,11 +345,22 @@ function WorldBuilder.build(mapName: string, parent: Instance): Folder
 
 	buildPresentation(mapData, root, geometry)
 
+	--[[
+		Parent the world FIRST, then dress it.
+
+		Atmosphere only touches Lighting, but it used to run before this line --
+		so anything that threw in there discarded the entire built map and left
+		the player in a match with no world at all. Cosmetics must never be able
+		to take the field down with them.
+	]]
+	root.Parent = parent
+
 	-- The look is part of the map, not a global setting: Woods needs its haze
 	-- for the same reason it needs its sightlines.
-	Atmosphere.apply(mapName)
-
-	root.Parent = parent
+	local styled, why = pcall(Atmosphere.apply, mapName)
+	if not styled then
+		log.warn(`{mapName} built, but its lighting profile failed: {why}`)
+	end
 	log.info(`built {mapName}: {count} pieces`)
 	return root
 end
