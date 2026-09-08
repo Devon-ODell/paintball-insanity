@@ -86,7 +86,7 @@ local client = {}
 -- UiNavigation and this tool had no stub for it, so the whole check died on
 -- "attempt to index nil" instead of reporting anything -- a list that has to be
 -- edited by hand is a list that goes stale silently.
-for _, name in ipairs({ "UiTheme", "UiNavigation", "Hud", "ShopUi", "DialogueUi", "ViewMarker", "Input" }) do
+for _, name in ipairs({ "UiTheme", "UiNavigation", "Hud", "ShopUi", "DialogueUi", "ViewMarker", "Input", "Tracers" }) do
 	client[name] = { name = name, Parent = client }
 end
 local cache = {}
@@ -110,6 +110,10 @@ loaded = function(target)
 	end }, require = loaded, script = target, Instance = Instance,
 		Vector2 = roblox.Vector2, Vector3 = roblox.Vector3, Color3 = roblox.Color3, CFrame = roblox.CFrame,
 		UDim = roblox.UDim, UDim2 = roblox.UDim2, Enum = roblox.Enum,
+		-- Tracers build a Trail out of these; without them the module loads and
+		-- dies on its first shot with "attempt to index nil with 'new'".
+		NumberSequence = roblox.NumberSequence, ColorSequence = roblox.ColorSequence,
+		NumberRange = roblox.NumberRange,
 		task = { delay = function() end }, workspace = {} }
 	local result = luau.load(fs.readFile(root .. "/src/StarterPlayer/Client/" .. target.name .. ".luau"), { environment = globals, injectGlobals = true })()
 	cache[target.name] = result
@@ -202,3 +206,56 @@ for _, id in ipairs(Config.get("markers").order) do
     assert(not camera:FindFirstChild("LocalPaintballMarker"))
 end
 print("All marker/skin/camo combinations constructed and reacted without collidable or queryable geometry")
+
+--------------------------------------------------------------------------------
+-- Tracers: the only thing in the game that allocates per shot.
+--------------------------------------------------------------------------------
+
+local Tracers = loaded(client.Tracers)
+-- The real marker spec, not a hand-made one: Ballistics.step reads fields a
+-- stub will not have, and a tracer that flies on invented physics is not the
+-- tracer the player sees.
+local Ballistics = env.require(env.Shared.Ballistics)
+local spec = Ballistics.specFromMarker(
+    env.require(env.Data.markers).markers.mechanical,
+    env.require(env.Data.ballistics)
+)
+local function shoot(n: number)
+    for _ = 1, n do
+        Tracers.fire(roblox.Vector3.zero, roblox.Vector3.new(0, 0, -1), spec)
+    end
+end
+
+shoot(5)
+assert(Tracers.stats().live == 5, "five shots should be five tracers in flight")
+assert(Tracers.stats().pooledTracers == 0, "nothing should be pooled while every tracer is flying")
+
+-- Past the three-second life, every tracer retires into the pool rather than
+-- being destroyed.
+Tracers.step(4)
+local retired = Tracers.stats()
+assert(retired.live == 0, `tracers should expire, {retired.live} still flying`)
+assert(retired.pooledTracers == 5, `expired tracers should be pooled, pool holds {retired.pooledTracers}`)
+
+-- The next five shots must come out of the pool, not out of Instance.new.
+shoot(5)
+local reused = Tracers.stats()
+assert(reused.live == 5 and reused.pooledTracers == 0,
+    `pool should have been drained, live {reused.live} pooled {reused.pooledTracers}`)
+
+--[[
+    A resolved shot retires the tracer nearest the impact. This used to draw the
+    splat and leave the ball flying through whatever the server said it hit.
+]]
+Tracers.resolve(roblox.Vector3.zero)
+assert(Tracers.stats().live == 4, "resolving a shot should retire the tracer that landed it")
+Tracers.resolve(roblox.Vector3.new(0, 0, 9999))
+assert(Tracers.stats().live == 4, "a distant impact must not retire an unrelated tracer")
+
+-- Splats are capped, so a long burst cannot leave hundreds of parts on a field.
+for _ = 1, 300 do
+    Tracers.splat(roblox.Vector3.zero)
+end
+local splats = Tracers.stats().liveSplats
+assert(splats <= 120, `splats should be capped at 120, found {splats}`)
+print(`Tracer checks passed: pooling, expiry, resolve-retires-its-own, and splats capped at {splats}.`)

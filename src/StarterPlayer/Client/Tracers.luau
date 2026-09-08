@@ -23,13 +23,41 @@ export type Tracer = {
 	velocity: Vector3,
 	spec: Ballistics.Spec,
 	part: BasePart,
-	bornAt: number,
+	--- Seconds of FLIGHT, accumulated from the same dt that advances the
+	--- physics. It used to be a wall-clock stamp, which meant the ball's age and
+	--- the ball's trajectory were driven by two different clocks that agree only
+	--- while the frame rate holds -- and made the lifetime untestable.
+	age: number,
 	trail: Trail,
 }
 
 local live: { Tracer } = {}
 local folder: Folder? = nil
 local paintColour = Color3.fromRGB(246, 190, 62)
+
+--[[
+	Pools, because this is the only thing in the game that allocates per shot.
+
+	A tracer is a Part, two Attachments and a Trail; a splat is another Part. An
+	electronic marker fires about ten times a second, so building and destroying
+	those was fifty instances a second of churn plus the collection behind it,
+	during the exact seconds the frame budget matters most. Retired parts are
+	parked (Parent = nil) and handed back out instead.
+
+	Splats are also CAPPED. They expired on a fourteen-second timer and nothing
+	bounded how many could be alive at once, so a sustained burst left well over a
+	hundred parts on the field. Past the cap the oldest splat is recycled, which
+	is both the cheapest and the least noticeable one to lose.
+]]
+type Assembly = { part: BasePart, trail: Trail }
+local freeTracers: { Assembly } = {}
+local freeSplats: { BasePart } = {}
+local liveSplats: { BasePart } = {}
+local SPLAT_CAP = 120
+local SPLAT_SECONDS = 14
+--- How long a tracer stays in the air before it is recycled. Long enough to
+--- cover the longest sightline in the game at the slowest muzzle velocity.
+local TRACER_SECONDS = 3
 
 local function container(): Folder
 	if folder and folder.Parent then
@@ -46,17 +74,20 @@ function Tracers.setPaintColour(colour: Color3)
 	paintColour = colour
 end
 
-function Tracers.fire(origin: Vector3, direction: Vector3, spec: Ballistics.Spec)
+--- A tracer assembly, reused if one is parked and built if not.
+local function acquireTracer(): Assembly
+	local pooled = table.remove(freeTracers)
+	if pooled then
+		return pooled
+	end
 	local ball = Instance.new("Part")
 	ball.Shape = Enum.PartType.Ball
 	ball.Size = Vector3.new(0.34, 0.34, 0.34)
-	ball.Color = paintColour
 	ball.Material = Enum.Material.Neon
 	ball.Anchored = true
 	ball.CanCollide = false
 	ball.CanQuery = false
 	ball.CastShadow = false
-	ball.CFrame = CFrame.new(Units.vectorToStuds(origin))
 
 	local a0 = Instance.new("Attachment")
 	a0.Position = Vector3.new(0, 0.1, 0)
@@ -71,42 +102,77 @@ function Tracers.fire(origin: Vector3, direction: Vector3, spec: Ballistics.Spec
 	trail.Lifetime = 0.22
 	trail.WidthScale = NumberSequence.new(1, 0)
 	trail.Transparency = NumberSequence.new(0.2, 1)
-	trail.Color = ColorSequence.new(paintColour)
 	trail.LightEmission = 0.5
 	trail.Parent = ball
 
-	ball.Parent = container()
+	return { part = ball, trail = trail }
+end
+
+--- Parks a tracer for reuse. Disabling the trail first is what clears its
+--- history, so a recycled ball does not appear with the last shot's streak
+--- still attached to it.
+local function releaseTracer(tracer: Tracer)
+	tracer.trail.Enabled = false
+	tracer.part.Parent = nil
+	table.insert(freeTracers, { part = tracer.part, trail = tracer.trail })
+end
+
+function Tracers.fire(origin: Vector3, direction: Vector3, spec: Ballistics.Spec)
+	local assembly = acquireTracer()
+	assembly.part.Color = paintColour
+	assembly.part.CFrame = CFrame.new(Units.vectorToStuds(origin))
+	assembly.trail.Color = ColorSequence.new(paintColour)
+	assembly.trail.Enabled = true
+	assembly.part.Parent = container()
 
 	table.insert(live, {
 		position = origin,
 		velocity = direction.Unit * spec.muzzleVelocity,
 		spec = spec,
-		part = ball,
-		bornAt = os.clock(),
-		trail = trail,
+		part = assembly.part,
+		age = 0,
+		trail = assembly.trail,
 	})
 end
 
 --- Paint on a surface. Splatter only -- no impact effects that read as damage.
 function Tracers.splat(at: Vector3, colour: Color3?)
-	local splat = Instance.new("Part")
-	splat.Shape = Enum.PartType.Ball
-	splat.Size = Vector3.new(0.85, 0.2, 0.85)
+	-- At the cap the oldest splat is recycled: it is both the cheapest one to
+	-- lose and the one furthest from whatever the player is looking at now.
+	local splat: BasePart
+	if #liveSplats >= SPLAT_CAP then
+		splat = table.remove(liveSplats, 1) :: BasePart
+	else
+		splat = table.remove(freeSplats) or (function()
+			local created = Instance.new("Part")
+			created.Shape = Enum.PartType.Ball
+			created.Size = Vector3.new(0.85, 0.2, 0.85)
+			created.Material = Enum.Material.SmoothPlastic
+			created.Anchored = true
+			created.CanCollide = false
+			created.CanQuery = false
+			created.CastShadow = false
+			return created
+		end)()
+	end
 	splat.Color = colour or paintColour
-	splat.Material = Enum.Material.SmoothPlastic
-	splat.Anchored = true
-	splat.CanCollide = false
-	splat.CanQuery = false
-	splat.CastShadow = false
 	splat.CFrame = CFrame.new(at)
 	splat.Parent = container()
-	task.delay(14, function()
-		splat:Destroy()
+	table.insert(liveSplats, splat)
+
+	task.delay(SPLAT_SECONDS, function()
+		local index = table.find(liveSplats, splat)
+		-- Absent means it was already recycled by the cap, and is somebody
+		-- else's paint now.
+		if index then
+			table.remove(liveSplats, index)
+			splat.Parent = nil
+			table.insert(freeSplats, splat)
+		end
 	end)
 end
 
 function Tracers.step(dt: number)
-	local now = os.clock()
 	for i = #live, 1, -1 do
 		local tracer = live[i]
 		local newPos, newVel = Ballistics.step(tracer.position, tracer.velocity, dt, tracer.spec)
@@ -114,17 +180,58 @@ function Tracers.step(dt: number)
 		tracer.velocity = newVel
 		tracer.part.CFrame = CFrame.new(Units.vectorToStuds(newPos))
 
-		if now - tracer.bornAt > 3 then
-			tracer.part:Destroy()
+		tracer.age += dt
+		if tracer.age > TRACER_SECONDS then
+			releaseTracer(tracer)
 			table.remove(live, i)
 		end
 	end
 end
 
---- Called when the server resolves a shot, so a tracer that the server says hit
---- something stops flying through it.
+--[[
+	Called when the server resolves a shot.
+
+	This drew the splat and left the ball flying -- so a paintball the server had
+	already ruled a hit carried on through the wall it hit for the rest of its
+	three seconds, which is the comment above this function describing behaviour
+	the function did not have.
+
+	The remote carries no shot id, so the tracer is identified by position: the
+	live one nearest the impact, and only if it is near enough to plausibly be
+	the same ball. A miss leaves every tracer flying, which is correct.
+]]
+local RESOLVE_RADIUS_STUDS = 12
+
 function Tracers.resolve(impactStuds: Vector3)
 	Tracers.splat(impactStuds)
+
+	local nearest, nearestDistance = nil, RESOLVE_RADIUS_STUDS
+	for index, tracer in ipairs(live) do
+		local distance = (Units.vectorToStuds(tracer.position) - impactStuds).Magnitude
+		if distance < nearestDistance then
+			nearest, nearestDistance = index, distance
+		end
+	end
+	if nearest then
+		releaseTracer(live[nearest])
+		table.remove(live, nearest)
+	end
+end
+
+--[[
+	Counts, for the headless check.
+
+	Pooling that quietly stopped pooling would look exactly like pooling that
+	works -- the game would play the same and allocate the same as before -- so
+	the pool is observable rather than trusted.
+]]
+function Tracers.stats(): { live: number, pooledTracers: number, liveSplats: number, pooledSplats: number }
+	return {
+		live = #live,
+		pooledTracers = #freeTracers,
+		liveSplats = #liveSplats,
+		pooledSplats = #freeSplats,
+	}
 end
 
 function Tracers.bind()
