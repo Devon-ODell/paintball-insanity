@@ -307,6 +307,66 @@ return function()
 		the gap cannot reopen quietly. The end-to-end proof that a course runs
 		lives in tools/run-live-checks, which goes through MatchService.
 	]]
+	--[[
+		The flattening MatchService actually drives. It lives in Course rather than
+		in the match closure precisely so it can be asserted here: it is the whole
+		reason the Shoothouse is a schedule instead of a second match loop.
+	]]
+	describe("the schedule MatchService drives", function()
+		it("turns four stages into eight rounds, in order", function()
+			local waves = Config.require("course", "wavesPerStage")
+			for _, name in ipairs(maps()) do
+				local stages = Course.all(name, "rec")
+				local rounds = Course.schedule(name, "rec", 1)
+				expect(#rounds).to.equal(#stages * waves)
+				for i, round in ipairs(rounds) do
+					expect(round.index).to.equal(i)
+					expect(round.stage.index).to.equal(math.floor((i - 1) / waves) + 1)
+					expect(round.wave).to.equal((i - 1) % waves + 1)
+				end
+			end
+		end)
+
+		it("fields every defender the course declares", function()
+			for _, name in ipairs(maps()) do
+				local total = 0
+				for _, round in ipairs(Course.schedule(name, "rec", 1)) do
+					total += round.botCount
+				end
+				expect(total).to.equal(Course.totalBots(name))
+			end
+		end)
+
+		it("marks exactly one round final, and it is the last", function()
+			for _, name in ipairs(maps()) do
+				local rounds = Course.schedule(name, "rec", 1)
+				local finals = 0
+				for i, round in ipairs(rounds) do
+					if round.isFinal then
+						finals += 1
+						expect(i).to.equal(#rounds)
+					end
+				end
+				expect(finals).to.equal(1)
+			end
+		end)
+
+		it("never pays per round, because it pays per medal", function()
+			for _, round in ipairs(Course.schedule("speedball", "rec", 1)) do
+				expect(round.payoutMultiplier).to.equal(0)
+			end
+		end)
+
+		it("fields more defenders per round for a second player", function()
+			local solo = Course.schedule("speedball", "rec", 1)
+			local pair = Course.schedule("speedball", "rec", 2)
+			expect(#pair).to.equal(#solo)
+			for i, round in ipairs(pair) do
+				expect(round.botCount >= solo[i].botCount).to.equal(true)
+			end
+		end)
+	end)
+
 	describe("mode integration", function()
 		local modes = Config.get("gamemodes")
 

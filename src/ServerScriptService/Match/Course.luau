@@ -176,6 +176,44 @@ function Course.countsTowardAurum(playerCount: number): boolean
 	return playerCount <= 1 or rules().coop.countsTowardAurum == true
 end
 
+export type Round = {
+	index: number,
+	botCount: number,
+	tier: Types.BotTier,
+	payoutMultiplier: number,
+	isFinal: boolean,
+	stage: Stage,
+	wave: number,
+}
+
+--[[
+	The course, flattened into the round shape MatchService already drives.
+
+	Each stage's cover refills `wavesPerStage` times, so four stages become eight
+	rounds, each carrying the stage it belongs to. This lives here rather than
+	inside the match closure because it is pure -- it is the whole reason the mode
+	could be added without a second match loop, and it is the part worth having
+	specs on.
+]]
+function Course.schedule(mapName: string, baseTier: Types.BotTier, playerCount: number?): { Round }
+	local rounds: { Round } = {}
+	for _, stage in ipairs(Course.all(mapName, baseTier)) do
+		for wave = 1, stage.waves do
+			table.insert(rounds, {
+				index = #rounds + 1,
+				botCount = Course.concurrentFor(stage, playerCount or 1),
+				tier = stage.tier,
+				-- A course pays per medal, never per round.
+				payoutMultiplier = 0,
+				isFinal = stage.isFinal and wave == stage.waves,
+				stage = stage,
+				wave = wave,
+			})
+		end
+	end
+	return rounds
+end
+
 function Course.deathPenaltySeconds(): number
 	return rules().timing.deathPenaltySeconds
 end

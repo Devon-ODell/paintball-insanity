@@ -157,6 +157,10 @@
             "goto": "brief"
           },
           {
+            "text": "What's the Shoothouse?",
+            "goto": "shoothouse"
+          },
+          {
             "text": "What's in the case behind you?",
             "goto": "case"
           },
@@ -269,6 +273,37 @@
           "Mm."
         ],
         "options": []
+      },
+      "shoothouse": {
+        "lines": [
+          "The course? Same field, laid out in a line.",
+          "Four stages. Two of them on the near cover, then three, then four, then five -- and each stage refills once before you're through it.",
+          "Clock's running the whole time. Dying costs you ten seconds and the last checkpoint you got to. It doesn't cost you the run.",
+          "Beat par on a field and you've got a medal. That's all it is. Nobody's handing you anything for it."
+        ],
+        "options": [
+          {
+            "text": "Why would I run it?",
+            "goto": "shoothouseWhy"
+          },
+          {
+            "text": "Right.",
+            "goto": "root"
+          }
+        ]
+      },
+      "shoothouseWhy": {
+        "lines": [
+          "Because the gauntlet drops you in the middle of a field and lets you find out where everyone is.",
+          "The course makes you walk it. In order. You learn the same ground and you can only be wrong about one piece of it at a time.",
+          "Hold E at the gate instead of F. That's the whole difference."
+        ],
+        "options": [
+          {
+            "text": "Got it.",
+            "goto": "root"
+          }
+        ]
       }
     },
     "tildy": {
@@ -319,7 +354,7 @@
       "pitchTwo": {
         "lines": [
           "It's not! That's the trade! You get fewer and you get them faster!",
-          "Nothing here is better than anything else, it's all just \u2014 differently annoying.",
+          "Nothing here is better than anything else, it's all just — differently annoying.",
           "Marge says that's the whole business model."
         ],
         "options": [
@@ -352,7 +387,7 @@
       "droneTwo": {
         "lines": [
           "It's very good ears! On a stick! That flies!",
-          "And before you ask \u2014 yes, the shots you take while it's up get flagged.",
+          "And before you ask — yes, the shots you take while it's up get flagged.",
           "Coach won't score them for crosshair placement. He was extremely clear about that."
         ],
         "options": [
@@ -534,7 +569,7 @@
       },
       "howTell": {
         "lines": [
-          "The sign. If your misses are all on the same side of them, that's lead \u2014 you're shooting where they were.",
+          "The sign. If your misses are all on the same side of them, that's lead — you're shooting where they were.",
           "If they're scattered evenly, that's not lead, that's drop, and you want the holdover boards.",
           "The range keeps the sign. That's the only reason it's worth anything."
         ],
@@ -576,7 +611,7 @@
       "what": {
         "lines": [
           "Nothing. There was a heron. It's gone now.",
-          "Anyway \u2014 you got me in round three. Straight through the gap on the snake side.",
+          "Anyway — you got me in round three. Straight through the gap on the snake side.",
           "I've been thinking about it a lot actually."
         ],
         "options": [
@@ -634,7 +669,7 @@
       "team": {
         "lines": [
           "Technically! Yeah!",
-          "But like \u2014 it's a Saturday, and you're here, and I'm here.",
+          "But like — it's a Saturday, and you're here, and I'm here.",
           "Coach says fraternising's fine as long as I don't tell you where the flanker sets up. Which I would never."
         ],
         "options": [
@@ -723,5 +758,6 @@
     }
   },
   "_entryNote": "A node with entry:true is an alternate OPENING for that npc, chosen over root when its requires are met. A node with only `requires` is still just a gated sub-node reached from somewhere else -- Tildy's drone talk is gated but you still get to it by asking her about it.",
-  "_outfitNote": "Each person's outfit lives in Data/wardrobe.json under the same id. Written against the `voice` field above it -- the clothes are supposed to be the same joke as the dialogue."
+  "_outfitNote": "Each person's outfit lives in Data/wardrobe.json under the same id. Written against the `voice` field above it -- the clothes are supposed to be the same joke as the dialogue.",
+  "_shoothouseNote": "Marge explains the course because it is the one mode a new player meets before the field has a squad on it, and a timed mode that nobody explains reads as a bug rather than a discipline. She does not sell it -- the medals are not a reward she hands out, which is the point of them."
 }

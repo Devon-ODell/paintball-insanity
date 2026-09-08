@@ -184,26 +184,9 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		log.warn(`{mapName} has no Shoothouse course; running the gauntlet instead`)
 		isCourse = false
 	end
-	local schedule: { any }
-	if isCourse then
-		schedule = {}
-		for _, stage in ipairs(Course.all(mapName, tier)) do
-			for wave = 1, stage.waves do
-				table.insert(schedule, {
-					index = #schedule + 1,
-					botCount = Course.concurrentFor(stage, 1),
-					tier = stage.tier,
-					-- The course does not pay per round; it pays per medal.
-					payoutMultiplier = 0,
-					isFinal = stage.isFinal and wave == stage.waves,
-					stage = stage,
-					wave = wave,
-				})
-			end
-		end
-	else
-		schedule = RoundSchedule.all(tier)
-	end
+	local schedule: { any } = if isCourse
+		then Course.schedule(mapName, tier, 1)
+		else RoundSchedule.all(tier)
 	--- No pause between stages: the Shoothouse clock never stops, so the stage
 	--- announcement is the client's job and the field moves up immediately.
 	local intermissionSeconds = if isCourse then 0 else RoundSchedule.intermissionSeconds()
@@ -410,7 +393,16 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			wave = currentRound.wave,
 			par = if isCourse then Course.parSeconds(mapName) else nil,
 		})
-		say(if index == 1 then "matchStart" else "roundStart", { force = true })
+		--[[
+			A course is eight round-waves but only four STAGES, and the squad
+			announcing itself eight times a run reads as a stuck record. On a
+			course they speak when the field moves up; in a gauntlet every round
+			is its own arrival, which is what these lines were written for.
+		]]
+		local speaks = not isCourse or currentRound.wave == 1
+		if speaks then
+			say(if index == 1 then "matchStart" else "roundStart", { force = true })
+		end
 	end
 
 	--[[
@@ -444,7 +436,11 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			return
 		end
 
-		say("roundWon", { force = true })
+		-- Likewise: they concede a stage, not each wave of it.
+		local lastWave = currentRound.stage ~= nil and currentRound.wave == currentRound.stage.waves
+		if not isCourse or currentRound.isFinal or lastWave then
+			say("roundWon", { force = true })
+		end
 		clearSquad()
 		projectiles:clear()
 		intermissionUntil = t + intermissionSeconds
