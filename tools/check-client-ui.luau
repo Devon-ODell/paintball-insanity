@@ -293,6 +293,52 @@ print("Input modal and focus-loss checks passed")
 local viewModelPartBudget = 64
 local ViewMarker = loaded(client.ViewMarker)
 local camera = Instance.new("Camera")
+
+--[[
+	The rest pose, checked against the data rather than against itself.
+
+	step used to rebuild this transform from markers.json every frame; the
+	offset and tilt are constant between equips, so they are baked once at
+	equip now. A refactor like that fails silently -- a dropped or reordered
+	multiplication leaves the marker somewhere off the screen edge, which
+	nothing headless would notice and which no assertion about part counts or
+	shadows can see.
+
+	Independently recomputed here, from the same JSON, against a camera that is
+	deliberately not at the origin: with an identity camera a dropped
+	`camera.CFrame *` would still pass.
+]]
+do
+	camera.CFrame = roblox.CFrame.new(roblox.Vector3.new(120, 14, -37))
+		* roblox.CFrame.Angles(math.rad(-11), math.rad(63), 0)
+	ViewMarker.equip("mechanical", "factory")
+	ViewMarker.step(camera, true)
+	local built = assert(camera:FindFirstChild("LocalPaintballMarker"), "no viewmodel")
+	local receiver = assert(built:FindFirstChild("Receiver"), "no receiver")
+	local vm = Config.get("markers").viewModel
+	local o, tilt = vm.offsetStuds, vm.tiltDegrees
+	-- The receiver sits at the model's origin, so at rest it IS the pose.
+	local expected = camera.CFrame * roblox.CFrame.new(o[1], o[2], o[3])
+		* roblox.CFrame.Angles(math.rad(tilt[2]), math.rad(tilt[3]), math.rad(tilt[1]))
+	--[[
+		Position AND orientation. The tilt is applied after the translation, so
+		it cannot move the origin -- an earlier version of this check compared
+		positions only, and swapping the three tilt axes passed it. The pose is
+		a CFrame; comparing a third of one is not comparing it.
+	]]
+	local drift = (receiver.CFrame.Position - expected.Position).Magnitude
+	assert(drift < 1e-3, `the viewmodel rest pose moved {drift} studs from what markers.json describes`)
+	for _, axis in ipairs({ "LookVector", "UpVector", "RightVector" }) do
+		local turned = (receiver.CFrame[axis] - expected[axis]).Magnitude
+		assert(turned < 1e-3, `the viewmodel rest pose {axis} is {turned} off what markers.json describes`)
+	end
+	-- Recoil must still displace it, or the kick branch is dead.
+	ViewMarker.fire()
+	ViewMarker.step(camera, true)
+	assert((receiver.CFrame.Position - expected.Position).Magnitude > 1e-4,
+		"firing did not move the viewmodel: the recoil branch is unreachable")
+end
+
 for _, id in ipairs(Config.get("markers").order) do
     ViewMarker.equip(id, "factory")
     for _, skin in ipairs({ "raw", "duracoat", "splitDust" }) do

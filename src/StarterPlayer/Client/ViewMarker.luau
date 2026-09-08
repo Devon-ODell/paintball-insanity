@@ -15,6 +15,18 @@ local pulseAt = -math.huge
 local kickAt = -math.huge
 local animated = false
 --[[
+	Per-frame constants, resolved once at equip.
+
+	step runs on RenderStepped, and it was rebuilding the rest pose from the
+	data every frame: two table walks into markers.json, two Vector3
+	allocations for the offset and the tilt, and the CFrame product of both --
+	none of which changes between equips. Hoisting them here leaves step doing
+	only the work that depends on the camera.
+]]
+local restOffset = CFrame.identity
+local kickSeconds, kickBackStuds, kickDegrees = 1, 0, 0
+local pulseSeconds, pulseFrequencyHz = 1, 0
+--[[
 	Rebuilds the camo panels for a given layout. Assigned by equip, which is the
 	only place that knows this marker's body dimensions. A finish carries its own
 	panel geometry -- chevrons, bands, hex -- so switching camo has to rebuild the
@@ -89,6 +101,12 @@ function ViewMarker.equip(id: string, camo: string?)
 	barrelColour = colour(if marker.cosmetic then marker.cosmetic.barrelColour else tuning.darkColor)
 	local dark = colour(tuning.darkColor)
 	local trim = colour(tuning.trimColor)
+
+	local restTilt = vector(tuning.tiltDegrees)
+	restOffset = CFrame.new(vector(tuning.offsetStuds))
+		* CFrame.Angles(math.rad(restTilt.Y), math.rad(restTilt.Z), math.rad(restTilt.X))
+	kickSeconds, kickBackStuds, kickDegrees = tuning.kickSeconds, tuning.kickBackStuds, tuning.kickDegrees
+	pulseSeconds, pulseFrequencyHz = tuning.pulseSeconds, tuning.pulseFrequencyHz
 
 	local function piece(name: string, size: Vector3, at: Vector3, tint: string, shape: string?, rotation: CFrame?)
 		local part = Instance.new("Part")
@@ -234,25 +252,29 @@ function ViewMarker.step(camera: Camera, visible: boolean)
 	local parent = if visible then camera else nil
 	if model.Parent ~= parent then model.Parent = parent end
 	if not visible then return end
-	local tuning = Config.get("markers").viewModel
 	local now = os.clock()
-	local kick = math.clamp(1 - (now - kickAt) / tuning.kickSeconds, 0, 1)
+	local kick = math.clamp(1 - (now - kickAt) / kickSeconds, 0, 1)
 	--[[
 		`offsetStuds` is in STUDS. Everything else in this module is metres run
 		through Units.vectorToStuds; this one is applied raw to the camera CFrame,
 		which is why it reads small next to the part sizes. Do not "fix" it by
 		converting -- retune it, and read the note in markers.json beside it.
+
+		The rest pose is baked into restOffset at equip. Recoil is the only part
+		that varies, and it is zero for most of a match -- kick decays to 0
+		within kickSeconds of a shot -- so skip building two identity transforms
+		on every frame that is not inside a recoil.
 	]]
-	local tilt = vector(tuning.tiltDegrees)
-	local at = camera.CFrame * CFrame.new(vector(tuning.offsetStuds))
-		* CFrame.Angles(math.rad(tilt.Y), math.rad(tilt.Z), math.rad(tilt.X))
-		* CFrame.new(0, 0, kick * tuning.kickBackStuds)
-		* CFrame.Angles(math.rad(kick * tuning.kickDegrees), 0, 0)
+	local at = camera.CFrame * restOffset
+	if kick > 0 then
+		at = at * CFrame.new(0, 0, kick * kickBackStuds)
+			* CFrame.Angles(math.rad(kick * kickDegrees), 0, 0)
+	end
 	for _, item in ipairs(parts) do item.part.CFrame = at * item.offset end
 	if animated then
 		local elapsed = now - pulseAt
-		local fade = math.clamp(1 - elapsed / tuning.pulseSeconds, 0, 1)
-		paint(fade * (1 + math.cos(elapsed * tuning.pulseFrequencyHz * math.pi * 2)) / 2)
+		local fade = math.clamp(1 - elapsed / pulseSeconds, 0, 1)
+		paint(fade * (1 + math.cos(elapsed * pulseFrequencyHz * math.pi * 2)) / 2)
 		if fade <= 0 then animated = false end
 	end
 end
