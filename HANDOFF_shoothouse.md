@@ -123,6 +123,32 @@ checks parts, shadow casters and semi-transparent area against budgets in
   brightness stays 2.3–2.8 so bots stay the most saturated thing on screen, and
   haze scales with the field's engagement band.
 
+Client-side, where the frame budget actually lives:
+
+- **Tracers were the only thing allocating per shot** — a Part, two Attachments
+  and a Trail per paintball, built and destroyed. At an electronic marker's rate
+  that is ~50 instances a second of churn during the seconds that matter most.
+  Pooled now, and `Tracers.stats()` makes the pool observable so it cannot
+  silently stop pooling. Splats are capped at 120; nothing bounded them before.
+- **Two bugs fell out of that.** `Tracers.resolve` drew the splat and left the
+  ball flying, so a paintball the server had already ruled a hit carried on
+  through the wall for the rest of its three seconds — the comment above it
+  described behaviour it did not have. And a tracer's age was a wall-clock stamp
+  while its flight ran on RenderStepped's `dt`: two clocks that agree only while
+  the frame rate holds.
+- **The HUD was writing the same string sixty times a second.** `setHopper` had
+  always cached; the clock and range readout had not. The clock was mine, and
+  formatted to hundredths — a digit changing faster than anyone can read it.
+
+**Measured and deliberately not done:** `clearSquad` destroys every avatar and
+`buildSquad` rebuilds them, so a pro course constructs 2016 parts across a run
+with **360 in a single frame** at the worst stage change — and a course has no
+intermission to absorb it, unlike the gauntlet's seven seconds. Half of those are
+rebuilding an identical squad, since wave 2 of a stage matches wave 1 exactly.
+Reuse needs `BotAvatar` to gain a reset and bot ids stable across waves, which
+the shot log keys off. That is live match code and the payoff is a frame hitch
+that cannot be measured headlessly. Profile it in Studio first.
+
 I did **not** LOD the distant conifers. It saves ~13% of the hub and risks the
 "trees are blobs" read this project already rebuilt the hub once to fix — a bad
 trade for a silhouette change nobody here can look at. That one wants eyes on it.
