@@ -141,17 +141,15 @@ function Input.bind()
 			return Enum.ContextActionResult.Pass
 		end
 		local now = os.clock()
-		if not state.sprinting or now < state.slideReadyAt then
+		local h = humanoid()
+		if not h or h.MoveDirection.Magnitude == 0 or h.FloorMaterial == Enum.Material.Air or not state.sprinting or now < state.slideReadyAt then
 			return Enum.ContextActionResult.Pass
 		end
 		state.sliding = true
 		state.slideEndsAt = now + cfg.slideDurationSeconds
 		state.slideReadyAt = now + cfg.slideDurationSeconds + cfg.slideCooldownSeconds
 		applySpeed()
-		task.delay(cfg.slideDurationSeconds, function()
-			state.sliding = false
-			applySpeed()
-		end)
+
 		return Enum.ContextActionResult.Pass
 	end, false, Enum.KeyCode.C, Enum.KeyCode.ButtonR1)
 
@@ -191,6 +189,7 @@ function Input.bind()
 	UserInputService.WindowFocusReleased:Connect(function()
 		state.firing = false
 		state.sprinting = false
+		state.sliding = false
 		state.crouching = false
 		state.lean = 0
 		state.reloadRequested = false
@@ -202,6 +201,8 @@ function Input.bind()
 		state.sprinting = false
 		state.crouching = false
 		state.sliding = false
+		state.slideEndsAt = 0
+		state.slideReadyAt = 0
 		state.lean = 0
 		state.firing = false
 		state.reloadRequested = false
@@ -238,6 +239,10 @@ function Input.setPointerFree(free: boolean)
 end
 
 function Input.tick(dt: number)
+	if state.sliding and os.clock() >= state.slideEndsAt then
+		state.sliding = false
+		applySpeed()
+	end
 	if not pointerFree then
 		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
 		UserInputService.MouseIconEnabled = false
@@ -251,7 +256,7 @@ function Input.tick(dt: number)
 	local targetX = state.lean * Units.metresToStuds(cfg.leanOffsetMetres)
 	local current = h.CameraOffset
 	local alpha = math.clamp(dt * cfg.leanSpeed, 0, 1)
-	local targetY = if state.crouching then Units.metresToStuds(cfg.crouchEyeHeightMetres - cfg.eyeHeightMetres) else 0
+	local targetY = if state.sliding then -Units.metresToStuds(Config.get("combatAnimations").slideEyeDropMetres) elseif state.crouching then Units.metresToStuds(cfg.crouchEyeHeightMetres - cfg.eyeHeightMetres) else 0
 	h.CameraOffset = Vector3.new(current.X + (targetX - current.X) * alpha, current.Y + (targetY - current.Y) * alpha, current.Z)
 end
 

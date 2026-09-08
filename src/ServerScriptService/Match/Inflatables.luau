@@ -15,8 +15,9 @@
 	about the same OBB for bot line-of-sight and the server's projectile
 	simulation, so what the player bumps into, what the bots can see through and
 	what stops paint are guaranteed to be one shape. The rounded visual is
-	inscribed INSIDE that box, so the only discrepancy is the corner radius --
-	about a quarter of a metre, and always in the player's favour.
+	inscribed INSIDE that box. The visual/collision discrepancy is
+	small for pillows and cans. Tapered doritos and balls leave larger empty
+	corner regions: the authored box still stops paint there.
 
 	The BALL is the exception worth knowing about: a sphere inscribed in a square
 	footprint leaves the box's corners empty, so the centre bunker blocks roughly
@@ -29,13 +30,15 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Units = require(ReplicatedStorage.Shared.Units)
 
+local Config = require(ReplicatedStorage.Shared.Config)
+local tuning = Config.get("inflatables")
 local Inflatables = {}
 
 --- Vinyl. Glossy but not mirrored; enough reflectance to catch a highlight and
 --- sell the pressurised surface without turning the field into chrome.
-local VINYL_REFLECTANCE = 0.08
-local SEAM_DARKEN = 0.72
-local STRAP_DARKEN = 0.45
+local VINYL_REFLECTANCE = tuning.vinylReflectance
+local SEAM_DARKEN = tuning.seamDarken
+local STRAP_DARKEN = tuning.strapDarken
 
 local function shade(colour: Color3, factor: number): Color3
 	return Color3.new(colour.R * factor, colour.G * factor, colour.B * factor)
@@ -131,14 +134,14 @@ end
 local function buildCan(model: Model, size: Vector3, colour: Color3)
 	local diameter = math.min(size.X, size.Z)
 	local height = size.Y
-	local capHeight = diameter * 0.45
-	local bodyHeight = math.max(height - capHeight, height * 0.35)
+	local capHeight = math.min(diameter * tuning.capFraction, height / 2)
+	local bodyHeight = height - capHeight * 2
 
 	tube(model, "Body", CFrame.new(0, 0, 0), bodyHeight, diameter, colour, "y")
 
 	-- Domed caps, squashed so the bunker keeps its declared height.
 	blob(model, "TopCap", CFrame.new(0, bodyHeight / 2, 0), Vector3.new(diameter, capHeight * 2, diameter), colour)
-	blob(model, "BottomCap", CFrame.new(0, -bodyHeight / 2, 0), Vector3.new(diameter, capHeight * 1.2, diameter), colour)
+	blob(model, "BottomCap", CFrame.new(0, -bodyHeight / 2, 0), Vector3.new(diameter, capHeight * 2, diameter), colour)
 
 	-- Three sections, so two seams.
 	seam(model, CFrame.new(0, bodyHeight / 6, 0), diameter, colour, "y")
@@ -152,32 +155,31 @@ end
 	the flat faces are what make it read as a wedge from across the field.
 ]]
 local function buildDorito(model: Model, size: Vector3, colour: Color3)
-	local width = size.X
-	local depth = size.Z
-	local height = size.Y
-	local edge = math.min(width, depth) * 0.24
-
-	local core = newPart("Core", model)
-	core.Shape = Enum.PartType.Block
-	core.Size = Vector3.new(width * 0.82, height * 0.9, depth * 0.82)
-	core.Color = colour
-	core.CFrame = CFrame.new(0, 0, 0)
-
-	-- Rounded vertical edges at the three corners of the triangle.
-	local corners = {
-		Vector3.new(0, 0, -depth / 2 + edge / 2),
-		Vector3.new(-width / 2 + edge / 2, 0, depth / 2 - edge / 2),
-		Vector3.new(width / 2 - edge / 2, 0, depth / 2 - edge / 2),
-	}
-	for i, offset in ipairs(corners) do
-		tube(model, `Edge{i}`, CFrame.new(offset), height * 0.9, edge, colour, "y")
-		blob(model, `EdgeTop{i}`, CFrame.new(offset + Vector3.new(0, height * 0.45, 0)), Vector3.new(edge, edge, edge), colour)
+	local width, height, depth = size.X, size.Y, size.Z
+	local edge = math.min(width, height, depth) * tuning.edgeFraction
+	local innerWidth, innerHeight = width - edge, height - edge
+	-- Two opposing wedges meet at a ridge. Unlike the old rectangular core,
+	-- this silhouette narrows all the way up to the inflatable crown.
+	for _, side in ipairs({ -1, 1 }) do
+		local panel = newPart(`Panel{side}`, model)
+		panel.Shape = Enum.PartType.Wedge
+		panel.Size = Vector3.new(depth * tuning.panelDepthFraction, innerHeight, innerWidth / 2)
+		panel.Color = colour
+		panel.CFrame = CFrame.new(side * innerWidth / 4, 0, 0) * CFrame.Angles(0, -side * math.pi / 2, 0)
 	end
-
-	-- Inflated crown.
-	blob(model, "Crown", CFrame.new(0, height * 0.42, 0), Vector3.new(width * 0.7, height * 0.24, depth * 0.7), colour)
-
-	seam(model, CFrame.new(0, 0, 0), math.max(width, depth) * 0.9, colour, "y")
+	-- Soft sloping welds and rounded corners, contained in the authored box.
+	for _, z in ipairs({ -(depth - edge) / 2, (depth - edge) / 2 }) do
+		local apex = Vector3.new(0, innerHeight / 2, z)
+		for _, side in ipairs({ -1, 1 }) do
+			local base = Vector3.new(side * innerWidth / 2, -innerHeight / 2, z)
+			local middle = (base + apex) / 2
+			tube(model, "SlopedWeld", CFrame.lookAt(middle, apex), (apex - base).Magnitude, edge, colour, "z")
+			blob(model, "BaseCorner", CFrame.new(base), Vector3.new(edge, edge, edge), colour)
+		end
+		blob(model, "Apex", CFrame.new(apex), Vector3.new(edge, edge, edge), colour)
+		tube(model, "BaseWeld", CFrame.new(0, -innerHeight / 2, z), innerWidth, edge, shade(colour, SEAM_DARKEN), "x")
+	end
+	tube(model, "Crown", CFrame.new(0, innerHeight / 2, 0), depth - edge, edge, colour, "z")
 	anchorStrap(model, CFrame.new(0, -height / 2 + Units.metresToStuds(0.04), 0), width * 0.9, colour)
 end
 
@@ -252,7 +254,7 @@ end
 ]]
 local function buildStandup(model: Model, size: Vector3, colour: Color3)
 	local width, height, depth = size.X, size.Y, size.Z
-	local edge = math.min(width, depth) * 0.5
+	local edge = math.min(width, height, depth) * tuning.pillowCornerFraction
 
 	local core = newPart("Core", model)
 	core.Shape = Enum.PartType.Block
@@ -284,10 +286,9 @@ local function buildStandup(model: Model, size: Vector3, colour: Color3)
 	]]
 	for i, z in ipairs({ -depth * 0.5, depth * 0.5 }) do
 		blob(model, `Bulge{i}`, CFrame.new(0, 0, z * 0.55),
-			Vector3.new(width * 0.82, height * 0.86, depth * 0.9), colour)
+			Vector3.new(width * 0.82, height * 0.86, depth * 0.45), colour)
 	end
 
-	seam(model, CFrame.new(), width * 0.98, colour, "x")
 	anchorStrap(model, CFrame.new(0, -height / 2 + Units.metresToStuds(0.04), 0), width * 0.9, colour)
 end
 
@@ -295,33 +296,8 @@ end
 	BRICK -- a low rounded box. The beam and knuckle bunkers you slide behind.
 ]]
 local function buildBrick(model: Model, size: Vector3, colour: Color3)
-	local width, height, depth = size.X, size.Y, size.Z
-	local radius = math.min(height, math.min(width, depth)) * 0.42
-
-	local core = newPart("Core", model)
-	core.Shape = Enum.PartType.Block
-	core.Size = Vector3.new(width - radius, height, depth - radius)
-	core.Color = colour
-	core.CFrame = CFrame.new()
-
-	-- Rounded ends along the long axis.
-	local alongX = width >= depth
-	local half = (if alongX then width else depth) / 2 - radius / 2
-	local offset = if alongX then Vector3.new(half, 0, 0) else Vector3.new(0, 0, half)
-	local axis = if alongX then "z" else "x"
-	tube(model, "EndA", CFrame.new(offset), if alongX then depth else width, math.min(height, radius * 2), colour, axis)
-	tube(model, "EndB", CFrame.new(-offset), if alongX then depth else width, math.min(height, radius * 2), colour, axis)
-
-	-- Inflated top ridge.
-	local ridge = newPart("Ridge", model)
-	ridge.Shape = Enum.PartType.Cylinder
-	ridge.Size = Vector3.new(if alongX then width * 0.94 else depth * 0.94, height * 0.55, height * 0.55)
-	ridge.Color = colour
-	ridge.CFrame = CFrame.new(0, height * 0.22, 0)
-		* (if alongX then CFrame.new() else CFrame.Angles(0, math.pi / 2, 0))
-
-	seam(model, CFrame.new(), math.max(width, depth) * 0.4, colour, if alongX then "x" else "z")
-	anchorStrap(model, CFrame.new(0, -height / 2 + Units.metresToStuds(0.03), 0), width * 0.7, colour)
+	-- A low pillow uses the same continuous rounded perimeter as a standup.
+	buildStandup(model, size, colour)
 end
 
 --------------------------------------------------------------------------------

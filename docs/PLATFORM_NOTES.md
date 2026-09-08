@@ -140,3 +140,7 @@ probe initialized successfully after allowing the local socket, but tools/list
 timed out because no enabled Studio connection supplied tools. The user chose
 to continue without Studio for now. No Studio-authored source, playtest,
 publishing or account changes were made through this probe.
+
+### Combat motion and inflatable pass (2026-09-08)
+
+Verified current Creator Hub references for [CFrame interpolation](https://create.roblox.com/docs/reference/engine/datatypes/CFrame), [Humanoid.CameraOffset](https://create.roblox.com/docs/reference/engine/classes/Humanoid), and [Part.Shape](https://create.roblox.com/docs/reference/engine/classes/Part/Shape). First-person motion uses local non-queryable parts and CFrame interpolation; the camera drop uses CameraOffset. The documented PartType.Wedge provides the tapered speedball panels. No uploaded animation IDs or external assets are required. Reload presentation reads MarkerState's existing deadline and duration; it cannot grant ammo. Authored speedball OBBs remain unchanged, including the existing invisible upper corners around tapered cover.

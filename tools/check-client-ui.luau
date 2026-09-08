@@ -282,6 +282,28 @@ Input.setPointerFree(false)
 input.InputBegan:fire(fireInput, false)
 input.WindowFocusReleased:fire()
 assert(not Input.state().firing, "focus loss must stop held fire")
+-- Grounded movement gates slides; elapsed slides restore speed and camera.
+do
+    local h = { WalkSpeed = 0, CameraOffset = roblox.Vector3.zero, MoveDirection = roblox.Vector3.zero, FloorMaterial = roblox.Enum.Material.Grass }
+    players.LocalPlayer.Character = { FindFirstChildOfClass = function() return h end }
+    actions.LR_Sprint(nil, roblox.Enum.UserInputState.Begin)
+    actions.LR_Slide(nil, roblox.Enum.UserInputState.Begin)
+    assert(not Input.state().sliding, "stationary slide accepted")
+    h.MoveDirection = roblox.Vector3.new(0, 0, -1)
+    h.FloorMaterial = roblox.Enum.Material.Air
+    actions.LR_Slide(nil, roblox.Enum.UserInputState.Begin)
+    assert(not Input.state().sliding, "airborne slide accepted")
+    h.FloorMaterial = roblox.Enum.Material.Grass
+    actions.LR_Slide(nil, roblox.Enum.UserInputState.Begin)
+    assert(Input.state().sliding, "grounded sprint did not slide")
+    Input.tick(1)
+    assert(h.CameraOffset.Y < 0, "slide did not lower eye height")
+    Input.state().slideEndsAt = -1
+    Input.tick(1)
+    assert(not Input.state().sliding and h.CameraOffset.Y == 0, "slide expiry did not restore eye height")
+    input.WindowFocusReleased:fire()
+    players.LocalPlayer.Character = nil
+end
 print("Input modal and focus-loss checks passed")
 
 --[[
@@ -312,7 +334,7 @@ do
 	camera.CFrame = roblox.CFrame.new(roblox.Vector3.new(120, 14, -37))
 		* roblox.CFrame.Angles(math.rad(-11), math.rad(63), 0)
 	ViewMarker.equip("mechanical", "factory")
-	ViewMarker.step(camera, true)
+	ViewMarker.step(camera, true, 1 / 60, { sprinting = false, sliding = false }, 0, nil, 2)
 	local built = assert(camera:FindFirstChild("LocalPaintballMarker"), "no viewmodel")
 	local receiver = assert(built:FindFirstChild("Receiver"), "no receiver")
 	local vm = Config.get("markers").viewModel
@@ -334,22 +356,48 @@ do
 	end
 	-- Recoil must still displace it, or the kick branch is dead.
 	ViewMarker.fire()
-	ViewMarker.step(camera, true)
+	ViewMarker.step(camera, true, 1 / 60, { sprinting = false, sliding = false }, 0, nil, 2)
 	assert((receiver.CFrame.Position - expected.Position).Magnitude > 1e-4,
 		"firing did not move the viewmodel: the recoil branch is unreachable")
 end
+
+-- Reload hardware must move and return, and sprint must not bob at rest.
+do
+    ViewMarker.equip("mechanical", "factory")
+    local idle = { sprinting = false, sliding = false }
+    ViewMarker.step(camera, true, 1, idle, 0, nil, 2)
+    local marker = camera:FindFirstChild("LocalPaintballMarker")
+    local receiver, lid, pod = marker:FindFirstChild("Receiver"), marker:FindFirstChild("HopperLid"), marker:FindFirstChild("ReloadPod")
+    local rest, closed = receiver.CFrame, lid.CFrame
+    ViewMarker.step(camera, true, 1, idle, 0, os.clock() + 1, 2)
+    assert(pod.Transparency == 0, "reload pod missing during pour")
+    assert((lid.CFrame.UpVector - closed.UpVector).Magnitude > 0.1, "hopper lid did not open")
+    assert((receiver.CFrame.Position - rest.Position).Magnitude > 0.1, "reload pose did not lift marker")
+    ViewMarker.step(camera, true, 1, idle, 0, nil, 2)
+    assert(pod.Transparency == 1 and (lid.CFrame.Position - closed.Position).Magnitude < 0.001, "reload hardware failed to reset")
+    ViewMarker.step(camera, true, 1, { sprinting = true }, 0, nil, 2)
+    assert((receiver.CFrame.Position - rest.Position).Magnitude < 0.001, "stationary sprint moved marker")
+    ViewMarker.step(camera, true, 1, { sprinting = true }, 20, nil, 2)
+    assert((receiver.CFrame.Position - rest.Position).Magnitude > 0.1, "sprint pose missing")
+    ViewMarker.step(camera, true, 1, { sliding = true }, 20, nil, 2)
+    assert((receiver.CFrame.UpVector - rest.UpVector).Magnitude > 0.1, "slide pose missing")
+    ViewMarker.step(camera, false, 1, idle, 0, nil, 2)
+    ViewMarker.step(camera, true, 1, idle, 0, nil, 2)
+    assert((receiver.CFrame.Position - rest.Position).Magnitude < 0.001, "hidden marker retained motion")
+end
+print("Reload, sprint, slide and animation reset checks passed")
 
 for _, id in ipairs(Config.get("markers").order) do
     ViewMarker.equip(id, "factory")
     for _, skin in ipairs({ "raw", "duracoat", "splitDust" }) do
         ViewMarker.setSkin(skin)
-        ViewMarker.step(camera, true)
+        ViewMarker.step(camera, true, 1 / 60, { sprinting = false, sliding = false }, 0, nil, 2)
     end
     for _, camo in ipairs(Config.get("camos").order) do
         ViewMarker.setCamo(camo)
         ViewMarker.reactHeadshot()
         ViewMarker.fire()
-        ViewMarker.step(camera, true)
+        ViewMarker.step(camera, true, 1 / 60, { sprinting = false, sliding = false }, 0, nil, 2)
         local marker = camera:FindFirstChild("LocalPaintballMarker")
         assert(marker and #marker:GetDescendants() > 0)
         --[[
@@ -385,7 +433,7 @@ for _, id in ipairs(Config.get("markers").order) do
         assert(count <= viewModelPartBudget,
             `{id}/{camo}: {count} viewmodel parts, over the budget of {viewModelPartBudget}`)
     end
-    ViewMarker.step(camera, false)
+    ViewMarker.step(camera, false, 1 / 60, {}, 0, nil, 2)
     assert(not camera:FindFirstChild("LocalPaintballMarker"))
 end
 print("All marker/skin/camo combinations constructed: no collidable, queryable or shadow-casting geometry, no stacked panels, all inside the part budget")

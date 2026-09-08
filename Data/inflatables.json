@@ -1,0 +1,9 @@
+{
+  "vinylReflectance": 0.12,
+  "seamDarken": 0.86,
+  "strapDarken": 0.45,
+  "edgeFraction": 0.12,
+  "panelDepthFraction": 0.8,
+  "capFraction": 0.22,
+  "pillowCornerFraction": 0.32
+}

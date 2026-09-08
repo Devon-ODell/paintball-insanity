@@ -4,6 +4,10 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Camos = require(ReplicatedStorage.Shared.Camos)
 local Units = require(ReplicatedStorage.Shared.Units)
 
+local CombatMotion = require(ReplicatedStorage.Shared.CombatMotion)
+local motion = Config.get("combatAnimations")
+local movementPose = CFrame.identity
+local stride = 0
 local ViewMarker = {}
 local model: Model? = nil
 local parts: { { part: Part, offset: CFrame, tint: string } } = {}
@@ -83,6 +87,9 @@ end
 function ViewMarker.equip(id: string, camo: string?)
 	if model then model:Destroy() end
 	table.clear(parts)
+	movementPose = CFrame.identity
+	stride = 0
+	kickAt = -math.huge
 	local assembly = Instance.new("Model")
 	assembly.Name = "LocalPaintballMarker"
 	model = assembly
@@ -230,7 +237,16 @@ function ViewMarker.equip(id: string, camo: string?)
 			end
 		end
 	end
+	piece("RightGlove", vector(motion.handSizeMetres), vector(motion.rightHandMetres), "dark", "Ball")
+	piece("LeftGlove", vector(motion.handSizeMetres), vector(motion.leftHandMetres), "dark", "Ball")
+	local sleeveSize = Vector3.new(motion.sleeveDiameterMetres, motion.sleeveDiameterMetres, motion.sleeveDiameterMetres)
+	piece("RightSleeve", sleeveSize, Vector3.zero, "dark", "Cylinder")
+	piece("LeftSleeve", sleeveSize, Vector3.zero, "dark", "Cylinder")
+	piece("ReloadPod", vector(motion.podSizeMetres), Vector3.zero, "metal", "Cylinder")
 	ViewMarker.setCamo(camo)
+	for _, item in ipairs(parts) do
+		if item.part.Name == "ReloadPod" then item.part.Transparency = 1 end
+	end
 end
 
 -- Called only for confirmed server headshots by the client controller. The
@@ -247,11 +263,15 @@ function ViewMarker.fire()
 	kickAt = os.clock()
 end
 
-function ViewMarker.step(camera: Camera, visible: boolean)
+function ViewMarker.step(camera: Camera, visible: boolean, dt: number, state: any, speed: number, reloadUntil: number?, reloadSeconds: number)
 	if not model then return end
 	local parent = if visible then camera else nil
 	if model.Parent ~= parent then model.Parent = parent end
-	if not visible then return end
+	if not visible then
+		movementPose = CFrame.identity
+		stride = 0
+		return
+	end
 	local now = os.clock()
 	local kick = math.clamp(1 - (now - kickAt) / kickSeconds, 0, 1)
 	--[[
@@ -265,12 +285,48 @@ function ViewMarker.step(camera: Camera, visible: boolean)
 		within kickSeconds of a shot -- so skip building two identity transforms
 		on every frame that is not inside a recoil.
 	]]
-	local at = camera.CFrame * restOffset
+	local reloading = reloadUntil ~= nil and now < (reloadUntil :: number)
+	local reloadPose = if reloading then CombatMotion.reload(1 - ((reloadUntil :: number) - now) / reloadSeconds) else nil
+	local target = CFrame.identity
+	if state.sliding then
+		target = CombatMotion.pose(motion.slide.position, motion.slide.rotation)
+	elseif state.sprinting and speed > motion.movingThresholdStuds then
+		stride = (stride + Units.studsToMetres(speed) * dt / motion.strideMetres * math.pi * 2) % (math.pi * 2)
+		local bob = motion.bobStuds
+		target = CombatMotion.pose(motion.sprint.position, motion.sprint.rotation)
+			* CFrame.new(math.sin(stride) * bob[1], math.cos(stride * 2) * bob[2], math.cos(stride) * bob[3])
+			* CFrame.Angles(0, 0, math.rad(math.sin(stride) * motion.bobRollDeg))
+	end
+	movementPose = movementPose:Lerp(target, 1 - math.exp(-motion.blendSpeed * dt))
+	local at = camera.CFrame * restOffset * (if reloadPose then reloadPose.marker else movementPose)
 	if kick > 0 then
 		at = at * CFrame.new(0, 0, kick * kickBackStuds)
 			* CFrame.Angles(math.rad(kick * kickDegrees), 0, 0)
 	end
-	for _, item in ipairs(parts) do item.part.CFrame = at * item.offset end
+	for _, item in ipairs(parts) do
+		local offset = item.offset
+		local name = item.part.Name
+		if name == "HopperLid" or name == "HopperLatch" then
+			local hinge = CFrame.new(Units.vectorToStuds(vector(motion.lidHingeMetres)))
+			offset = hinge * CFrame.Angles(math.rad(motion.lidOpenDegrees * (if reloadPose then reloadPose.lid else 0)), 0, 0)
+				* hinge:Inverse() * offset
+		elseif name == "LeftGlove" and reloadPose then
+			offset = CFrame.new(reloadPose.hand)
+		elseif name == "LeftSleeve" or name == "RightSleeve" then
+			local wrist = if name == "LeftSleeve" and reloadPose then reloadPose.hand
+				else Units.vectorToStuds(vector(if name == "LeftSleeve" then motion.leftHandMetres else motion.rightHandMetres))
+			local elbow = wrist + Units.vectorToStuds(vector(motion.forearmOffsetMetres))
+			local diameter = Units.metresToStuds(motion.sleeveDiameterMetres)
+			item.part.Size = Vector3.new((elbow - wrist).Magnitude, diameter, diameter)
+			offset = CFrame.lookAt((elbow + wrist) / 2, wrist) * CFrame.Angles(0, math.pi / 2, 0)
+		elseif name == "ReloadPod" then
+			item.part.Transparency = if reloadPose and reloadPose.showPod then 0 else 1
+			if reloadPose then
+				offset = CFrame.new(Units.vectorToStuds(reloadPose.pod.Position)) * reloadPose.pod.Rotation
+			end
+		end
+		item.part.CFrame = at * offset
+	end
 	if animated then
 		local elapsed = now - pulseAt
 		local fade = math.clamp(1 - elapsed / pulseSeconds, 0, 1)

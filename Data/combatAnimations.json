@@ -1,0 +1,310 @@
+{
+  "blendSpeed": 12,
+  "movingThresholdStuds": 1,
+  "strideMetres": 2.5,
+  "sprint": {
+    "position": [
+      0.12,
+      -0.32,
+      0.22
+    ],
+    "rotation": [
+      -12,
+      25,
+      -22
+    ]
+  },
+  "slide": {
+    "position": [
+      -0.12,
+      -0.24,
+      0.12
+    ],
+    "rotation": [
+      8,
+      -12,
+      24
+    ]
+  },
+  "bobStuds": [
+    0.075,
+    0.085,
+    0.035
+  ],
+  "bobRollDeg": 2.5,
+  "slideEyeDropMetres": 0.72,
+  "handSizeMetres": [
+    0.09,
+    0.1,
+    0.15
+  ],
+  "rightHandMetres": [
+    0,
+    -0.16,
+    0.11
+  ],
+  "leftHandMetres": [
+    -0.08,
+    -0.09,
+    -0.2
+  ],
+  "podSizeMetres": [
+    0.27,
+    0.085,
+    0.085
+  ],
+  "lidHingeMetres": [
+    0,
+    0.272,
+    0.05
+  ],
+  "lidOpenDegrees": -110,
+  "reload": [
+    {
+      "t": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "lid": 0,
+      "pod": [
+        -0.38,
+        -0.6,
+        0.05
+      ],
+      "podRotation": [
+        0,
+        0,
+        90
+      ],
+      "hand": [
+        -0.08,
+        -0.09,
+        -0.2
+      ],
+      "showPod": false
+    },
+    {
+      "t": 0.18,
+      "position": [
+        -0.4,
+        -0.05,
+        0.22
+      ],
+      "rotation": [
+        8,
+        -12,
+        28
+      ],
+      "lid": 0,
+      "pod": [
+        -0.38,
+        -0.6,
+        0.05
+      ],
+      "podRotation": [
+        0,
+        0,
+        90
+      ],
+      "hand": [
+        -0.04,
+        0.27,
+        -0.13
+      ],
+      "showPod": false
+    },
+    {
+      "t": 0.28,
+      "position": [
+        -0.4,
+        -0.05,
+        0.22
+      ],
+      "rotation": [
+        8,
+        -12,
+        28
+      ],
+      "lid": 1,
+      "pod": [
+        -0.3,
+        -0.35,
+        0.06
+      ],
+      "podRotation": [
+        0,
+        0,
+        90
+      ],
+      "hand": [
+        -0.3,
+        -0.35,
+        0.06
+      ],
+      "showPod": true
+    },
+    {
+      "t": 0.43,
+      "position": [
+        -0.4,
+        -0.05,
+        0.22
+      ],
+      "rotation": [
+        8,
+        -12,
+        28
+      ],
+      "lid": 1,
+      "pod": [
+        -0.12,
+        0.43,
+        -0.05
+      ],
+      "podRotation": [
+        0,
+        0,
+        140
+      ],
+      "hand": [
+        -0.145,
+        0.45,
+        -0.05
+      ],
+      "showPod": true
+    },
+    {
+      "t": 0.67,
+      "position": [
+        -0.4,
+        -0.05,
+        0.22
+      ],
+      "rotation": [
+        8,
+        -12,
+        28
+      ],
+      "lid": 1,
+      "pod": [
+        -0.12,
+        0.43,
+        -0.05
+      ],
+      "podRotation": [
+        0,
+        0,
+        140
+      ],
+      "hand": [
+        -0.145,
+        0.45,
+        -0.05
+      ],
+      "showPod": true
+    },
+    {
+      "t": 0.79,
+      "position": [
+        -0.4,
+        -0.05,
+        0.22
+      ],
+      "rotation": [
+        8,
+        -12,
+        28
+      ],
+      "lid": 1,
+      "pod": [
+        -0.38,
+        -0.6,
+        0.05
+      ],
+      "podRotation": [
+        0,
+        0,
+        90
+      ],
+      "hand": [
+        -0.38,
+        -0.6,
+        0.05
+      ],
+      "showPod": false
+    },
+    {
+      "t": 0.88,
+      "position": [
+        -0.24,
+        -0.03,
+        0.12
+      ],
+      "rotation": [
+        4,
+        -6,
+        16
+      ],
+      "lid": 0,
+      "pod": [
+        -0.38,
+        -0.6,
+        0.05
+      ],
+      "podRotation": [
+        0,
+        0,
+        90
+      ],
+      "hand": [
+        -0.04,
+        0.27,
+        -0.13
+      ],
+      "showPod": false
+    },
+    {
+      "t": 1,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "lid": 0,
+      "pod": [
+        -0.38,
+        -0.6,
+        0.05
+      ],
+      "podRotation": [
+        0,
+        0,
+        90
+      ],
+      "hand": [
+        -0.08,
+        -0.09,
+        -0.2
+      ],
+      "showPod": false
+    }
+  ],
+  "sleeveDiameterMetres": 0.095,
+  "forearmOffsetMetres": [
+    0,
+    -0.22,
+    0.32
+  ]
+}

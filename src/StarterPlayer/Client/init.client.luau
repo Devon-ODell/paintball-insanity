@@ -393,7 +393,12 @@ RunService.RenderStepped:Connect(function(dt)
 		courseElapsed += dt
 		Hud.setClock(courseElapsed, coursePar)
 	end
-	ViewMarker.step(camera, phase == "live" or phase == "warmup")
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local velocity = if root and root:IsA("BasePart") then root.AssemblyLinearVelocity else Vector3.zero
+	local speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
+	ViewMarker.step(camera, not respawning and (phase == "live" or phase == "warmup"), dt,
+		Input.state(), speed, markerState.reloadUntil, markerState.reloadSeconds)
 	markerState:update(os.clock())
 	sustainedSpread = math.max(0, sustainedSpread - markerData.spreadDecayPerSecondDeg * dt)
 
