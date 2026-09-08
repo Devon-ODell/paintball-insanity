@@ -780,7 +780,7 @@
     "roofRiseMetres": 4.5,
     "baySpacingMetres": 5.75,
     "name": "PARSONS FIELD SUPPLY",
-    "subtitle": "MARKERS \u00b7 PAINT & AIR \u00b7 PROTECTIVE \u00b7 EST. 1998",
+    "subtitle": "MARKERS · PAINT & AIR · PROTECTIVE · EST. 1998",
     "doorWidthMetres": 9,
     "_roof": "The ridge runs along X, so the door wall is an eave and the short walls are the gables. eaveOverhangMetres lengthens the sheets past the wall so water runs off rather than down the panels.",
     "eaveOverhangMetres": 0.55,
@@ -1245,7 +1245,7 @@
       "id": "speedball",
       "map": "speedball",
       "displayName": "TOURNAMENT FIELD",
-      "subtitle": "SPEEDBALL \u00b7 5 ROUNDS \u00b7 CLOSE",
+      "subtitle": "SPEEDBALL · 5 ROUNDS · CLOSE",
       "position": [
         -58,
         0,
@@ -1263,7 +1263,7 @@
       "id": "urban",
       "map": "urban",
       "displayName": "THE BACK LOT",
-      "subtitle": "URBAN \u00b7 5 ROUNDS \u00b7 MID",
+      "subtitle": "URBAN · 5 ROUNDS · MID",
       "position": [
         60,
         0,
@@ -1281,7 +1281,7 @@
       "id": "woods",
       "map": "woods",
       "displayName": "THE BACK FORTY",
-      "subtitle": "WOODS \u00b7 5 ROUNDS \u00b7 LONG",
+      "subtitle": "WOODS · 5 ROUNDS · LONG",
       "position": [
         -52,
         0,
@@ -1299,7 +1299,7 @@
       "id": "dustline",
       "map": "dustline",
       "displayName": "THE YARD",
-      "subtitle": "DUSTLINE \u00b7 5 ROUNDS \u00b7 CLOSE-MID",
+      "subtitle": "DUSTLINE · 5 ROUNDS · CLOSE-MID",
       "position": [
         56,
         0,
@@ -1317,7 +1317,7 @@
       "id": "holdfast",
       "map": "holdfast",
       "displayName": "THE VALLEY",
-      "subtitle": "HOLDFAST \u00b7 CAPTURE THE FLAG \u00b7 LONG",
+      "subtitle": "HOLDFAST · CAPTURE THE FLAG · LONG",
       "position": [
         -60,
         0,
@@ -1335,7 +1335,7 @@
       "id": "range",
       "map": "range",
       "displayName": "THE RANGE",
-      "subtitle": "FREE \u00b7 NO PAYOUT \u00b7 ALWAYS OPEN",
+      "subtitle": "FREE · NO PAYOUT · ALWAYS OPEN",
       "position": [
         26,
         0,
@@ -1754,7 +1754,7 @@
       {
         "id": "saplings",
         "kind": "sapling",
-        "count": 170,
+        "count": 140,
         "innerRadiusMetres": 26,
         "outerRadiusMetres": 88,
         "heightMetres": [
@@ -1764,12 +1764,13 @@
         "colorKeys": [
           "canopyLight",
           "fern"
-        ]
+        ],
+        "nearPathsMetres": 22
       },
       {
         "id": "ferns",
         "kind": "fern",
-        "count": 420,
+        "count": 300,
         "innerRadiusMetres": 16,
         "outerRadiusMetres": 92,
         "heightMetres": [
@@ -1779,7 +1780,8 @@
         "colorKeys": [
           "fern",
           "canopyDeep"
-        ]
+        ],
+        "nearPathsMetres": 18
       },
       {
         "id": "rocks",
@@ -1794,7 +1796,8 @@
         "colorKeys": [
           "rock",
           "mossRock"
-        ]
+        ],
+        "nearPathsMetres": 26
       },
       {
         "id": "logs",
@@ -1809,7 +1812,8 @@
         "colorKeys": [
           "trunk",
           "trunkPale"
-        ]
+        ],
+        "nearPathsMetres": 30
       },
       {
         "id": "cattails",
@@ -1837,7 +1841,7 @@
         "id": "mossPatches",
         "kind": "moss",
         "_note": "Domed, never flat. A flat patch on the floor is coplanar with it and shimmers; see tools/check-zfight.",
-        "count": 260,
+        "count": 190,
         "innerRadiusMetres": 12,
         "outerRadiusMetres": 94,
         "heightMetres": [
@@ -1848,11 +1852,13 @@
           "moss",
           "mossPale",
           "fern"
-        ]
+        ],
+        "nearPathsMetres": 16
       }
     ],
     "_placementAttempts": "Rejection-sampling budget per instance. Raised from the old hardcoded 12 because footprint padding rejects far more candidates, and a low cap under-places silently.",
-    "placementAttempts": 40
+    "placementAttempts": 40,
+    "_nearPathsMetres": "Ground detail is scattered only within this many metres of a trail or an open area, rather than out to the hub's edge. A fern is three parts and stands half a metre tall: four hundred of them spread to the treeline spent most of that budget behind trees nobody walks through. The counts came down with the area, and the result is denser cover where it reads and none where it does not. Trees have no band -- a treeline is precisely the thing you see from a distance."
   },
   "_surfaceLayerMetres": "Ground surfaces overlap on purpose -- trail bends, trail junctions, zone patches -- and two faces on the same plane shimmer as the camera moves. These are the offsets that keep every overlapping surface on its own plane. Millimetres: enough for the depth buffer, invisible to walk on. tools/check-zfight verifies it.",
   "surfaceLayerMetres": {

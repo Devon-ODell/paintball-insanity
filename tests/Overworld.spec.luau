@@ -346,6 +346,51 @@ return function()
 		end)
 	end)
 
+	describe("foliage visibility bands", function()
+		local ctx = scatterContext()
+
+		it("bands the ground detail and leaves the trees unbanded", function()
+			--[[
+				A treeline is precisely the thing you see from a distance, so trees
+				must scatter to the edge. Ferns are three parts and half a metre
+				tall; theirs is the budget worth concentrating.
+			]]
+			local banded, unbanded = {}, {}
+			for _, layer in ipairs(hub().scatter.layers) do
+				if layer.nearPathsMetres then
+					banded[layer.id] = layer.nearPathsMetres
+				else
+					unbanded[layer.id] = true
+				end
+			end
+			expect(banded.ferns).to.be.ok()
+			expect(banded.mossPatches).to.be.ok()
+			expect(unbanded.canopy).to.equal(true)
+			expect(unbanded.broadleaves).to.equal(true)
+		end)
+
+		it("puts the banded layers within reach of somewhere the player walks", function()
+			for _, trail in ipairs(hub().trails) do
+				local first = trail.points[1]
+				local at = Vector3.new(first[1], 0, first[3])
+				for _, layer in ipairs(hub().scatter.layers) do
+					if layer.nearPathsMetres then
+						expect(Foliage.nearPlayerPaths(at, ctx, layer.nearPathsMetres)).to.equal(true)
+					end
+				end
+			end
+		end)
+
+		it("excludes the deep treeline from every band", function()
+			local deep = Vector3.new(88, 0, 88)
+			for _, layer in ipairs(hub().scatter.layers) do
+				if layer.nearPathsMetres then
+					expect(Foliage.nearPlayerPaths(deep, ctx, layer.nearPathsMetres)).to.equal(false)
+				end
+			end
+		end)
+	end)
+
 	describe("foliage footprints", function()
 		local ctx = scatterContext()
 

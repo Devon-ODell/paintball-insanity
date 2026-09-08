@@ -201,12 +201,10 @@ end
 	sixty-three to eighty-two metres out, so a centre-radius rule strips the
 	shadows from precisely the trees a player is standing among at the Back Forty.
 ]]
-function Foliage.castsShadowAt(point: Vector3, ctx: ScatterContext): boolean
-	local radius = Config.get("presentation").foliage.shadowRadiusMetres
-	if type(radius) ~= "number" then
-		-- No radius authored: keep every shadow, which is the old behaviour.
-		return true
-	end
+--- Is `point` within `radius` of a trail centreline, or of one of the open areas
+--- the scatter carves out? Those exclusions exist because the player goes there,
+--- which makes them the right list to measure "near the player" against.
+function Foliage.nearPlayerPaths(point: Vector3, ctx: ScatterContext, radius: number): boolean
 	for _, exclusion in ipairs(ctx.exclusions) do
 		if insideExclusion(point, exclusion, radius) then
 			return true
@@ -224,6 +222,15 @@ function Foliage.castsShadowAt(point: Vector3, ctx: ScatterContext): boolean
 		end
 	end
 	return false
+end
+
+function Foliage.castsShadowAt(point: Vector3, ctx: ScatterContext): boolean
+	local radius = Config.get("presentation").foliage.shadowRadiusMetres
+	if type(radius) ~= "number" then
+		-- No radius authored: keep every shadow, which is the old behaviour.
+		return true
+	end
+	return Foliage.nearPlayerPaths(point, ctx, radius)
 end
 
 function Foliage.canPlace(point: Vector3, ctx: ScatterContext, footprint: number?, ignoresExclusions: boolean?): boolean
@@ -570,7 +577,20 @@ function Foliage.scatterLayer(layer: any, ctx: ScatterContext, rng: Rng.Generato
 			local outer = layer.outerRadiusMetres
 			local radius = math.sqrt(inner * inner + u * (outer * outer - inner * inner))
 			local candidate = centre + Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
-			if Foliage.canPlace(candidate, ctx, footprint, layer.ignoresExclusions) then
+			--[[
+				`nearPathsMetres` concentrates a layer where it can be seen.
+
+				Ferns are three parts each and stand half a metre tall; four
+				hundred of them scattered to the hub's edge spends most of its
+				budget on ground cover behind a treeline nobody walks through. The
+				same count packed into the band along the trails is denser where
+				it reads and absent where it does not -- better looking and
+				cheaper at once. Layers without the field scatter everywhere, as
+				trees must, because a treeline IS the thing seen from a distance.
+			]]
+			local visible = layer.nearPathsMetres == nil
+				or Foliage.nearPlayerPaths(candidate, ctx, layer.nearPathsMetres)
+			if visible and Foliage.canPlace(candidate, ctx, footprint, layer.ignoresExclusions) then
 				point = candidate
 				break
 			end
