@@ -922,3 +922,47 @@ measurement at once and is still deliberately deferred.
   refs to properties the stub only handled for `Parent`.
 - **Two specs pinned the squad size at 6** rather than reading it, so doubling
   the squad failed them. They read `match.squadSize` now.
+
+
+## What MaxPlayers = 2 and a second mode quietly broke
+
+Shipping the Shoothouse turned up three things that were correct while the game
+had one mode and one seat, and became wrong the moment it had two.
+
+- **The leaderboard was keyed by map alone.** A course time would have
+  overwritten the gauntlet personal best on the same field and outranked every
+  entry on it -- a course is 28 defenders and a gauntlet is 40 over five rounds,
+  so ranking them together is meaningless. Submissions carry their mode now and
+  gauntlet keeps the bare map key, so no stored time is orphaned.
+- **Bootstrap kicked the second player.** `soloPlayer` admitted exactly one and
+  kicked anyone else with "this demo is a solo field", which was right at
+  MaxPlayers = 1 and made MaxPlayers = 2 meaningless. The seat limit now comes
+  from the largest `maxPlayers` among integrated modes.
+- **Two matches would have collided.** Every map is built at the WORLD ORIGIN and
+  `Hub.park` is global, so two concurrent matches would stack two maps on top of
+  each other and park the hub out from under whoever stayed behind. That was
+  unreachable at one seat. `requestMatch` refuses a second concurrent match until
+  the shared-match plumbing exists.
+
+## Speedball fields twelve from six spawns
+
+Every other field has twelve authored bot spawns. Speedball has six, and this is
+the most-measured decision in the project.
+
+Twelve spawn points were tried twice. Extras placed in the defenders' half put
+four of them at midfield and inverted how the map punishes trading, from +3.33
+to -0.83 -- trading became *safer* than holding an angle on the one field built
+as a knife fight. Extras crowded into the back third fixed that (+2.50) and
+flattened the top of the difficulty curve instead: semipro cost 7.50 deaths
+against pro's 6.17, so pro came out easier than semipro.
+
+With the six authored spawns, both hold: trading +0.67, and deaths rise 1.00 /
+2.33 / 6.50 / 8.17 across the tiers. `MatchService` fans reused spawns onto a
+small deterministic ring so a twelve-bot round does not open as a pile of bodies
+at six points, and `run-live-checks` asserts per round that no two bots start
+within a metre of each other.
+
+The invariant that used to be asserted -- one authored spawn per bot -- was
+therefore wrong, and it was asserted in three places (`Maps.spec`, `Sim.spec`,
+`ship-check`). All three now assert what actually has to hold: at least six
+spawns, and no more than two bots to a spawn.

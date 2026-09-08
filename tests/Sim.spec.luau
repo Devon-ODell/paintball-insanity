@@ -270,10 +270,22 @@ return function()
 			end
 		end)
 
-		it("never asks for more bots than the map has spawns for", function()
+		it("never asks a field for more than two bots to a spawn", function()
+			--[[
+				This used to demand one authored spawn per bot. Speedball cannot
+				satisfy that without damaging the field -- twelve spawn points
+				were tried twice and one arrangement inverted how it punishes
+				trading while the other flattened the top of the difficulty
+				curve. It fields twelve from six and MatchService fans the reuses
+				onto a small ring. Two to a spawn is the real ceiling; that they
+				actually end up apart is asserted in tools/run-live-checks,
+				measured from the positions MatchService produced.
+			]]
 			for _, round in ipairs(RoundSchedule.all("pro")) do
 				for _, mapName in ipairs(Config.mapNames()) do
-					expect(round.botCount <= #Config.map(mapName).botSpawns).to.equal(true)
+					local spawns = #Config.map(mapName).botSpawns
+					expect(spawns >= 6).to.equal(true)
+					expect(round.botCount <= spawns * 2).to.equal(true)
 				end
 			end
 		end)
