@@ -38,12 +38,33 @@ local combatVisible = true
 local bannerGeneration, chatterGeneration, hitGeneration = 0, 0, 0
 local currentMarker = ""
 local lastHopper = ""
+local lastCrosshairPixels = -1
 
 local function centered(label: TextLabel)
 	label.TextXAlignment = Enum.TextXAlignment.Center
 end
 
 function Hud.build()
+	--[[
+		Make a rebuild actually rebuild.
+
+		Two things survived it. The previous ScreenGuis stayed parented -- and
+		both are ResetOnSpawn = false, so a second build stacked a frozen HUD
+		permanently over the live one. And three readouts skip the write when
+		the value has not changed, so those caches described widgets that no
+		longer existed and left the fresh ones on their placeholder text and
+		their 6px ring until the underlying value happened to move.
+
+		build is called once per session today, so neither was reachable. Both
+		are two lines, and a check now asserts a rebuild comes back clean.
+	]]
+	if gui then
+		gui:Destroy()
+	end
+	if aimGui then
+		aimGui:Destroy()
+	end
+	lastHopper, rangeText, lastCrosshairPixels = "", "", -1
 	gui = Instance.new("ScreenGui")
 	gui.Name, gui.ResetOnSpawn = "LiveRoundHud", false
 	gui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
@@ -147,7 +168,22 @@ end
 
 function Hud.setSpread(spreadDeg: number, fieldOfViewDeg: number, viewportHeight: number)
 	local radius = math.clamp(spreadDeg * viewportHeight / fieldOfViewDeg, cfg.crosshairMinimumRadiusPixels, cfg.crosshairMaximumRadiusPixels)
-	crosshair.Size = UDim2.fromOffset(radius * 2, radius * 2)
+	--[[
+		The last per-frame writer that was not cached; setHopper and setRange
+		both already are.
+
+		The crosshair is sized in OFFSET, which is whole pixels -- so a spread
+		change too small to move it a pixel cannot be seen, and rounding first
+		is what makes the comparison meaningful rather than a float that almost
+		never repeats. While the player holds an angle and spread has decayed to
+		base, this is the same two numbers sixty times a second.
+	]]
+	local pixels = math.round(radius * 2)
+	if pixels == lastCrosshairPixels then
+		return
+	end
+	lastCrosshairPixels = pixels
+	crosshair.Size = UDim2.fromOffset(pixels, pixels)
 end
 
 function Hud.setRange(distanceMetres: number?, spec: Ballistics.Spec, fieldOfViewDeg: number, viewportHeight: number)

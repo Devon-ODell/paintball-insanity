@@ -18,6 +18,8 @@ local function signal()
 		fire = function(_, ...) for _, fn in ipairs(callbacks) do fn(...) end end }
 end
 local wrappers = {}
+--- raw instance -> how many property writes it has taken.
+local writeCount = {}
 --- proxy -> raw, so any Ref property can be unwrapped on assignment.
 local raws = {}
 local wrap
@@ -59,7 +61,18 @@ wrap = function(raw)
 			which are Refs like Parent is -- assigning a proxy to one failed with
 			"Failed to convert from 'table' into 'Ref'".
 		]]
-		__newindex = function(_, key, value) raw[key] = if raws[value] then raws[value] else value end,
+		--[[
+			Counting every property write is what makes "this readout caches"
+			testable. A cache is a claim about WRITES, and the widget cannot
+			show you one: Size is quantised to whole offset pixels and Text is
+			the same string either way, so reading the widget back passes
+			whether the cache works or not. Three readouts skip the write when
+			nothing changed and none of that was ever asserted.
+		]]
+		__newindex = function(_, key, value)
+			writeCount[raw] = (writeCount[raw] or 0) + 1
+			raw[key] = if raws[value] then raws[value] else value
+		end,
 	})
 	wrappers[raw] = proxy
 	raws[proxy] = raw
@@ -119,6 +132,10 @@ loaded = function(target)
 	cache[target.name] = result
 	return result
 end
+--- Property writes taken by the instance behind a proxy.
+local function writesTo(proxy: any): number
+	return writeCount[raws[proxy]] or 0
+end
 local Hud = loaded(client.Hud)
 Hud.build()
 Hud.setMarker("mechanical")
@@ -144,6 +161,50 @@ do
 	Hud.setRange(nil, rangeSpec, 80, 900)
 	Hud.setRange(nil, rangeSpec, 80, 900)
 
+	--[[
+		The crosshair is written every frame from RenderStepped, so it is the
+		one that matters most. Counted rather than read back: Size is quantised
+		to whole offset pixels, so an uncached write and a cached skip leave the
+		widget looking identical.
+	]]
+	local aim = playerGui:FindFirstChild("LiveRoundAim")
+	local ring = assert(aim and aim:FindFirstChild("SpreadRing"), "no crosshair to measure")
+	Hud.setSpread(0.8, 80, 900)
+	local before = writesTo(ring)
+	Hud.setSpread(0.8, 80, 900)
+	assert(writesTo(ring) == before, "the crosshair rewrote itself for an unchanged spread")
+	Hud.setSpread(0.2, 80, 900)
+	assert(writesTo(ring) > before, "a real spread change did not resize the crosshair")
+
+	--[[
+		The other two per-frame readouts. setHopper has cached since it was
+		written and setRange was fixed to; neither claim was ever checked, and
+		both are invisible in the widget because the cached and uncached paths
+		assign the same string.
+	]]
+	local hopper = assert(playerGui:FindFirstChild("LiveRoundHud"), "no HUD")
+	local range = assert(playerGui:FindFirstChild("LiveRoundAim"):FindFirstChild("Range"), "no range readout")
+	Hud.setRange(25, rangeSpec, 80, 900)
+	local rangeWrites = writesTo(range)
+	Hud.setRange(25, rangeSpec, 80, 900)
+	assert(writesTo(range) == rangeWrites, "the range readout rewrote the same string")
+	Hud.setRange(60, rangeSpec, 80, 900)
+	assert(writesTo(range) > rangeWrites, "a real range change did not reach the readout")
+
+	local function findDeep(root, name)
+		for _, d in ipairs(root:GetDescendants()) do
+			if d.Name == name then return d end
+		end
+		return nil
+	end
+	local hopperLabel = assert(findDeep(hopper, "Hopper"), "no hopper readout")
+	Hud.setHopper(18, 180, false)
+	local hopperWrites = writesTo(hopperLabel)
+	Hud.setHopper(18, 180, false)
+	assert(writesTo(hopperLabel) == hopperWrites, "the hopper readout rewrote the same string")
+	Hud.setHopper(17, 180, false)
+	assert(writesTo(hopperLabel) > hopperWrites, "a real hopper change did not reach the readout")
+
 	Hud.setStage("Their Half", 3, 4)
 	local par = { gold = 145, silver = 195, bronze = 270 }
 	Hud.setClock(0, par)
@@ -156,6 +217,22 @@ do
 	Hud.setClock(90, par, true)
 	Hud.setClock(nil, nil)
 end
+--[[
+	Rebuilding must hand back a clean HUD. Every cached readout skips the write
+	when the value has not changed, and build creates new labels and a new
+	crosshair -- so a cache surviving a rebuild would leave the fresh widgets
+	showing their placeholders until the underlying value happened to move.
+]]
+do
+	Hud.build()
+	local aim = playerGui:FindFirstChild("LiveRoundAim")
+	local ring = assert(aim and aim:FindFirstChild("SpreadRing"), "no crosshair after rebuild")
+	local fresh = ring.Size
+	Hud.setSpread(0.8, 80, 900)
+	assert(ring.Size ~= fresh, "the crosshair cache survived a rebuild and left the new ring at its placeholder size")
+	Hud.setHopper(18, 180, false)
+	Hud.setMarker("mechanical")
+end
 Hud.setCurrency(99999999)
 Hud.setDeaths(2, 0.63)
 Hud.flashHit(true)
@@ -163,6 +240,7 @@ Hud.setCamoProgress({ headshots = 12, nextUnlock = { displayName = "Tide Shift",
 Hud.showChatter({ speaker = "Crew", text = "See you on the field." })
 Hud.showSummary({ cleared = true, map = "speedball", marker = "mechanical", eliminations = 20, deaths = 1, headshots = 5, hitRate = 0.5, scores = {}, prescription = { line = "Track your target through the turn.", drill = "tracking" } }, { total = 420, deathPenalty = 0.8, roundsCleared = 5, roundsPlayed = 5 }, function() return { ok = true } end, function() return { ok = true } end)
 print("HUD construction / combat / summary methods passed against Roblox property database")
+print("Per-frame readouts verified by counted property writes: crosshair, range and hopper all skip an unchanged value, and a rebuild comes back clean")
 local ShopUi = loaded(client.ShopUi)
 latestSnapshot = { ok = true, balance = 0, freeMode = true, categories = { "markers", "paintColors" }, catalogue = {
 	markers = { { id = "mechanical", displayName = "Ridgeline Mech", cost = 0, owned = false } },
