@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Config = require(ReplicatedStorage.Shared.Config)
+local Tint = require(ReplicatedStorage.Shared.Tint)
 
 local Foliage = {}
 
@@ -63,12 +64,30 @@ local MOSS_WIDTH_FACTOR = 2.6
 local CATTAIL_JITTER_METRES = 0.2
 local CATTAIL_MAX_TILT_DEGREES = 9
 
+-- Slate is a cut, layered stone -- a paving material. A boulder in woodland is
+-- Rock, which is the same call the hub palette now makes.
 local MATERIALS: { [string]: Enum.Material } = {
 	trunk = Enum.Material.Wood,
 	canopy = Enum.Material.LeafyGrass,
-	fern = Enum.Material.Grass,
-	rock = Enum.Material.Slate,
+	fern = Enum.Material.LeafyGrass,
+	rock = Enum.Material.Rock,
 }
+
+--[[
+	Per-plant colour variation. See Shared/Tint for why this is driven by the
+	plant's position rather than by the placement generator -- adding it did not
+	move a single tree.
+
+	One tint per PLANT, not per part: a tree whose every tier rolled its own
+	brightness sparkles instead of reading as one canopy.
+]]
+local function tinted(palette: Palette, at: Vector3): Palette
+	local cfg = Config.get("presentation").foliage.tint
+	if not cfg then
+		return palette
+	end
+	return Tint.palette(palette, at, cfg.valueSpread, cfg.warmthSpread)
+end
 
 local function part(name: string, parent: Instance): Part
 	local p = Instance.new("Part")
@@ -601,7 +620,7 @@ function Foliage.scatterLayer(layer: any, ctx: ScatterContext, rng: Rng.Generato
 
 		local model = Instance.new("Model")
 		model.Name = layer.id
-		builder(model, rng, layer, ctx.palette)
+		builder(model, rng, layer, tinted(ctx.palette, point :: Vector3))
 
 		--[[
 			Shadows are decided per INSTANCE, after the builder has decided them

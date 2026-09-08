@@ -111,7 +111,12 @@
     },
     "shadowRadiusMetres": 12,
     "_shadowRadiusMetres": "How close a plant has to be to somewhere the player can stand before it casts a shadow, measured to a trail centreline or to one of the open areas the scatter carves out -- the clearing, the barn apron, the pond, the west corridor and every gate. shadowParts decides WHICH parts of a plant can cast; this decides whether that plant is near enough to be worth it.",
-    "_shadowRadiusMeasured": "Hub shadow casters against this radius, from tools/foliage-report: no radius 5784, 26 m 4870, 20 m 4005, 16 m 3154, 12 m 1993, 10 m 1411. Twelve is a 66% cut for shadows that were landing behind other trees. Raise it if the treeline reads flat; lower it if the hub is heavy on a low-end device. Delete the field and every plant casts, which is what it did before."
+    "_shadowRadiusMeasured": "Hub shadow casters against this radius, from tools/foliage-report: no radius 5784, 26 m 4870, 20 m 4005, 16 m 3154, 12 m 1993, 10 m 1411. Twelve is a 66% cut for shadows that were landing behind other trees. Raise it if the treeline reads flat; lower it if the hub is heavy on a low-end device. Delete the field and every plant casts, which is what it did before.",
+    "_tint": "Per-plant colour variation. Roblox has no vertex colour and no per-instance material, so 340 canopies drawn from three palette entries read as a repeating texture -- because they are one. value shifts brightness, warmth shifts red against blue, and both are driven by the plant's own position rather than the placement generator, so adding this did not move a single tree.",
+    "tint": {
+      "valueSpread": 0.16,
+      "warmthSpread": 0.07
+    }
   },
   "treeLine": {
     "insetOutsideBoundsMetres": 8,
@@ -199,5 +204,14 @@
       "shadowCasters": 0
     },
     "_squad": "A full squad at pro. shadowCasters is budgeted at ZERO on purpose: nothing on a character casts, because twelve moving bodies at 72 parts each would be the most expensive shadows in the game and a moving caster costs far more than a static one. If this ever goes above zero, someone added a hat that casts."
+  },
+  "_geometryTint": "Per-piece colour variation for map geometry, applied by Match/WorldBuilder. Kept smaller than the foliage spread: a treeline wants obvious variety, but a bunker is a gameplay landmark and a player has to recognise it as the same bunker from across the field.",
+  "geometryTint": {
+    "valueSpread": 0.07,
+    "warmthSpread": 0.035
+  },
+  "bunkerTint": {
+    "valueSpread": 0.045,
+    "warmthSpread": 0.02
   }
 }

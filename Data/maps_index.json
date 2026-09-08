@@ -10,31 +10,127 @@
   ],
   "palette": {
     "_note": "Saturated, strong silhouettes, 0-255 RGB. Surfaces are no longer uniformly flat plastic -- WorldBuilder maps each key to a material (grass, sand, concrete, timber, slate) and inflatables get a vinyl sheen -- but the rule that cover reads darker than ground, and bots read as the most saturated thing on screen, still governs every value here.",
-    "ground": [96, 128, 82],
-    "groundAlt": [78, 108, 68],
-    "sand": [206, 178, 124],
-    "asphalt": [74, 76, 82],
-    "concrete": [162, 160, 152],
-    "bunkerA": [232, 86, 70],
-    "bunkerB": [42, 128, 190],
-    "bunkerC": [246, 190, 62],
-    "netting": [38, 44, 52],
-    "timber": [124, 84, 50],
-    "timberDark": [88, 58, 36],
-    "foliage": [60, 116, 70],
-    "foliageDeep": [40, 86, 54],
-    "rock": [118, 120, 118],
-    "rust": [154, 86, 52],
-    "enemyJersey": [222, 60, 140],
-    "playerJersey": [60, 210, 200],
-    "mossRock": [88, 106, 84],
-    "sheetMetal": [150, 156, 160],
-    "brush": [74, 98, 58],
-    "stone": [132, 130, 122],
-    "containerRust": [124, 72, 46],
+    "ground": [
+      96,
+      128,
+      82
+    ],
+    "groundAlt": [
+      78,
+      108,
+      68
+    ],
+    "sand": [
+      206,
+      178,
+      124
+    ],
+    "asphalt": [
+      74,
+      76,
+      82
+    ],
+    "concrete": [
+      162,
+      160,
+      152
+    ],
+    "bunkerA": [
+      232,
+      86,
+      70
+    ],
+    "bunkerB": [
+      42,
+      128,
+      190
+    ],
+    "bunkerC": [
+      246,
+      190,
+      62
+    ],
+    "netting": [
+      38,
+      44,
+      52
+    ],
+    "timber": [
+      124,
+      84,
+      50
+    ],
+    "timberDark": [
+      88,
+      58,
+      36
+    ],
+    "foliage": [
+      60,
+      116,
+      70
+    ],
+    "foliageDeep": [
+      40,
+      86,
+      54
+    ],
+    "rock": [
+      118,
+      120,
+      118
+    ],
+    "rust": [
+      154,
+      86,
+      52
+    ],
+    "enemyJersey": [
+      222,
+      60,
+      140
+    ],
+    "playerJersey": [
+      60,
+      210,
+      200
+    ],
+    "mossRock": [
+      88,
+      106,
+      84
+    ],
+    "sheetMetal": [
+      150,
+      156,
+      160
+    ],
+    "brush": [
+      74,
+      98,
+      58
+    ],
+    "stone": [
+      132,
+      130,
+      122
+    ],
+    "containerRust": [
+      124,
+      72,
+      46
+    ],
     "_undeclared": "brush, stone, containerRust, gravel and trail were all in use and declared nowhere, so each fell back to concrete grey. brush/stone/containerRust were thickets, outcrops and a rusted screen on Woods, Holdfast and Dustline -- treelines rendering as pale grey boxes. gravel and trail are the ground markings on all four of those fields: every freight lane, market street and valley path was being drawn in concrete instead of gravel or dirt. WorldBuilder passes those two their own material explicitly, so only the colour was wrong -- which is exactly why nothing caught it.",
-    "gravel": [146, 142, 132],
-    "trail": [128, 106, 78]
+    "gravel": [
+      146,
+      142,
+      132
+    ],
+    "trail": [
+      128,
+      106,
+      78
+    ]
   },
   "assembly": {
     "_note": "Nav edges are not hand-listed. The builder links any two nav nodes within navLinkRadiusMetres whose connecting segment is not blocked by a cover volume. Hand-authoring 80 edges per map is how maps stop getting edited.",
@@ -52,17 +148,41 @@
       "shadowSoftness": 0.28,
       "environmentDiffuseScale": 0.55,
       "environmentSpecularScale": 0.35,
-      "ambient": [58, 62, 72],
-      "outdoorAmbient": [104, 112, 128],
-      "colorShiftTop": [24, 20, 12],
-      "colorShiftBottom": [10, 12, 18],
+      "ambient": [
+        58,
+        62,
+        72
+      ],
+      "outdoorAmbient": [
+        104,
+        112,
+        128
+      ],
+      "colorShiftTop": [
+        24,
+        20,
+        12
+      ],
+      "colorShiftBottom": [
+        10,
+        12,
+        18
+      ],
       "clockTime": 15.2,
       "geographicLatitude": 28,
       "atmosphere": {
         "density": 0.32,
         "offset": 0.15,
-        "color": [199, 205, 212],
-        "decay": [104, 112, 124],
+        "color": [
+          199,
+          205,
+          212
+        ],
+        "decay": [
+          104,
+          112,
+          124
+        ],
         "glare": 0.28,
         "haze": 1.1
       },
@@ -79,13 +199,28 @@
         "brightness": 0.0,
         "contrast": 0.11,
         "saturation": 0.14,
-        "tintColor": [255, 252, 246]
+        "tintColor": [
+          255,
+          252,
+          246
+        ]
       },
       "depthOfField": {
         "farIntensity": 0,
         "focusDistance": 55,
         "inFocusRadius": 90,
         "nearIntensity": 0
+      },
+      "_clouds": "Volumetric clouds, parented to Terrain by Match/Atmosphere. Cover is how much of the sky is occupied, density how solid each cloud reads. This is the largest change available to a Roblox sky without uploading an asset -- without it the sky is a flat gradient with no scale and no source for the light. Per-field, because an overcast deck over Speedball greys out the only palette that field has.",
+      "clouds": {
+        "enabled": true,
+        "cover": 0.52,
+        "density": 0.62,
+        "color": [
+          255,
+          253,
+          249
+        ]
       }
     },
     "perMap": {
@@ -94,13 +229,25 @@
         "brightness": 2.7,
         "clockTime": 12.6,
         "shadowSoftness": 0.18,
-        "ambient": [62, 64, 70],
-        "outdoorAmbient": [116, 120, 128],
+        "ambient": [
+          62,
+          64,
+          70
+        ],
+        "outdoorAmbient": [
+          116,
+          120,
+          128
+        ],
         "atmosphere": {
           "density": 0.16,
           "haze": 0.5,
           "glare": 0.2,
-          "color": [214, 216, 220]
+          "color": [
+            214,
+            216,
+            220
+          ]
         },
         "sunRays": {
           "intensity": 0.04
@@ -108,7 +255,21 @@
         "colorCorrection": {
           "saturation": 0.18,
           "contrast": 0.13,
-          "tintColor": [255, 253, 250]
+          "tintColor": [
+            255,
+            253,
+            250
+          ]
+        },
+        "clouds": {
+          "enabled": true,
+          "cover": 0.34,
+          "density": 0.5,
+          "color": [
+            255,
+            255,
+            252
+          ]
         }
       },
       "dustline": {
@@ -116,15 +277,35 @@
         "brightness": 2.5,
         "clockTime": 16.8,
         "shadowSoftness": 0.3,
-        "ambient": [70, 62, 52],
-        "outdoorAmbient": [132, 116, 92],
-        "colorShiftTop": [46, 32, 14],
+        "ambient": [
+          70,
+          62,
+          52
+        ],
+        "outdoorAmbient": [
+          132,
+          116,
+          92
+        ],
+        "colorShiftTop": [
+          46,
+          32,
+          14
+        ],
         "atmosphere": {
           "density": 0.3,
           "haze": 0.95,
           "glare": 0.44,
-          "color": [224, 206, 172],
-          "decay": [136, 116, 86]
+          "color": [
+            224,
+            206,
+            172
+          ],
+          "decay": [
+            136,
+            116,
+            86
+          ]
         },
         "sunRays": {
           "intensity": 0.13,
@@ -133,7 +314,21 @@
         "colorCorrection": {
           "saturation": 0.1,
           "contrast": 0.1,
-          "tintColor": [255, 246, 230]
+          "tintColor": [
+            255,
+            246,
+            230
+          ]
+        },
+        "clouds": {
+          "enabled": true,
+          "cover": 0.26,
+          "density": 0.42,
+          "color": [
+            255,
+            246,
+            232
+          ]
         }
       },
       "urban": {
@@ -141,18 +336,44 @@
         "brightness": 2.6,
         "clockTime": 10.2,
         "shadowSoftness": 0.24,
-        "ambient": [56, 60, 70],
-        "outdoorAmbient": [108, 116, 132],
+        "ambient": [
+          56,
+          60,
+          70
+        ],
+        "outdoorAmbient": [
+          108,
+          116,
+          132
+        ],
         "atmosphere": {
           "density": 0.24,
           "haze": 1.1,
           "glare": 0.24,
-          "color": [204, 210, 218]
+          "color": [
+            204,
+            210,
+            218
+          ]
         },
         "colorCorrection": {
           "saturation": 0.12,
           "contrast": 0.12,
-          "tintColor": [250, 251, 255]
+          "tintColor": [
+            250,
+            251,
+            255
+          ]
+        },
+        "clouds": {
+          "enabled": true,
+          "cover": 0.66,
+          "density": 0.72,
+          "color": [
+            242,
+            244,
+            248
+          ]
         }
       },
       "woods": {
@@ -160,16 +381,40 @@
         "brightness": 2.42,
         "clockTime": 8.6,
         "shadowSoftness": 0.4,
-        "ambient": [54, 66, 56],
-        "outdoorAmbient": [104, 120, 102],
-        "colorShiftTop": [26, 30, 14],
-        "colorShiftBottom": [12, 18, 14],
+        "ambient": [
+          54,
+          66,
+          56
+        ],
+        "outdoorAmbient": [
+          104,
+          120,
+          102
+        ],
+        "colorShiftTop": [
+          26,
+          30,
+          14
+        ],
+        "colorShiftBottom": [
+          12,
+          18,
+          14
+        ],
         "atmosphere": {
           "density": 0.46,
           "haze": 1.8,
           "glare": 0.3,
-          "color": [198, 210, 196],
-          "decay": [96, 116, 98]
+          "color": [
+            198,
+            210,
+            196
+          ],
+          "decay": [
+            96,
+            116,
+            98
+          ]
         },
         "sunRays": {
           "intensity": 0.17,
@@ -178,7 +423,21 @@
         "colorCorrection": {
           "saturation": 0.15,
           "contrast": 0.1,
-          "tintColor": [248, 255, 246]
+          "tintColor": [
+            248,
+            255,
+            246
+          ]
+        },
+        "clouds": {
+          "enabled": true,
+          "cover": 0.74,
+          "density": 0.8,
+          "color": [
+            236,
+            240,
+            245
+          ]
         }
       },
       "holdfast": {
@@ -186,16 +445,40 @@
         "brightness": 2.36,
         "clockTime": 17.9,
         "shadowSoftness": 0.44,
-        "ambient": [52, 58, 68],
-        "outdoorAmbient": [100, 110, 126],
-        "colorShiftTop": [24, 26, 34],
-        "colorShiftBottom": [10, 14, 22],
+        "ambient": [
+          52,
+          58,
+          68
+        ],
+        "outdoorAmbient": [
+          100,
+          110,
+          126
+        ],
+        "colorShiftTop": [
+          24,
+          26,
+          34
+        ],
+        "colorShiftBottom": [
+          10,
+          14,
+          22
+        ],
         "atmosphere": {
           "density": 0.52,
           "haze": 2.1,
           "glare": 0.26,
-          "color": [196, 204, 216],
-          "decay": [92, 104, 124]
+          "color": [
+            196,
+            204,
+            216
+          ],
+          "decay": [
+            92,
+            104,
+            124
+          ]
         },
         "sunRays": {
           "intensity": 0.1,
@@ -204,7 +487,21 @@
         "colorCorrection": {
           "saturation": 0.09,
           "contrast": 0.13,
-          "tintColor": [244, 248, 255]
+          "tintColor": [
+            244,
+            248,
+            255
+          ]
+        },
+        "clouds": {
+          "enabled": true,
+          "cover": 0.62,
+          "density": 0.78,
+          "color": [
+            255,
+            244,
+            234
+          ]
         }
       }
     },

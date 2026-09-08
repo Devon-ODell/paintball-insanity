@@ -342,7 +342,17 @@
       "inFocusRadius": 70,
       "nearIntensity": 0
     },
-    "_bloom": "Bloom at 0.45 over a 1.5 threshold made every pale surface glow, not just the lights. Inside the barn that blew the bay signs -- 7.4 m of near-white board -- to flat white and took their text with them, so the counters could not be read from the floor. Raising the threshold keeps the glow on things that are actually emitting."
+    "_bloom": "Bloom at 0.45 over a 1.5 threshold made every pale surface glow, not just the lights. Inside the barn that blew the bay signs -- 7.4 m of near-white board -- to flat white and took their text with them, so the counters could not be read from the floor. Raising the threshold keeps the glow on things that are actually emitting.",
+    "clouds": {
+      "enabled": true,
+      "cover": 0.58,
+      "density": 0.7,
+      "color": [
+        255,
+        251,
+        244
+      ]
+    }
   },
   "ambience": {
     "_note": "Sound ids are left null on purpose -- audio assets are uploaded per experience and hardcoding someone else's id is how you ship a broken build. The emitters are placed and configured; drop ids into Data/overworld.json and they play.",
@@ -781,7 +791,7 @@
     "roofRiseMetres": 4.5,
     "baySpacingMetres": 5.75,
     "name": "PARSONS FIELD SUPPLY",
-    "subtitle": "MARKERS · PAINT & AIR · PROTECTIVE · EST. 1998",
+    "subtitle": "MARKERS \u00b7 PAINT & AIR \u00b7 PROTECTIVE \u00b7 EST. 1998",
     "doorWidthMetres": 9,
     "_roof": "The ridge runs along X, so the door wall is an eave and the short walls are the gables. eaveOverhangMetres lengthens the sheets past the wall so water runs off rather than down the panels.",
     "eaveOverhangMetres": 0.55,
@@ -1247,7 +1257,7 @@
       "id": "speedball",
       "map": "speedball",
       "displayName": "TOURNAMENT FIELD",
-      "subtitle": "SPEEDBALL · 5 ROUNDS · CLOSE",
+      "subtitle": "SPEEDBALL \u00b7 5 ROUNDS \u00b7 CLOSE",
       "position": [
         -58,
         0,
@@ -1265,7 +1275,7 @@
       "id": "urban",
       "map": "urban",
       "displayName": "THE BACK LOT",
-      "subtitle": "URBAN · 5 ROUNDS · MID",
+      "subtitle": "URBAN \u00b7 5 ROUNDS \u00b7 MID",
       "position": [
         60,
         0,
@@ -1283,7 +1293,7 @@
       "id": "woods",
       "map": "woods",
       "displayName": "THE BACK FORTY",
-      "subtitle": "WOODS · 5 ROUNDS · LONG",
+      "subtitle": "WOODS \u00b7 5 ROUNDS \u00b7 LONG",
       "position": [
         -52,
         0,
@@ -1301,7 +1311,7 @@
       "id": "dustline",
       "map": "dustline",
       "displayName": "THE YARD",
-      "subtitle": "DUSTLINE · 5 ROUNDS · CLOSE-MID",
+      "subtitle": "DUSTLINE \u00b7 5 ROUNDS \u00b7 CLOSE-MID",
       "position": [
         56,
         0,
@@ -1319,7 +1329,7 @@
       "id": "holdfast",
       "map": "holdfast",
       "displayName": "THE VALLEY",
-      "subtitle": "HOLDFAST · CAPTURE THE FLAG · LONG",
+      "subtitle": "HOLDFAST \u00b7 CAPTURE THE FLAG \u00b7 LONG",
       "position": [
         -60,
         0,
@@ -1337,7 +1347,7 @@
       "id": "range",
       "map": "range",
       "displayName": "THE RANGE",
-      "subtitle": "FREE · NO PAYOUT · ALWAYS OPEN",
+      "subtitle": "FREE \u00b7 NO PAYOUT \u00b7 ALWAYS OPEN",
       "position": [
         26,
         0,

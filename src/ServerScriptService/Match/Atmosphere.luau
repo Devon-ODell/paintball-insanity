@@ -18,6 +18,7 @@
 ]]
 
 local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Log = require(ReplicatedStorage.Shared.Log)
@@ -76,6 +77,79 @@ local function ensure(className: string, name: string): Instance
 	created:SetAttribute(MANAGED_NAME, true)
 	created.Parent = Lighting
 	return created
+end
+
+--[[
+	Volumetric clouds.
+
+	The single largest thing that can be done to a Roblox sky without uploading
+	an asset. Without them the sky above a field is a flat gradient, and a flat
+	gradient is what makes an outdoor scene read as a screensaver -- there is
+	nothing up there to give the light a source or the horizon a scale.
+
+	Clouds must be parented to Terrain, not Lighting, which is the one thing
+	about them that is easy to get wrong; a Clouds under Lighting silently does
+	nothing. Guarded because the headless harness has no Terrain and this is a
+	look, never a requirement.
+]]
+local function applyClouds(cfg: any)
+	local ok = pcall(function()
+		local terrain = Workspace:FindFirstChildOfClass("Terrain")
+		if not terrain then
+			return
+		end
+		local existing = terrain:FindFirstChild("LiveRoundClouds")
+		if cfg == nil or cfg.enabled == false then
+			if existing then
+				existing:Destroy()
+			end
+			return
+		end
+		local clouds = existing
+		if not clouds or not clouds:IsA("Clouds") then
+			if clouds then
+				clouds:Destroy()
+			end
+			clouds = Instance.new("Clouds")
+			clouds.Name = "LiveRoundClouds"
+			clouds:SetAttribute(MANAGED_NAME, true)
+			clouds.Parent = terrain
+		end
+		local sky = clouds :: Clouds
+		sky.Cover = cfg.cover
+		sky.Density = cfg.density
+		sky.Color = colour(cfg.color) :: Color3
+		sky.Enabled = true
+	end)
+	if not ok then
+		log.info("clouds unavailable in this context; sky falls back to the gradient")
+	end
+end
+
+--[[
+	Opts into the current material set once.
+
+	Roblox shipped a second generation of built-in materials with real physical
+	response -- concrete that is rough, metal that is not plastic with a shine.
+	An experience created before that keeps the legacy set unless it asks, and
+	every surface in this game is a built-in material, so this is the cheapest
+	visual upgrade available: no asset, no part, no tuning.
+]]
+local materialsUpgraded = false
+local function useCurrentMaterials()
+	if materialsUpgraded then
+		return
+	end
+	materialsUpgraded = true
+	local ok = pcall(function()
+		local service = game:GetService("MaterialService")
+		if service.Use2022Materials ~= true then
+			service.Use2022Materials = true
+		end
+	end)
+	if not ok then
+		log.info("material generation is not settable here; using whatever the place has")
+	end
 end
 
 --[[
@@ -155,6 +229,9 @@ function Atmosphere.applyProfile(cfg: any, label: string)
 	dof.NearIntensity = cfg.depthOfField.nearIntensity or 0
 	dof.Enabled = dof.FarIntensity > 0 or dof.NearIntensity > 0
 
+	applyClouds(cfg.clouds)
+	useCurrentMaterials()
+
 	log.info(`applied look for {label}`)
 end
 
@@ -165,6 +242,15 @@ function Atmosphere.clear()
 			child:Destroy()
 		end
 	end
+	-- Clouds live under Terrain rather than Lighting, so the loop above cannot
+	-- see them and a torn-down map would keep the previous field's sky.
+	pcall(function()
+		local terrain = Workspace:FindFirstChildOfClass("Terrain")
+		local clouds = terrain and terrain:FindFirstChild("LiveRoundClouds")
+		if clouds then
+			clouds:Destroy()
+		end
+	end)
 end
 
 return Atmosphere

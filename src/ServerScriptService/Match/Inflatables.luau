@@ -29,6 +29,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Units = require(ReplicatedStorage.Shared.Units)
+local Tint = require(ReplicatedStorage.Shared.Tint)
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local tuning = Config.get("inflatables")
@@ -350,7 +351,21 @@ function Inflatables.build(shape: string, cf: CFrame, sizeStuds: Vector3, colour
 	local model = Instance.new("Model")
 	model.Name = name
 
-	builder(model, sizeStuds, colour)
+	--[[
+		A bunker is a landmark, so this variation is deliberately the smallest in
+		the game -- smaller than map geometry, far smaller than foliage. A player
+		has to recognise the same dorito from across the field and call it out;
+		what they must not see is eleven bunkers in three exact plastics, which is
+		what a tournament field looked like before. Enough to read as separate
+		inflatables that have sat in the sun for different lengths of time, not
+		enough to change what anything is. See Shared/Tint.
+	]]
+	local variation = Config.get("presentation").bunkerTint
+	local tone = if variation
+		then Tint.at(colour, cf.Position, variation.valueSpread, variation.warmthSpread)
+		else colour
+
+	builder(model, sizeStuds, tone)
 
 	-- Position every visual part relative to the bunker's own frame.
 	for _, child in ipairs(model:GetChildren()) do

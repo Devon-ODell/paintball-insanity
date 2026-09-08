@@ -235,12 +235,32 @@ function Wardrobe.body(parent: Instance, options: BodyOptions): Body
 	local parts: { BasePart } = {}
 	local byName: { [string]: BasePart } = {}
 
+	--[[
+		Cloth is cloth and skin is not.
+
+		The whole figure used to be SmoothPlastic, which is the one material with
+		no surface response at all -- twelve bots on a field, every one of them
+		reading as moulded plastic. A jersey and a pair of trousers are Fabric,
+		which under the current material generation has a real weave and takes
+		the light differently as a bot turns; hands and head stay smooth, because
+		a fabric face is worse than a plastic one.
+
+		Named rather than positional so a new limb picks the right material by
+		being called what it is.
+	]]
+	local function materialFor(name: string): Enum.Material
+		if name == "Head" or string.find(name, "Hand") then
+			return Enum.Material.SmoothPlastic
+		end
+		return Enum.Material.Fabric
+	end
+
 	local function piece(name: string, size: Vector3, colour: Color3, ball: boolean?): BasePart
 		local part = Instance.new("Part")
 		part.Name = name
 		part.Size = Units.vectorToStuds(size)
 		part.Color = colour
-		part.Material = Enum.Material.SmoothPlastic
+		part.Material = materialFor(name)
 		part.Anchored = true
 		part.CanCollide = false
 		part.CanQuery = false
