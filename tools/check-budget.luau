@@ -98,6 +98,31 @@ for _, name in ipairs(Config.mapNames()) do
 	report("alpha", transparent, budgets.map.transparentSquareMetres, "m2")
 end
 
+--[[
+	The whole hub, not just its plants.
+
+	The foliage figure alone was answering the wrong question: a player standing
+	on The Landing is also looking at the barn, the gates, the notice board and
+	six people. Measured separately from the foliage so a regression can be
+	attributed to one or the other.
+]]
+do
+	local hub = roblox.Instance.new("Folder")
+	local ok = pcall(function()
+		env.require(env.Server.World.Overworld).build(hub)
+	end)
+	if ok then
+		local parts, shadows, transparent = measure(hub)
+		print("\n\27[1mthe landing (everything)\27[0m")
+		report("parts", parts, budgets.hub.parts, "")
+		report("shadows", shadows, budgets.hub.shadowCasters, "")
+		report("alpha", transparent, budgets.hub.transparentSquareMetres, "m2")
+	else
+		print("\n\27[1mthe landing (everything)\27[0m\n  \27[31mFAIL\27[0m the hub did not build")
+		problems += 1
+	end
+end
+
 do
 	local cfg = Config.get("overworld")
 	local palette = {}

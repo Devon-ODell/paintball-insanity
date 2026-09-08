@@ -120,6 +120,11 @@
       "parts": 8000,
       "shadowCasters": 2300
     },
-    "_measured": "Where the headroom went, at the time these were set: parts Holdfast 506, Speedball and Woods 383; shadow casters Speedball 184, Holdfast 90; transparent area Speedball 1246 m2 (its netting, which has to be see-through), Holdfast 900, Woods 308. Hub foliage 7579 parts and 2012 casters. Woods and Holdfast were at 5729 and 13220 m2 of alpha before their boundary walls stopped being semi-transparent."
+    "_measured": "Where the headroom went, at the time these were set. Fields: parts Holdfast 506, Speedball and Woods 383; shadow casters Speedball 184, Holdfast 90; transparent area Speedball 1246 m2 (its netting, which has to be see-through), Holdfast 900, Woods 308. Woods and Holdfast were at 5729 and 13220 m2 of alpha before their boundary walls stopped being semi-transparent.\n\nThe Landing: 8615 parts and 2548 casters for everything, of which 7579 parts and 2012 casters are foliage -- so the barn, gates, board and six people are about a thousand parts and five hundred casters, all of them close to the player and worth it. Hub foliage was casting 5784 before shadowRadiusMetres.",
+    "hub": {
+      "parts": 9200,
+      "shadowCasters": 2900,
+      "transparentSquareMetres": 2400
+    }
   }
 }
