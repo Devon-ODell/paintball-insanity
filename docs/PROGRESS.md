@@ -999,3 +999,68 @@ are sane. Every par in `Data/maps/*.json` is derived from geometry -- span over
 2.4 m/s plus 28 defenders times a per-defender figure scaled by the engagement
 band -- and no human and no policy has ever run one. They are a defensible first
 guess and nothing more.
+
+
+## The render pass (2026-09-08)
+
+Measurement first, because the totals were answering the wrong questions.
+`tools/check-budget` builds every field and the hub and checks three numbers
+against budgets in `presentation.json`, and `tools/foliage-report` now breaks the
+hub down per layer. The three are not interchangeable: a shadow caster is worth
+far more than a part under Future lighting with global shadows, and
+semi-transparent geometry cannot early-out of the depth test, so its cost is
+AREA on screen rather than part count.
+
+**The hub was casting 5784 shadows.** Decided purely by part name, so a pine
+eighty metres into the treeline cost exactly as much as one on the trail.
+Shadows are now also gated per instance on proximity to somewhere a player can
+stand -- a trail centreline, or one of the open areas the scatter already carves
+out. Distance from the hub centre would have been simpler and wrong: the gates
+sit 63 to 82 m out, so a centre-radius rule strips the shadows from precisely the
+trees a player is standing among at the Back Forty. **5784 to 1993.**
+
+**The largest render cost in the game was not the trees.** Holdfast's boundary
+walls were 13220 square metres of semi-transparent surface and Woods' were 5729
+-- four full-height slabs per field at 0.2 and 0.25 alpha. They were the worst of
+both worlds: at 75-80% opacity you could barely see the treeline they were being
+transparent for, and you paid the overdraw anyway. Both are opaque now, and
+because the treelines are 24 m and 31 m against walls of 14 m and 20 m, ten and
+eleven metres of spire still stand above the wall against the sky. **Woods to 308
+m2, Holdfast to 900.** Speedball keeps 1246 -- that is its netting, and netting
+has to be see-through. The hub's remaining 1745 m2 is the pond and the creek.
+
+**Ground detail moved to where it can be seen.** Ferns are three parts each and
+stand half a metre tall, and four hundred of them were scattered to the hub's
+edge. Ground layers carry a `nearPathsMetres` band now, with counts brought down
+to match the smaller area: denser cover where it reads, none where it does not,
+8069 parts to 7579. Trees are deliberately unbanded -- a treeline is precisely
+the thing you see from a distance.
+
+**What was NOT done, and why.** Distant conifers were not put on an LOD. Dropping
+them from seven tiers to four saves about 13% of the hub and risks exactly the
+"trees are blobs" read this project already rebuilt the hub once to fix. That is
+a bad trade for a silhouette change nobody here can look at.
+
+### Graphics
+
+- **Every field has its own hour.** All five were rendering under one profile --
+  the same 15:20 sun, the same haze -- so five places with five themes read as one
+  place with five layouts. `maps_index` had a `perMap` block for exactly this and
+  it was empty. Two rules constrain it and both are specced: brightness stays
+  between 2.3 and 2.8, because a bot has to read as the most saturated thing on
+  screen and a dim field breaks that before it looks moody; and haze scales with
+  the field's own engagement band. That second spec caught its own commit's first
+  draft, which gave the 18 m freight yard more haze than the 27 m market quarter.
+  Depth of field stays off everywhere -- far blur costs you the target you were
+  about to shoot.
+- **The field borders got the trees the hub already had.** Two spheres on a stick
+  became a stepped spire of stacked cylinder discs, the same silhouette the hub's
+  conifers use, authored in `presentation.treeLine` as data. Costs parts and no
+  shadows, since border scenery never casts.
+- **Five palette keys were undeclared and silently falling back to concrete.**
+  `brush`, `stone` and `containerRust` were drawing Woods' and Holdfast's
+  thickets and outcrops as pale grey boxes; `gravel` and `trail` were drawing
+  every freight lane, market street and valley path in concrete. An undeclared key
+  does not fail -- it falls back and keeps building. `MapsSpec` now walks every
+  field's geometry, terrain, ground, walls and ground markings and names any
+  colour the palette does not declare.

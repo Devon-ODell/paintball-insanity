@@ -1,6 +1,6 @@
 # HANDOFF — The Shoothouse is wired, and what it cost to find out
 
-Branch: `shoothouse-wiring`, off `a61fe64`. Nothing pushed.
+Branch: `shoothouse-wiring`, off `a61fe64`, pushed to origin.
 
 Read `docs/PROGRESS.md` for the long version and `docs/PUBLISH_READINESS.md` for
 the release state. This is the short one.
@@ -44,6 +44,8 @@ lune run tools/map-validate         # nav graphs, buried nodes
 lune run tools/check-zfight         # shimmering surfaces
 lune run tools/probe-trading        # ~10 min, all five fields
 lune run tools/probe-difficulty-curve speedball
+lune run tools/check-budget         # parts, shadow casters, transparent m2
+lune run tools/foliage-report       # the hub, per layer
 ```
 
 ---
@@ -97,6 +99,33 @@ stack two maps and park the hub out from under whoever stayed behind.
    marked `integrated: false` and refused by name, and `ship-check` will not let
    an unintegrated mode into the release catalogue. Wire one properly or leave
    them alone.
+
+---
+
+## The render pass
+
+Measured, not guessed — `tools/check-budget` builds every field and the hub and
+checks parts, shadow casters and semi-transparent area against budgets in
+`presentation.json`.
+
+- **The hub was casting 5784 shadows**, decided purely by part name, so a pine
+  eighty metres into the treeline cost as much as one on the trail. Now gated on
+  proximity to somewhere a player can stand. **5784 → 1993.**
+- **The biggest render cost was not the trees.** Holdfast's boundary walls were
+  13220 m² of semi-transparent surface and Woods' 5729 — and at 0.2 alpha you
+  could barely see the treeline they were transparent *for*. Both opaque now;
+  the trees are taller than the walls, so ten metres of spire still stands above
+  them. **Woods → 308 m², Holdfast → 900.** Speedball's 1246 is its netting.
+- **Five palette keys were undeclared** and silently rendering as concrete: the
+  thickets and outcrops on Woods and Holdfast, and *every* trail, freight lane
+  and market street on four fields. A spec names any undeclared key now.
+- Each field has its own hour and its own air, constrained by two specced rules:
+  brightness stays 2.3–2.8 so bots stay the most saturated thing on screen, and
+  haze scales with the field's engagement band.
+
+I did **not** LOD the distant conifers. It saves ~13% of the hub and risks the
+"trees are blobs" read this project already rebuilt the hub once to fix — a bad
+trade for a silhouette change nobody here can look at. That one wants eyes on it.
 
 ---
 
