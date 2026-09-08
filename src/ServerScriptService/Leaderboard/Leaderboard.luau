@@ -39,6 +39,12 @@ export type Submission = {
 	marker: string,
 	--- Total seconds across all five rounds, from the server's round clock.
 	seconds: number,
+	--- Which mode produced this time. Boards are per map AND per mode: a
+	--- Shoothouse run is 28 defenders and a gauntlet is 40 over five rounds, so
+	--- ranking them against each other would let a course time erase a gauntlet
+	--- personal best on the same field. Absent means gauntlet, which is what
+	--- every stored time was before the Shoothouse existed.
+	mode: string?,
 	deaths: number,
 	eliminations: number,
 	roundsCleared: number,
@@ -158,8 +164,13 @@ local function suffix(): string
 	return ""
 end
 
-local function timesFor(map: string): OrderedDataStore
-	local key = map .. suffix()
+local function timesFor(map: string, mode: string?): OrderedDataStore
+	--[[
+		Gauntlet keeps the bare map key it has always had, so no stored time is
+		orphaned by this change. Every other mode gets its own board.
+	]]
+	local scope = if mode == nil or mode == "gauntlet" then map else `{map}_{mode}`
+	local key = scope .. suffix()
 	local existing = timesStores[key]
 	if existing then
 		return existing
@@ -205,7 +216,7 @@ function Leaderboard.submit(submission: Submission, expectedEliminations: number
 
 	local wrote = false
 	local success, err = pcall(function()
-		timesFor(submission.map):UpdateAsync(key, function(existing: number?)
+		timesFor(submission.map, submission.mode):UpdateAsync(key, function(existing: number?)
 			if existing and existing <= value then
 				return nil
 			end
@@ -245,13 +256,15 @@ end
 --- The top N for a map, newest data fetched fresh. Returns an empty list rather
 --- than erroring when the store is unreachable, so a DataStore outage makes the
 --- board go blank instead of taking the server down.
-function Leaderboard.top(map: string, count: number?): { Entry }
+--- `mode` defaults to gauntlet, which is the board every caller wanted before
+--- there was more than one.
+function Leaderboard.top(map: string, count: number?, mode: string?): { Entry }
 	local limit = count or Config.require("leaderboard", "display.topCount")
 
 	local rows: { any } = {}
 	local success, err = pcall(function()
 		-- Ascending: on a time board, small is good.
-		local pages = timesFor(map):GetSortedAsync(true, limit)
+		local pages = timesFor(map, mode):GetSortedAsync(true, limit)
 		for _, row in ipairs(pages:GetCurrentPage()) do
 			table.insert(rows, row)
 		end
@@ -297,10 +310,10 @@ function Leaderboard.top(map: string, count: number?): { Entry }
 end
 
 --- One player's best on a map, or nil if they have never cleared it.
-function Leaderboard.personalBest(userId: number, map: string): number?
+function Leaderboard.personalBest(userId: number, map: string, mode: string?): number?
 	local value: number? = nil
 	local success = pcall(function()
-		value = timesFor(map):GetAsync(tostring(userId)) :: number?
+		value = timesFor(map, mode):GetAsync(tostring(userId)) :: number?
 	end)
 	if not success or not value then
 		return nil

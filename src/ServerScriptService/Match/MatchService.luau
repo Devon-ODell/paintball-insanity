@@ -881,6 +881,10 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 					map = mapName,
 					tier = tier,
 					marker = markerName,
+					-- Its own board. A course is 28 defenders and a gauntlet is
+					-- 40 over five rounds; ranked together the course time would
+					-- erase the gauntlet best on the same field.
+					mode = if isCourse then "shoothouse" else "gauntlet",
 					-- A course is ranked on the time it is JUDGED on, which is the
 					-- clock plus ten seconds a death. Submitting the raw clock
 					-- would put a six-death run above a clean one.

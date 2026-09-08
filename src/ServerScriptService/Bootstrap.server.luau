@@ -17,6 +17,7 @@ local Remotes = require(ReplicatedStorage.Net.Remotes)
 local Server = script.Parent
 local MatchService = require(Server.Match.MatchService)
 local Course = require(Server.Match.Course)
+local CourseProgress = require(Server.Progression.CourseProgress)
 local Profile = require(Server.Economy.Profile)
 local Shop = require(Server.Economy.Shop)
 local Commerce = require(Server.Economy.Commerce)
@@ -420,6 +421,14 @@ Remotes.fn("RequestSessionState").OnServerInvoke = function(player: Player): any
 		phase = if MatchService.isActive(player) then "live" else "hub",
 		camoProgress = { headshots = rules.headshots(handle.data), unlockedCamos = {},
 			equippedCamo = handle.data.loadout.camo, nextUnlock = rules.nextUnlock(handle.data) },
+		--[[
+			Shoothouse records: best time, best medal, runs and clears per field,
+			with that field's par alongside so the client can show what is left to
+			beat. A timed mode whose times are written and never shown is a
+			leaderboard nobody can read, which is most of the reason to run one
+			twice.
+		]]
+		courses = CourseProgress.summary(handle.data),
 	}
 end
 
@@ -432,13 +441,36 @@ Remotes.fn("RequestRangeDrill").OnServerInvoke = function(_player: Player, _dril
 	return { ok = false, reason = "range is sim-only until the live binding ships" }
 end
 
-local soloPlayer: Player? = nil
+--[[
+	Seats on this server.
+
+	It used to admit exactly one player and kick the second, which was correct
+	while the place was MaxPlayers = 1 and made MaxPlayers = 2 meaningless. The
+	Shoothouse is authorized for two, so the seat exists.
+
+	What a second player CANNOT yet do is join a run: the shared-match plumbing
+	is unbuilt and requestMatch refuses a second concurrent match. So the second
+	seat is a real seat -- the hub, the barn, the shop, the notice board -- and
+	the field is one at a time until co-op lands. Kicking them would be worse
+	than telling them to wait, and letting them start their own match would build
+	a second map on top of the first.
+]]
+local function seatLimit(): number
+	local modes = Config.get("gamemodes").modes
+	local most = 1
+	for name, mode in pairs(modes) do
+		if mode.integrated == true and type(mode.maxPlayers) == "number" and mode.maxPlayers > most then
+			most = mode.maxPlayers
+		end
+	end
+	return most
+end
+
 local function onPlayer(player: Player)
-	if soloPlayer and soloPlayer ~= player then
-		player:Kick("This demo is a solo field. Start a separate play session.")
+	if #Players:GetPlayers() > seatLimit() then
+		player:Kick(`This field seats {seatLimit()}. Try another server.`)
 		return
 	end
-	soloPlayer = player
 	local handle = Profile.load(player.UserId)
 	if not handle then player:Kick("Your field pass could not load. Please rejoin."); return end
 	task.spawn(function() commerce:playerAdded(player) end)
@@ -463,7 +495,6 @@ end
 Players.PlayerRemoving:Connect(function(player)
 	starting[player] = nil
 	returnTokens[player] = nil
-	if soloPlayer == player then soloPlayer = nil end
 	MatchService.stop(player)
 	commerce:forget(player.UserId)
 	Profile.release(player.UserId)
