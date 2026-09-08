@@ -268,13 +268,26 @@ local function buildPresentation(mapData: any, root: Folder, geometry: Folder)
 			local trunk = scenery("TreeLineTrunk", Vector3.new(height, treeCfg.trunkDiameterMetres, treeCfg.trunkDiameterMetres),
 				CFrame.new(Units.vectorToStuds(Vector3.new(x, height / 2, z))) * CFrame.Angles(0, 0, math.pi / 2), "bark", Enum.Material.Wood)
 			trunk.Shape = Enum.PartType.Cylinder
-			for _, tier in ipairs({
-				{ treeCfg.crownWidthMetres, treeCfg.crownHeightFraction, treeCfg.crownPositionFraction },
-				{ treeCfg.crownWidthMetres * treeCfg.crownWidthFraction2, treeCfg.crownHeightFraction2, treeCfg.crownPositionFraction2 },
-			}) do
-				local crown = scenery("TreeLineCrown", Vector3.new(tier[1], height * tier[2], tier[1]),
-					CFrame.new(Units.vectorToStuds(Vector3.new(x, height * tier[3], z))), key, Enum.Material.Grass)
-				crown.Shape = Enum.PartType.Ball
+			--[[
+				A stepped spire, the same shape the hub's conifers use.
+
+				This was two spheres on a stick, which is the "trees are blobs"
+				read the hub was already rebuilt once to fix -- the fix just never
+				reached the field borders. Tiers are stacked cylinder discs
+				tapering to a tip, authored in presentation.treeLine so the
+				silhouette is data rather than two hardcoded fractions.
+
+				It costs parts and no shadows: scenery() never casts, and a
+				border treeline sits outside the bounds where its shadow would
+				fall off the field anyway.
+			]]
+			for index, tier in ipairs(treeCfg.crownTiers) do
+				local width = treeCfg.crownWidthMetres * tier.widthFraction
+				local crown = scenery("TreeLineCrown", Vector3.new(height * tier.thicknessFraction, width, width),
+					CFrame.new(Units.vectorToStuds(Vector3.new(x, height * tier.positionFraction, z)))
+						* CFrame.Angles(0, 0, math.pi / 2),
+					if index % 2 == 0 then "pineLight" else key, Enum.Material.Grass)
+				crown.Shape = Enum.PartType.Cylinder
 			end
 		end
 		for _, side in ipairs({ -1, 1 }) do

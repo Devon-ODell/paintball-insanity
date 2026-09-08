@@ -63,13 +63,41 @@
     "insetOutsideBoundsMetres": 8,
     "trunkDiameterMetres": 0.85,
     "crownWidthMetres": 8,
-    "crownHeightFraction": 0.42,
-    "crownHeightFraction2": 0.29,
-    "crownPositionFraction": 0.71,
-    "crownPositionFraction2": 0.91,
-    "crownWidthFraction2": 0.68,
     "heightVariationMetres": [0, 3, -1, 5, 1, -2, 4],
-    "offsetVariationMetres": [0, 3, 1, 5, 2]
+    "offsetVariationMetres": [0, 3, 1, 5, 2],
+    "crownTiers": [
+      {
+        "widthFraction": 1.0,
+        "thicknessFraction": 0.115,
+        "positionFraction": 0.4
+      },
+      {
+        "widthFraction": 0.85,
+        "thicknessFraction": 0.105,
+        "positionFraction": 0.52
+      },
+      {
+        "widthFraction": 0.7,
+        "thicknessFraction": 0.095,
+        "positionFraction": 0.63
+      },
+      {
+        "widthFraction": 0.54,
+        "thicknessFraction": 0.085,
+        "positionFraction": 0.73
+      },
+      {
+        "widthFraction": 0.38,
+        "thicknessFraction": 0.075,
+        "positionFraction": 0.82
+      },
+      {
+        "widthFraction": 0.22,
+        "thicknessFraction": 0.065,
+        "positionFraction": 0.9
+      }
+    ],
+    "_crownTiers": "A stepped spire: stacked cylinder discs tapering to a tip, the same silhouette the hub's conifers use. The border treeline was two spheres on a stick -- the 'trees are blobs' read the hub was rebuilt once to fix, where the fix never reached the field borders. widthFraction scales crownWidthMetres; thicknessFraction and positionFraction scale the tree's own height. Alternating tiers take the lighter pine tone, which gives the canopy depth without a second material. Costs parts and no shadows -- border scenery never casts."
   },
   "_fonts": "World signage, resolved by Shared/Fonts with a fallback. Every name here was checked against Enum.Font on 2026-09-07. Oswald is condensed and reads like a painted sign board; PermanentMarker is for the things a person actually wrote by hand -- chalk price lists, flyers on the corkboard; RobotoMono is for the leaderboard, because times only line up in columns if the digits are the same width.",
   "fonts": {
