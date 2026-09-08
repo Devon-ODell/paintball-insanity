@@ -29,7 +29,8 @@
   "walls": {
     "colorKey": "foliageDeep",
     "heightMetres": 14,
-    "transparency": 0.25
+    "transparency": 0,
+    "_transparency": "Opaque, not 0.25. The wall was semi-transparent so the border treeline could be glimpsed through it, which cost 5729 square metres of overdraw -- semi-transparent surfaces cannot early-out of the depth test -- and showed almost nothing at 75% opacity. The treeline is 24 m tall and this wall is 14 m, so ten metres of spire still stands above it against the sky, which is the part of a treeline you actually read. Opaque wall, visible trees, no overdraw."
   },
   "terrain": [
     {

@@ -30,7 +30,8 @@
   "walls": {
     "colorKey": "foliageDeep",
     "heightMetres": 20,
-    "transparency": 0.2
+    "transparency": 0,
+    "_transparency": "Opaque, not 0.2. Same reasoning as Woods and more of it: these walls were 13220 square metres of semi-transparent surface, by far the largest render cost on any field. The treeline is 31 m and this wall is 20 m, so eleven metres of spire stands above it."
   },
   "navLinkRadiusMetres": 34,
   "terrain": [

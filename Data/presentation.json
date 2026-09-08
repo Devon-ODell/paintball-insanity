@@ -106,5 +106,20 @@
     "handLettered": "PermanentMarker",
     "nameplate": "BuilderSansBold",
     "tabular": "RobotoMono"
+  },
+  "budget": {
+    "_comment": "Render budgets, checked by tools/check-budget. Deliberately a little above what is measured today: a tripwire for a regression, not a target to fill.",
+    "_shadowCasters": "Worth far more than a part under Future lighting with global shadows. The hub was casting 5784 of them, most landing behind other trees; presentation.foliage.shadowRadiusMetres is what brought it down.",
+    "_transparentSquareMetres": "Semi-transparent surfaces cannot early-out of the depth test, so a 132 x 20 m boundary wall at 0.2 alpha forces overdraw across much of the screen. Area is the cost, not part count.",
+    "map": {
+      "parts": 620,
+      "shadowCasters": 230,
+      "transparentSquareMetres": 1800
+    },
+    "hubFoliage": {
+      "parts": 8000,
+      "shadowCasters": 2300
+    },
+    "_measured": "Where the headroom went, at the time these were set: parts Holdfast 506, Speedball and Woods 383; shadow casters Speedball 184, Holdfast 90; transparent area Speedball 1246 m2 (its netting, which has to be see-through), Holdfast 900, Woods 308. Hub foliage 7579 parts and 2012 casters. Woods and Holdfast were at 5729 and 13220 m2 of alpha before their boundary walls stopped being semi-transparent."
   }
 }
