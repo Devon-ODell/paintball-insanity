@@ -293,6 +293,21 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 	phaseRevision += 1
 	phase = payload.phase
 	Hud.setPhase(phase)
+
+	--[[
+		The server's own words to the player.
+
+		Five places send a `notice` -- a drill's name as it starts, its score as
+		it ends, a refused drill, a Horde gate that is not open yet -- and the
+		client read none of them, so every one was sent and dropped. The Range in
+		particular finished a run and told the player nothing at all.
+
+		Shown before the phase branches below, because a notice that arrives with
+		a phase change is about the change.
+	]]
+	if type(payload.notice) == "string" and payload.notice ~= "" then
+		Hud.showBanner(payload.notice, payload.noticeSeconds)
+	end
 	if phase == "warmup" or phase == "shop" or phase == "hub" then
 		ShopUi.close()
 		Hud.hideSummary()

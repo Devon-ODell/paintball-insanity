@@ -121,8 +121,9 @@ round resets. Spread has an independent random stream, so adding a policy's
 random decisions cannot change the marker's random samples. Tests inspect the
 actual outgoing projectiles in both adapters.
 
-The Speedball semi-pro six-seed probe now gives **holding 5.00 versus rushing
-5.83 outs**. The previously tied trading acceptance passes without changing the
+**Stale as of 2026-09-08; re-measured below.** The Speedball semi-pro six-seed
+probe now gives **holding 6.50 versus rushing 7.17 outs**, not the 5.00 / 5.83
+recorded here. The ordering the acceptance depends on still holds. The previously tied trading acceptance passes without changing the
 maps, bot count or assertion. Pro aim error was adjusted from 0.7° to 0.6° to
 restore the difficulty ordering after adding the missing player spread:
 
@@ -140,6 +141,39 @@ New round-transition checks also found and fixed server hopper refill/reload
 state disagreeing with the client. Payout now requires the complete scheduled
 round count before awarding flawless bonuses or campaign clears. Quitting after
 one cleared round still pays its ordinary share, but does not unlock a chapter.
+
+### Two fields do not punish trading (2026-09-08)
+
+`tools/probe-trading` runs both policies -- one holding angles, one rushing into
+trades -- over six seeds on every field at semi-pro, round 3. BUILD_PLAN's
+premise is that a straight fight is unwinnable and the player must win angles,
+timing and isolation, so rushing must cost more deaths than holding. On two
+fields it does not:
+
+| Field | Holding | Trading | Gap | |
+| --- | ---: | ---: | ---: | --- |
+| Speedball | 6.50 | 7.17 | +0.67 | ok |
+| Dustline | 6.83 | 7.33 | +0.50 | ok |
+| Urban | 1.50 | 3.00 | +1.50 | ok |
+| **Woods** | **23.50** | **19.00** | **-4.50** | rushing is *better* |
+| **Holdfast** | **0.00** | **0.00** | **0.00** | nobody ever dies |
+
+Woods is inverted -- a player who rushes trades does measurably better than one
+who holds -- and 23.5 deaths in a single round is far outside anything the
+difficulty curve describes. Holdfast threatens the player not at all at this
+tier and round.
+
+**This is not caught by the suite.** `Sim.spec` asserts the trading ordering on
+Speedball only, which passes, so the other four fields are unasserted.
+`probe-trading` is a probe and is not in `tools/check-all`, deliberately: wiring
+it in as a gate today would fail the build on a balance problem rather than a
+regression. It should become a gate once Woods and Holdfast are fixed.
+
+Both predate the 2026-09-08 session and were confirmed identical before and
+after that day's `MarkerState` refactor, so neither is a regression from it.
+The most likely cause is the map rescaling recorded in CLAUDE.md -- Woods and
+Holdfast are at 88% -- which changed engagement distances without `probe-trading`
+being re-run for those two fields.
 
 ## Explicit technical limitations
 
