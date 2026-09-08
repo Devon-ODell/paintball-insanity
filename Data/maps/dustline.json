@@ -748,9 +748,33 @@
     },
     {
       "position": [
+        -12.5,
+        0,
+        7.04
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -35.2
+      ]
+    },
+    {
+      "position": [
         1.76,
         0,
         15.31
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -35.2
+      ]
+    },
+    {
+      "position": [
+        18.86,
+        0,
+        6.1
       ],
       "lookAt": [
         0.0,
@@ -772,9 +796,9 @@
     },
     {
       "position": [
-        -21.12,
+        -19.36,
         0,
-        16.9
+        10.56
       ],
       "lookAt": [
         0.0,
@@ -787,30 +811,6 @@
         8.84,
         0,
         12.32
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        -35.2
-      ]
-    },
-    {
-      "position": [
-        -5.28,
-        0,
-        27.46
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        -35.2
-      ]
-    },
-    {
-      "position": [
-        0.0,
-        0,
-        29.22
       ],
       "lookAt": [
         0.0,
@@ -1459,7 +1459,7 @@
   "_scale": "Field rescaled to 88% of its footprint on 2026-09-07. Positions AND plan-view sizes (X and Z) were scaled together; Y was left alone everywhere. Scaling positions without sizes was tried first and was wrong: it left cover at full size in a smaller field, which pushed nav nodes into buildings and disconnected the nav graphs on Dustline and Holdfast. Scaling both preserves every gap, every clearance and every ratio exactly, and only the world gets smaller. Y is untouched because heights carry tuned see-over relationships -- a snake tops at 1.30 m against a 1.32 m crouched eye line -- and shrinking them would retune the game without saying so.",
   "_navLinkRadius": "Held at its pre-rescale value rather than scaled with the field. This radius is a THREE-dimensional reach and the rescale was horizontal only, so a link between two nodes at different heights shrank by less than the radius would have -- which dropped tower and roof nodes out of reach and disconnected Holdfast's nav graph outright. Holding the reach is what compensates for the height axis not moving.",
   "course": {
-    "_comment": "The Shoothouse route through Dustline. Four stages, fourteen defenders, fought from the near end to the far. Rules live in Data/course.json.",
+    "_comment": "The Shoothouse route through Dustline. Four stages, fought from the near end to the far. Rules live in Data/course.json; regenerate with tools/map-author.py.",
     "_stagesAreAnchors": "Every stage is a slice of this map's own anchors list, sorted by depth. No cover moved and no positions were invented for this mode -- the field plays as itself, met in order.",
     "spanMetres": 64.4,
     "defenders": 28,
@@ -1468,7 +1468,7 @@
       "silver": 215,
       "bronze": 295
     },
-    "_parSeconds": "Derived, not hand-picked: gold = 64.4m span / 2.4 m/s + 28 defenders x 4.69s, where the per-defender figure scales with this map's 18.48 m engagement band. Silver is gold x 1.35, bronze x 1.85. See Data/course.json medals._derivation. First-pass estimate from geometry, never yet run by a human; retune against real times and keep the derivation, not the number.",
+    "_parSeconds": "Derived, not hand-picked: gold = 64.4 m span / 2.4 m/s + 28 defenders x 4.69 s, where the per-defender figure scales with this map's 18.48 m engagement band. Silver is gold x 1.35, bronze x 1.85. A first-pass estimate from geometry that no human has yet run; retune against real times and keep the derivation, not the number.",
     "stages": [
       {
         "id": "theNearYard",

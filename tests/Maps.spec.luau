@@ -82,12 +82,24 @@ return function()
 				end)
 
 				it("gives every bot a spawn", function()
-					-- The invariant is that nobody has to share. MatchService
-					-- cycles the spawn list modulo its length, so a squad larger
-					-- than the list starts two bots inside each other. Read the
-					-- squad size rather than hardcoding it, so this tracks the
-					-- tuning instead of pinning it.
-					expect(#world.botSpawns >= Config.require("match", "squadSize")).to.equal(true)
+					--[[
+						Enough authored spawns to open a round without the squad
+						piling up, but NOT necessarily one per bot. Speedball
+						fields twelve from six on purpose: every arrangement of
+						twelve spawn points measurably damaged the field, either
+						inverting how it punishes trading or flattening the
+						difficulty curve at the top tier. MatchService fans reused
+						spawns onto a ring rather than stacking them, and
+						run-live-checks asserts no two bots start on top of each
+						other.
+					]]
+					expect(#world.botSpawns >= 6).to.equal(true)
+					local seen = {}
+					for _, spawn in ipairs(world.botSpawns) do
+						local key = `{spawn.position[1]},{spawn.position[3]}`
+						expect(seen[key]).to.equal(nil)
+						seen[key] = true
+					end
 				end)
 
 				it("covers all three squad roles with its anchors", function()

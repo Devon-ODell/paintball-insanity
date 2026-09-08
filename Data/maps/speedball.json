@@ -355,78 +355,6 @@
         0,
         0
       ]
-    },
-    {
-      "position": [
-        -8,
-        0,
-        22
-      ],
-      "lookAt": [
-        0,
-        0,
-        -25.5
-      ]
-    },
-    {
-      "position": [
-        8,
-        0,
-        22
-      ],
-      "lookAt": [
-        0,
-        0,
-        -25.5
-      ]
-    },
-    {
-      "position": [
-        13.5,
-        0,
-        5
-      ],
-      "lookAt": [
-        0,
-        0,
-        -25.5
-      ]
-    },
-    {
-      "position": [
-        -13.5,
-        0,
-        6.55
-      ],
-      "lookAt": [
-        0,
-        0,
-        -25.5
-      ]
-    },
-    {
-      "position": [
-        0,
-        0,
-        5
-      ],
-      "lookAt": [
-        0,
-        0,
-        -25.5
-      ]
-    },
-    {
-      "position": [
-        -3.5,
-        0,
-        13.15
-      ],
-      "lookAt": [
-        0,
-        0,
-        -25.5
-      ]
     }
   ],
   "anchors": [
@@ -1035,9 +963,9 @@
   "_flow": "Left as authored. Two rounds of cover were added here to cut the 43.8m wire lane and both were reverted. The snake wire's length is intentional -- a snake tops out at 1.30m against a 1.32m eye line, and standing in it is meant to get you shot. Bunkers on the dorito wire opposite did cut the lane, and cost 68 percent of the map's engagements (60 -> 19) while moving the median 31.0 -> 31.1, i.e. not at all. Speedball's median is long for its 16m target, but sightline length is not what is causing that and adding cover is not the fix. Measured with tools/probe-map.",
   "_layoutNote": "The bunker COUNT and positions are the authored layout and are left alone. Three more bunkers were added here while changing the shape vocabulary and removed: they severed the nav graph and took the map from 60 sim engagements to 8. Adding cover to Speedball has now been tried twice and measured twice, and both times it cost fights and bought nothing. tools/probe-map is the check.",
   "_scale": "NOT rescaled, deliberately, while Dustline, Urban, Woods and Holdfast went to 88% on 2026-09-07. Speedball is already the smallest field and the only one built as a knife fight, and its core property -- that trading is punished harder than holding an angle -- does not survive being shrunk while the squad doubles. Measured with tools/probe-trading at squad size 12: full size gives +3.33 deaths against trading, 95% gives -1.67 (trading becomes SAFER, which inverts the map), and 88% gives +0.00 (the two policies stop differing at all). Shrink this field only with that probe open.",
-  "_botSpawns": "Twelve spawn points, not six: the squad size doubled. The original six are authored; the rest were taken from this map's own ground navNodes, in the enemy half, clear of cover and at least a few metres from every other spawn, so nobody starts the round inside a container or inside a team-mate.",
+  "_botSpawns": "SIX authored spawns, deliberately, while every other field has twelve. Speedball fields a squad of twelve from these six and MatchService fans the reuses onto a small ring rather than stacking bodies. Twelve spawn points were tried twice and both arrangements measurably damaged the field: extras in the defenders' half put four of them at midfield and inverted how the map punishes trading (+3.33 to -0.83), and extras crowded into the back third flattened the difficulty curve at the top instead (semipro 7.50 deaths against pro 6.17, so pro came out easier than semipro). With these six, both hold: trading +0.67 and the curve rises 1.00 / 2.33 / 6.50 / 8.17 across the tiers. Re-measure with tools/probe-trading and tools/probe-difficulty-curve before adding a seventh.",
   "course": {
-    "_comment": "The Shoothouse route through Speedball. Four stages, fourteen defenders, fought from the near end to the far. Rules live in Data/course.json.",
+    "_comment": "The Shoothouse route through Speedball. Four stages, fought from the near end to the far. Rules live in Data/course.json; regenerate with tools/map-author.py.",
     "_stagesAreAnchors": "Every stage is a slice of this map's own anchors list, sorted by depth. No cover moved and no positions were invented for this mode -- the field plays as itself, met in order.",
     "spanMetres": 49.5,
     "defenders": 28,
@@ -1046,7 +974,7 @@
       "silver": 195,
       "bronze": 270
     },
-    "_parSeconds": "Derived, not hand-picked: gold = 49.5m span / 2.4 m/s + 28 defenders x 4.5s, where the per-defender figure scales with this map's 16 m engagement band. Silver is gold x 1.35, bronze x 1.85. See Data/course.json medals._derivation. First-pass estimate from geometry, never yet run by a human; retune against real times and keep the derivation, not the number.",
+    "_parSeconds": "Derived, not hand-picked: gold = 49.5 m span / 2.4 m/s + 28 defenders x 4.5 s, where the per-defender figure scales with this map's 16 m engagement band. Silver is gold x 1.35, bronze x 1.85. A first-pass estimate from geometry that no human has yet run; retune against real times and keep the derivation, not the number.",
     "stages": [
       {
         "id": "offTheBreak",

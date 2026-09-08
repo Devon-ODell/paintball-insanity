@@ -782,9 +782,9 @@
     },
     {
       "position": [
-        -9.2,
+        1.76,
         0,
-        10.56
+        2.2
       ],
       "lookAt": [
         0.0,
@@ -796,7 +796,43 @@
       "position": [
         -17.6,
         0,
-        19.36
+        3.96
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
+      ]
+    },
+    {
+      "position": [
+        -30.14,
+        0,
+        -2.15
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
+      ]
+    },
+    {
+      "position": [
+        14.08,
+        0,
+        3.52
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
+      ]
+    },
+    {
+      "position": [
+        -3.52,
+        0,
+        15.84
       ],
       "lookAt": [
         0.0,
@@ -809,42 +845,6 @@
         7.04,
         0,
         17.16
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        -45.76
-      ]
-    },
-    {
-      "position": [
-        11.84,
-        0,
-        26.4
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        -45.76
-      ]
-    },
-    {
-      "position": [
-        -5.76,
-        0,
-        21.12
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        -45.76
-      ]
-    },
-    {
-      "position": [
-        31.68,
-        0,
-        17.6
       ],
       "lookAt": [
         0.0,
@@ -1501,7 +1501,7 @@
   "_verticality": "Two timber stands, not fire towers. Their decks were at 12.2m and 12.7m -- on a woods map that reads as climbing a building, and bots used to spawn up there. Both are stands on ground that is already high (hill_n tops at 4m, ridge_e at 5m), so the stand only ever needed to be a stand: decks now sit at 8.2m and 7.7m. hill_ne came down from 7m to 5.5m with them.",
   "_scale": "Field rescaled to 88% of its footprint on 2026-09-07. Positions AND plan-view sizes (X and Z) were scaled together; Y was left alone everywhere. Scaling positions without sizes was tried first and was wrong: it left cover at full size in a smaller field, which pushed nav nodes into buildings and disconnected the nav graphs on Dustline and Holdfast. Scaling both preserves every gap, every clearance and every ratio exactly, and only the world gets smaller. Y is untouched because heights carry tuned see-over relationships -- a snake tops at 1.30 m against a 1.32 m crouched eye line -- and shrinking them would retune the game without saying so.",
   "course": {
-    "_comment": "The Shoothouse route through Woods. Four stages, fourteen defenders, fought from the near end to the far. Rules live in Data/course.json.",
+    "_comment": "The Shoothouse route through Woods. Four stages, fought from the near end to the far. Rules live in Data/course.json; regenerate with tools/map-author.py.",
     "_stagesAreAnchors": "Every stage is a slice of this map's own anchors list, sorted by depth. No cover moved and no positions were invented for this mode -- the field plays as itself, met in order.",
     "spanMetres": 73.5,
     "defenders": 28,
@@ -1510,7 +1510,7 @@
       "silver": 275,
       "bronze": 380
     },
-    "_parSeconds": "Derived, not hand-picked: gold = 73.5m span / 2.4 m/s + 28 defenders x 6.2s, where the per-defender figure scales with this map's 38.72 m engagement band. Silver is gold x 1.35, bronze x 1.85. See Data/course.json medals._derivation. First-pass estimate from geometry, never yet run by a human; retune against real times and keep the derivation, not the number.",
+    "_parSeconds": "Derived, not hand-picked: gold = 73.5 m span / 2.4 m/s + 28 defenders x 6.2 s, where the per-defender figure scales with this map's 38.72 m engagement band. Silver is gold x 1.35, bronze x 1.85. A first-pass estimate from geometry that no human has yet run; retune against real times and keep the derivation, not the number.",
     "stages": [
       {
         "id": "theTreeline",

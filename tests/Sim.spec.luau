@@ -272,7 +272,9 @@ return function()
 
 		it("never asks for more bots than the map has spawns for", function()
 			for _, round in ipairs(RoundSchedule.all("pro")) do
-				expect(round.botCount <= 6).to.equal(true)
+				for _, mapName in ipairs(Config.mapNames()) do
+					expect(round.botCount <= #Config.map(mapName).botSpawns).to.equal(true)
+				end
 			end
 		end)
 	end)
