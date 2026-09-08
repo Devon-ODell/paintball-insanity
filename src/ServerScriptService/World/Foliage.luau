@@ -182,6 +182,50 @@ end
 	two-argument call still asks the old question -- "is this POINT clear?" --
 	while the scatter asks the one that matters: "does this THING fit?"
 ]]
+--[[
+	Does anything at `point` need to cast a shadow?
+
+	The hub scattered 1559 plants into 8069 parts, and 5784 of those parts were
+	shadow casters -- decided purely by part NAME, so a pine eighty metres into
+	the treeline cost exactly as much as one standing on the trail. Under Future
+	lighting with global shadows that is the most expensive thing in the game,
+	and almost all of it lands behind other trees where nobody can see it.
+
+	The test is proximity to somewhere a player can actually stand: within
+	`shadowRadiusMetres` of a trail centreline, or that far from one of the open
+	areas the scatter already carves out -- the clearing, the barn apron, the
+	pond, the west corridor, and every gate. Those exclusions exist because the
+	player goes there, which makes them exactly the right list to reuse.
+
+	Distance from the hub centre would have been simpler and wrong: the gates sit
+	sixty-three to eighty-two metres out, so a centre-radius rule strips the
+	shadows from precisely the trees a player is standing among at the Back Forty.
+]]
+function Foliage.castsShadowAt(point: Vector3, ctx: ScatterContext): boolean
+	local radius = Config.get("presentation").foliage.shadowRadiusMetres
+	if type(radius) ~= "number" then
+		-- No radius authored: keep every shadow, which is the old behaviour.
+		return true
+	end
+	for _, exclusion in ipairs(ctx.exclusions) do
+		if insideExclusion(point, exclusion, radius) then
+			return true
+		end
+	end
+	for _, trail in ipairs(ctx.trails) do
+		local reach = radius + trail.widthMetres / 2
+		local points = trail.points
+		for i = 1, #points - 1 do
+			local a = Vector3.new(points[i][1], 0, points[i][3])
+			local b = Vector3.new(points[i + 1][1], 0, points[i + 1][3])
+			if distanceToSegment(point, a, b) < reach then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function Foliage.canPlace(point: Vector3, ctx: ScatterContext, footprint: number?, ignoresExclusions: boolean?): boolean
 	local reach = footprint or 0
 	--[[
@@ -538,6 +582,20 @@ function Foliage.scatterLayer(layer: any, ctx: ScatterContext, rng: Rng.Generato
 		local model = Instance.new("Model")
 		model.Name = layer.id
 		builder(model, rng, layer, ctx.palette)
+
+		--[[
+			Shadows are decided per INSTANCE, after the builder has decided them
+			per part name. A part still has to be the kind of thing that casts --
+			a canopy tier, a trunk, a rock -- and now it also has to be somewhere
+			the player will get close enough to see the shadow land.
+		]]
+		if not Foliage.castsShadowAt(point :: Vector3, ctx) then
+			for _, child in ipairs(model:GetChildren()) do
+				if child:IsA("BasePart") then
+					child.CastShadow = false
+				end
+			end
+		end
 
 		local lean = layer.leanDegrees or 0
 		local orientation = CFrame.new(Units.vectorToStuds(point :: Vector3))

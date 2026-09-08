@@ -1,56 +1,16 @@
 {
   "_comment": "Purely visual world tuning. Dressing never collides, receives touches or participates in raycasts. All gameplay geometry remains in maps/*.json.",
   "palette": {
-    "cream": [
-      238,
-      231,
-      207
-    ],
-    "ink": [
-      28,
-      38,
-      44
-    ],
-    "teal": [
-      44,
-      161,
-      156
-    ],
-    "amber": [
-      221,
-      168,
-      74
-    ],
-    "trail": [
-      136,
-      120,
-      86
-    ],
-    "gravel": [
-      149,
-      141,
-      123
-    ],
-    "turf": [
-      86,
-      119,
-      75
-    ],
-    "pine": [
-      48,
-      84,
-      64
-    ],
-    "pineLight": [
-      66,
-      99,
-      73
-    ],
-    "bark": [
-      88,
-      66,
-      48
-    ]
+    "cream": [238, 231, 207],
+    "ink": [28, 38, 44],
+    "teal": [44, 161, 156],
+    "amber": [221, 168, 74],
+    "trail": [136, 120, 86],
+    "gravel": [149, 141, 123],
+    "turf": [86, 119, 75],
+    "pine": [48, 84, 64],
+    "pineLight": [66, 99, 73],
+    "bark": [88, 66, 48]
   },
   "groundMarking": {
     "heightMetres": 0.06,
@@ -60,19 +20,10 @@
   },
   "facades": {
     "maxDistanceMetres": 80,
-    "canvasSize": [
-      900,
-      500
-    ],
+    "canvasSize": [900, 500],
     "bandHeight": 0.07,
-    "labelPosition": [
-      0.1,
-      0.32
-    ],
-    "labelSize": [
-      0.8,
-      0.34
-    ],
+    "labelPosition": [0.1, 0.32],
+    "labelSize": [0.8, 0.34],
     "textStrokeTransparency": 0.72
   },
   "venue": {
@@ -82,11 +33,7 @@
     "displayBaseHeightMetres": 2.15,
     "displayRowHeightMetres": 1.45,
     "displayModelScale": 1.5,
-    "priceTagSizeMetres": [
-      3.3,
-      0.37,
-      0.04
-    ]
+    "priceTagSizeMetres": [3.3, 0.37, 0.04]
   },
   "foliage": {
     "_comment": "Keep shadows on trunks, canopy tiers, crowns and rocks. Small undergrowth and moss add thousands of shadow casters and no useful depth at walking distance. Part names must match World/Foliage.luau -- a rename here silently stops a canopy casting.",
@@ -107,7 +54,10 @@
       "Canopy7": true,
       "Limb1": true,
       "Limb2": true
-    }
+    },
+    "shadowRadiusMetres": 12,
+    "_shadowRadiusMetres": "How close a plant has to be to somewhere the player can stand before it casts a shadow, measured to a trail centreline or to one of the open areas the scatter carves out -- the clearing, the barn apron, the pond, the west corridor and every gate. shadowParts decides WHICH parts of a plant can cast; this decides whether that plant is near enough to be worth it.",
+    "_shadowRadiusMeasured": "Hub shadow casters against this radius, from tools/foliage-report: no radius 5784, 26 m 4870, 20 m 4005, 16 m 3154, 12 m 1993, 10 m 1411. Twelve is a 66% cut for shadows that were landing behind other trees. Raise it if the treeline reads flat; lower it if the hub is heavy on a low-end device. Delete the field and every plant casts, which is what it did before."
   },
   "treeLine": {
     "insetOutsideBoundsMetres": 8,
@@ -118,22 +68,8 @@
     "crownPositionFraction": 0.71,
     "crownPositionFraction2": 0.91,
     "crownWidthFraction2": 0.68,
-    "heightVariationMetres": [
-      0,
-      3,
-      -1,
-      5,
-      1,
-      -2,
-      4
-    ],
-    "offsetVariationMetres": [
-      0,
-      3,
-      1,
-      5,
-      2
-    ]
+    "heightVariationMetres": [0, 3, -1, 5, 1, -2, 4],
+    "offsetVariationMetres": [0, 3, 1, 5, 2]
   },
   "_fonts": "World signage, resolved by Shared/Fonts with a fallback. Every name here was checked against Enum.Font on 2026-09-07. Oswald is condensed and reads like a painted sign board; PermanentMarker is for the things a person actually wrote by hand -- chalk price lists, flyers on the corkboard; RobotoMono is for the leaderboard, because times only line up in columns if the digits are the same width.",
   "fonts": {

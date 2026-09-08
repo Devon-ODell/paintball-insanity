@@ -290,6 +290,62 @@ return function()
 		end)
 	end)
 
+	--[[
+		Shadow gating. The hub scattered 5784 shadow casters, decided purely by
+		part name, so a pine eighty metres into the treeline cost as much as one
+		on the trail. These assert the rule that replaced it -- and specifically
+		that it does NOT strip the shadows from the trees a player is standing
+		among at a gate, which is what a naive distance-from-centre rule would do.
+	]]
+	describe("foliage shadow gating", function()
+		local ctx = scatterContext()
+		local radius = Config.get("presentation").foliage.shadowRadiusMetres
+
+		it("declares a radius the builder can act on", function()
+			expect(type(radius)).to.equal("number")
+			expect(radius > 0).to.equal(true)
+		end)
+
+		it("keeps shadows on the plants beside a trail", function()
+			for _, trail in ipairs(hub().trails) do
+				local first = trail.points[1]
+				expect(Foliage.castsShadowAt(Vector3.new(first[1], 0, first[3]), ctx)).to.equal(true)
+			end
+		end)
+
+		it("keeps shadows at every gate, where the player stands", function()
+			--[[
+				The gates sit 63 to 82 m from the hub centre. A rule measured from
+				the centre would have switched these off -- the trees a player is
+				closest to on the way out of the hub.
+			]]
+			for _, gate in ipairs(hub().gates) do
+				local at = Vector3.new(gate.position[1], 0, gate.position[3])
+				expect(Foliage.castsShadowAt(at, ctx)).to.equal(true)
+			end
+		end)
+
+		it("drops shadows deep in the treeline", function()
+			-- A corner of the hub, far from every trail and every open area.
+			local deep = Vector3.new(88, 0, 88)
+			expect(Foliage.castsShadowAt(deep, ctx)).to.equal(false)
+		end)
+
+		it("casts everywhere when no radius is authored", function()
+			--[[
+				Deleting the field must restore the old behaviour rather than
+				silently switching every shadow off, which is the failure mode
+				that would be invisible until someone looked at a screenshot.
+			]]
+			local presentation = Config.get("presentation")
+			local saved = presentation.foliage.shadowRadiusMetres
+			presentation.foliage.shadowRadiusMetres = nil
+			local everywhere = Foliage.castsShadowAt(Vector3.new(88, 0, 88), ctx)
+			presentation.foliage.shadowRadiusMetres = saved
+			expect(everywhere).to.equal(true)
+		end)
+	end)
+
 	describe("foliage footprints", function()
 		local ctx = scatterContext()
 
