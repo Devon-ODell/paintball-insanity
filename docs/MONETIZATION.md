@@ -151,3 +151,67 @@ API sources verified 2026-09-07: [Roblox monetization](https://create.roblox.com
 [regional pricing](https://create.roblox.com/docs/production/monetization/regional-pricing),
 [ProfileStore API](https://madstudioroblox.github.io/ProfileStore/api/),
 [ProfileStore receipt guidance](https://madstudioroblox.github.io/ProfileStore/devproducts/).
+
+---
+
+## Turning it on (verified procedure, 2026-09-08)
+
+Nothing here has been switched on. The framework is complete and the flip is a
+data change, but it needs products that only exist once you create them.
+
+### 1. Create the two passes on the Creator Dashboard
+
+Both are **Passes** (one-time, permanent), not Developer Products — a permanent
+cosmetic collection is bought once and must never be re-sold to someone who owns
+it.
+
+| Offer id | Name | Grants |
+| --- | --- | --- |
+| `paintPack` | Paint Locker | pink, cyan, lime, violet paint |
+| `finishPack` | Workshop Finishes | Duracoat, Split Dust marker finishes |
+
+### 2. Set the price on Roblox, not in this repo
+
+There is **no price constant in this codebase and there must not be one.** The
+shop card reads "Roblox purchase" and its button reads "See price"; the actual
+number comes from Roblox's own purchase window, which is regional and
+personalised. Quoting a number in-game would be wrong for most players.
+
+Opt the passes into **price optimization / managed pricing** on the dashboard and
+let it tune them. That is what it is for, and a hand-set constant cannot follow
+regional pricing.
+
+### 3. Flip the config
+
+In `Data/monetization.json`:
+
+```json
+"freeMode": false,
+"paidEnabled": false  ->  true,
+"shopFree": false,
+"offers": { "paintPack": { "marketplaceId": <real id> },
+            "finishPack": { "marketplaceId": <real id> } }
+```
+
+### 4. Run ship-check before building
+
+This was dry-run in both directions on 2026-09-08:
+
+- Flipped to paid with the IDs still `0` -> **ship-check fails**, naming
+  `paid offer paintPack has no marketplace id`. A half-flip cannot ship.
+- Flipped to paid with real IDs -> **ship-check passes**.
+
+`Commerce.audit` is what catches it, and it also refuses any offer that is not a
+pass or developer product, any offer whose `affectsAccuracy` is not `false`, any
+grant of an item outside the cosmetic tables, and duplicate marketplace IDs.
+
+### What does not change
+
+- **Free claims already granted stay granted.** Anyone who claimed a collection
+  during the free build keeps it; `owns()` is checked before any prompt, so they
+  are never asked to buy what they have.
+- **Nothing purchasable may affect accuracy.** `ship-check` asserts this against
+  the attachment data, not against review.
+- **Headshot camos stay outside commerce.** They are earned on the field and
+  cannot be bought or granted through a product.
+- The Range still pays nothing, and payout still comes only from matches.
