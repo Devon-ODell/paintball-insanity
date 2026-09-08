@@ -30,19 +30,6 @@ export type ScatterContext = {
 	placementAttempts: number?,
 	--- Optional predicate the caller can add on top of the standard rules.
 	allow: ((Vector3) -> boolean)?,
-	--[[
-		Height of the ground SURFACE, in metres.
-
-		Scatter points are sampled in XZ and carry no height, so without this
-		every layer was placed about the world origin while the hub's floor slab
-		puts its top a metre above that. Trees survived it -- they are tall
-		enough to reach daylight and their trunks want to be embedded anyway --
-		but everything that lives ON the floor was underneath it: all 190 moss
-		patches, all 34 logs, three quarters of the ferns and rocks. Around
-		eleven hundred parts were being built, lit and counted against the
-		render budget where nobody could see them.
-	]]
-	surfaceY: number,
 }
 
 export type LayerReport = { id: string, requested: number, placed: number }
@@ -631,8 +618,7 @@ function Foliage.scatterLayer(layer: any, ctx: ScatterContext, rng: Rng.Generato
 		end
 
 		local lean = layer.leanDegrees or 0
-		local grounded = (point :: Vector3) + Vector3.new(0, ctx.surfaceY, 0)
-		local orientation = CFrame.new(Units.vectorToStuds(grounded))
+		local orientation = CFrame.new(Units.vectorToStuds(point :: Vector3))
 			* CFrame.Angles(
 				math.rad(rng:nextRange(-lean, lean)),
 				rng:nextNumber() * math.pi * 2,
@@ -657,13 +643,7 @@ end
 
 --- Scatters every layer in a scatter block. Returns the total placed and a
 --- per-layer report, so the caller can say which layer came up short.
-function Foliage.scatter(
-	scatter: any,
-	palette: Palette,
-	trails: { any },
-	parent: Instance,
-	surfaceY: number?
-): (number, { LayerReport })
+function Foliage.scatter(scatter: any, palette: Palette, trails: { any }, parent: Instance): (number, { LayerReport })
 	local rng = Rng.new(scatter.seed)
 	local ctx: ScatterContext = {
 		palette = palette,
@@ -671,7 +651,6 @@ function Foliage.scatter(
 		trails = trails,
 		trailClearance = scatter.trailClearanceMetres,
 		placementAttempts = scatter.placementAttempts,
-		surfaceY = surfaceY or 0,
 	}
 
 	local total = 0

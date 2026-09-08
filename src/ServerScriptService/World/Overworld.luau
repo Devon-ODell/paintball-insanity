@@ -99,11 +99,22 @@ function Overworld.build(parent: Instance?): Hub
 		palette[key] = Color3.fromRGB(rgb[1], rgb[2], rgb[3])
 	end
 
+	--[[
+		Placed by CFrame, not by Position.
+
+		Identical in Roblox for an unrotated part, and NOT identical to the
+		headless harness, where the two properties are independent: a part set
+		through `.Position` reads back a CFrame at the origin. Every structural
+		check -- check-zfight above all -- measures CFrame, so the whole hub was
+		being analysed as though it were stacked at the world origin, and a
+		measurement taken against it sent me chasing a metre of burial that does
+		not exist. Set the one the tools read.
+	]]
 	local function slab(name: string, at: Vector3, size: Vector3, key: string, holder: Instance, collide: boolean?): Part
 		local part = Instance.new("Part")
 		part.Name = name
 		part.Size = Units.vectorToStuds(size)
-		part.Position = Units.vectorToStuds(at)
+		part.CFrame = CFrame.new(Units.vectorToStuds(at))
 		part.Color = palette[key] or Color3.fromRGB(150, 150, 150)
 		part.Material = MATERIAL[key] or Enum.Material.SmoothPlastic
 		part.Anchored = true
@@ -138,6 +149,14 @@ function Overworld.build(parent: Instance?): Hub
 		whatever came before, so the paint order in the data is the paint order
 		on the ground.
 	]]
+	--[[
+		A sunken zone -- the creek, the pond -- is a slab whose TOP is the water
+		surface, and it was landing exactly on the ground plane: 238 studs of
+		creek sharing a plane with the forest floor, which is as bad as z-fighting
+		gets in this game. `waterLiftMetres` was written into the data for this and
+		then never read by anything. It is read now.
+	]]
+	local waterLift = cfg.surfaceLayerMetres.waterLiftMetres or 0.03
 	for index, zone in ipairs(cfg.zones) do
 		local height = 0.06 + index * 0.012
 		local depth = zone.depthMetres
@@ -145,26 +164,26 @@ function Overworld.build(parent: Instance?): Hub
 		if zone.shape == "circle" then
 			part = slab(
 				zone.id,
-				Vector3.new(zone.position[1], (if depth then -depth / 2 else height / 2), zone.position[3]),
+				Vector3.new(zone.position[1], (if depth then waterLift - depth / 2 else height / 2), zone.position[3]),
 				Vector3.new(zone.radiusMetres * 2, depth or height, zone.radiusMetres * 2),
 				zone.colorKey,
 				terrainFolder,
 				depth == nil
 			)
 			part.Shape = Enum.PartType.Cylinder
-			part.CFrame = CFrame.new(part.Position) * CFrame.Angles(0, 0, math.pi / 2)
+			part.CFrame = CFrame.new(part.CFrame.Position) * CFrame.Angles(0, 0, math.pi / 2)
 			part.Size = Units.vectorToStuds(Vector3.new(depth or height, zone.radiusMetres * 2, zone.radiusMetres * 2))
 		else
 			part = slab(
 				zone.id,
-				Vector3.new(zone.position[1], (if depth then -depth / 2 else height / 2), zone.position[3]),
+				Vector3.new(zone.position[1], (if depth then waterLift - depth / 2 else height / 2), zone.position[3]),
 				Vector3.new(zone.size[1], depth or height, zone.size[2]),
 				zone.colorKey,
 				terrainFolder,
 				depth == nil
 			)
 			if zone.rotationY then
-				part.CFrame = CFrame.new(part.Position) * CFrame.Angles(0, math.rad(zone.rotationY), 0)
+				part.CFrame = CFrame.new(part.CFrame.Position) * CFrame.Angles(0, math.rad(zone.rotationY), 0)
 			end
 		end
 		if zone.transparency then
@@ -252,7 +271,7 @@ function Overworld.build(parent: Instance?): Hub
 				false
 			)
 			join.Shape = Enum.PartType.Cylinder
-			join.CFrame = CFrame.new(join.Position) * CFrame.Angles(0, 0, math.pi / 2)
+			join.CFrame = CFrame.new(join.CFrame.Position) * CFrame.Angles(0, 0, math.pi / 2)
 			join.Size = Units.vectorToStuds(Vector3.new(0.1, trail.widthMetres, trail.widthMetres))
 		end
 	end
@@ -575,7 +594,7 @@ function Overworld.build(parent: Instance?): Hub
 		local emitter = Instance.new("Part")
 		emitter.Name = `Ambience_{bed.id}`
 		emitter.Size = Vector3.new(1, 1, 1)
-		emitter.Position = Units.vectorToStuds(vec(bed.position))
+		emitter.CFrame = CFrame.new(Units.vectorToStuds(vec(bed.position)))
 		emitter.Anchored = true
 		emitter.CanCollide = false
 		emitter.CanQuery = false

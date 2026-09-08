@@ -119,7 +119,7 @@ local function slab(name: string, at: Vector3, size: Vector3, colour: Color3, ma
 	local part = Instance.new("Part")
 	part.Name = name
 	part.Size = Units.vectorToStuds(size)
-	part.Position = Units.vectorToStuds(at)
+	part.CFrame = CFrame.new(Units.vectorToStuds(at))
 	part.Color = colour
 	part.Material = material
 	part.Anchored = true
@@ -491,7 +491,7 @@ function RangeService.start(player: Player, drillId: string, seed: number?): boo
 					parts[target.id] = part
 					spawnedAt[target.id] = t
 				end
-				;(part :: BasePart).Position = Units.vectorToStuds(target.position)
+				;(part :: BasePart).CFrame = CFrame.new(Units.vectorToStuds(target.position))
 			end
 		end
 

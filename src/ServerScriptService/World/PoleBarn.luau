@@ -224,7 +224,9 @@ function PoleBarn.build(cfg: any, palette: { [string]: Color3 }, parent: Instanc
 	-- Slab and posts
 	----------------------------------------------------------------------------
 
-	slab("Slab", Vector3.new(0, -0.08, 0), Vector3.new(cfg.widthMetres + 1.6, 0.16, cfg.depthMetres + 1.6), "gravel")
+	-- Top at +0.04 rather than flush. A concrete apron stands a little proud of
+	-- the dirt, and flush meant 217 studs of it sharing the ground's plane.
+	slab("Slab", Vector3.new(0, -0.04, 0), Vector3.new(cfg.widthMetres + 1.6, 0.16, cfg.depthMetres + 1.6), "gravel")
 	slab("Floor", Vector3.new(0, 0.02, 0), Vector3.new(cfg.widthMetres, 0.1, cfg.depthMetres), "barnWoodDark")
 
 	--[[
