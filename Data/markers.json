@@ -713,6 +713,32 @@
       },
       "raw": {
         "displayName": "Raw Alloy"
+      },
+      "fieldGrey": {
+        "displayName": "Field Grey",
+        "baseColor": [
+          86,
+          92,
+          88
+        ],
+        "accentColor": [
+          188,
+          196,
+          190
+        ]
+      },
+      "emberwork": {
+        "displayName": "Emberwork",
+        "baseColor": [
+          62,
+          48,
+          44
+        ],
+        "accentColor": [
+          236,
+          124,
+          64
+        ]
       }
     },
     "_offsetStuds": "STUDS, not metres -- unlike every other length in this file. Part sizes and part offsets go through Units.vectorToStuds; this is applied raw to the camera CFrame in ViewMarker.step. Retuned against the real model extents: the receiver sits low-right, and the hopper -- which is genuinely large on a paintball marker -- clears the crosshair instead of sitting on it.",

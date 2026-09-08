@@ -248,3 +248,64 @@ grant of an item outside the cosmetic tables, and duplicate marketplace IDs.
 - **Headshot camos stay outside commerce.** They are earned on the field and
   cannot be bought or granted through a product.
 - The Range still pays nothing, and payout still comes only from matches.
+
+---
+
+## Season pass (added 2026-09-08)
+
+**Season 1: Chalkline.** Twenty tiers, a free column and a paid one.
+
+### Marks are not hours
+
+Most battle passes reward time. This one cannot: the game is an aim trainer in a
+paintball costume and its stated rule is that death costs no progress, it costs
+payout. A track paying out for showing up would argue with the whole design.
+
+Marks come from eliminations and clears, weighted by tier, so a pro clear is
+worth several rec clears because it *is* several rec clears:
+
+| Tier | Flawless clear | Season length |
+| --- | ---: | ---: |
+| rec | 650 marks | 18.2 clears |
+| semi-pro | 810 | 14.6 |
+| pro | 970 | 12.2 |
+
+**Deaths never subtract.** They forfeit the flawless bonus and nothing else,
+which is exactly what the payout curve already does. Taking marks away for dying
+would punish the experimentation the difficulty is built to encourage.
+
+### Product type
+
+A **Pass per season**, not a developer product. Roblox is then the authority on
+who paid: `UserOwnsGamePassAsync` is re-checked on join, so a player who bought
+in and later lost a save still owns the track. A new season needs a **new pass
+and a new marketplaceId** — never re-sell `seasonPassS1`.
+
+Buying mid-season back-pays every paid reward up to the tier already reached.
+Charging someone and giving them less than an earlier buyer for the same money
+is not a thing this does.
+
+### Rewards are colour and nothing else
+
+Nine rewards across the track: 4 free, 5 paid, drawn from four new paints, three
+new jerseys and two new marker skins authored for it. All are earned-only — none
+has a Field Fee price, so the track is the only way to them.
+
+Three ways a battle pass turns into pay-to-win, all one edit away, all now gated
+by `ship-check` and both branches proven to fail on a planted violation:
+
+1. **A reward in a stat-bearing category.** Markers, pods, pads and shoulders all
+   carry multipliers. Only `paintColors`, `markerSkins`, `jerseys` and `masks`
+   are grantable.
+2. **A cosmetic whose id also exists in `gear.json` with a multiplier.** Jerseys
+   share a namespace between colour and sprint speed — `slickComp` is 1.24
+   loudness and 1.07 sprint. Planting it as a reward fails the gate.
+3. **An offer granting currency.** Field Fees buy the electronic marker and its
+   780 rpm against the starting marker's 350, so paying for currency is paying
+   for rate of fire one step removed. No offer may grant it.
+
+### Turning it on
+
+Same as the other two: create the pass, put its id in `seasonPassS1`, and the
+track's paid column lights up. Until then the pass shows as unavailable and the
+free column still works — the season runs whether or not anyone can buy it.

@@ -144,3 +144,38 @@ publishing or account changes were made through this probe.
 ### Combat motion and inflatable pass (2026-09-08)
 
 Verified current Creator Hub references for [CFrame interpolation](https://create.roblox.com/docs/reference/engine/datatypes/CFrame), [Humanoid.CameraOffset](https://create.roblox.com/docs/reference/engine/classes/Humanoid), and [Part.Shape](https://create.roblox.com/docs/reference/engine/classes/Part/Shape). First-person motion uses local non-queryable parts and CFrame interpolation; the camera drop uses CameraOffset. The documented PartType.Wedge provides the tapered speedball panels. No uploaded animation IDs or external assets are required. Reload presentation reads MarkerState's existing deadline and duration; it cannot grant ammo. Authored speedball OBBs remain unchanged, including the existing invisible upper corners around tapered cover.
+
+### Vehicle and yard props (2026-09-08)
+
+Verified [Part.Shape](https://create.roblox.com/docs/reference/engine/classes/Part/Shape) (Block, Cylinder and Wedge) and [CFrame.fromMatrix](https://create.roblox.com/docs/reference/engine/datatypes/CFrame) against Creator Hub. Vehicle panels and wheel arches are authored primitives; a basis built from each beam's endpoints orients sloped glazing and cabin pillars. All vehicle visuals have collision, query and touch disabled. The callers retain the existing authoritative car and pickup collision volumes. No uploaded meshes, external textures or Studio-authored assets are needed.
+
+### Look pass: sky, materials and per-instance colour (2026-09-08)
+
+Verified against the engine's own class database through the headless harness
+rather than from memory, because two of these are easy to get wrong:
+
+- **[Clouds](https://create.roblox.com/docs/reference/engine/classes/Clouds)**
+  (`Cover`, `Density`, `Color`, `Enabled`). Clouds must be parented to
+  **Terrain**, not Lighting; a `Clouds` under Lighting silently renders nothing.
+  `Match/Atmosphere` parents them to `Workspace.Terrain` under a pcall, since
+  the headless harness has no Terrain and a sky is never a requirement.
+  `Atmosphere.clear` reaches into Terrain to remove them -- the rest of the
+  managed instances live under Lighting and the old loop could not see them.
+- **[MaterialService.Use2022Materials](https://create.roblox.com/docs/reference/engine/classes/MaterialService)**,
+  set once, pcall-guarded. Every surface in this game is a built-in material, so
+  opting into the current generation is the cheapest upgrade available: no
+  asset, no part, no tuning.
+- **Materials confirmed present**: Pebble, LeafyGrass, Ground, Mud, Rock,
+  Asphalt, Cobblestone, Limestone, Sandstone, Salt, Basalt, Pavement, Foil,
+  alongside the legacy set. Gravel is Pebble and a creek bed is Rock; neither is
+  Concrete. The field floor and forest floor are LeafyGrass, which has real
+  relief where Grass is flat.
+
+**No `Sky` instance is created, deliberately.** With no Sky, Lighting renders a
+procedural sky driven by the Atmosphere settings. Adding a bare `Sky` replaces
+that with the default skybox textures, which is a downgrade -- and a custom
+skybox needs uploaded assets, which this project does not use.
+
+Per-instance colour variation (`Shared/Tint`) is a positional hash, not a random
+draw, so it needed no new engine API and moved nothing: the hub's foliage report
+is identical part-for-part before and after.

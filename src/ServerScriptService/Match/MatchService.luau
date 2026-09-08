@@ -47,6 +47,7 @@ local ShotMeasure = require(Server.Telemetry.ShotMeasure)
 local Prescription = require(Server.Telemetry.Prescription)
 local Payout = require(Server.Economy.Payout)
 local Profile = require(Server.Economy.Profile)
+local SeasonPass = require(Server.Progression.SeasonPass)
 local WorldBuilder = require(script.Parent.WorldBuilder)
 local BotAvatar = require(script.Parent.BotAvatar)
 local RoundState = require(script.Parent.RoundState)
@@ -912,6 +913,19 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		end
 		if handle:isActive() then
 			Profile.recordMatch(handle, summary)
+
+			--[[
+				Season marks, off the same summary the payout used. Awarded from
+				eliminations and the clear, never from time on the field -- see
+				Shared/Season. Granting immediately after means a player who
+				crosses a tier sees the reward on the results screen rather than
+				on next join.
+			]]
+			SeasonPass.award(handle, summary)
+			local seasonRewards = SeasonPass.grantDue(handle)
+			if #seasonRewards > 0 then
+				Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout)
+			end
 
 			--[[
 				Record the clear against the campaign, then see which chapters

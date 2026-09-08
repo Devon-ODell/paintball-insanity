@@ -9,9 +9,32 @@
   "savePollSeconds": 0.25,
   "maxConsumableStock": 99,
   "maxCurrency": 1000000000,
-  "features": { "subscriptions": false, "ads": false, "paidRandomItems": false, "trading": false, "paidAccess": false, "privateServers": false },
-  "order": ["paintPack", "finishPack"],
+  "features": {
+    "subscriptions": false,
+    "ads": false,
+    "paidRandomItems": false,
+    "trading": false,
+    "paidAccess": false,
+    "privateServers": false
+  },
+  "order": [
+    "seasonPassS1",
+    "paintPack",
+    "finishPack"
+  ],
   "offers": {
+    "seasonPassS1": {
+      "displayName": "Season 1 Pass: Chalkline",
+      "description": "Unlocks the paid column of the Season 1 track. Marks are earned by eliminating bots and clearing rounds -- the pass never earns them for you. Cosmetic rewards only.",
+      "audience": "local",
+      "kind": "pass",
+      "marketplaceId": 0,
+      "enabled": true,
+      "affectsAccuracy": false,
+      "_season": "Unlocks a track rather than granting on purchase, so `grants` is empty. Progression/SeasonPass hands over every paid reward up to the tier already reached the moment ownership is seen -- buying mid-season is never a punishment. A new season needs a NEW pass and a new marketplaceId; never re-sell this one.",
+      "season": "s1",
+      "grants": {}
+    },
     "paintPack": {
       "displayName": "Paint Locker",
       "description": "Four paint colors for your field kit: pink, cyan, lime and violet. Cosmetic only.",
@@ -20,7 +43,14 @@
       "marketplaceId": 0,
       "enabled": true,
       "affectsAccuracy": false,
-      "grants": { "paintColors": ["pink", "cyan", "lime", "violet"] }
+      "grants": {
+        "paintColors": [
+          "pink",
+          "cyan",
+          "lime",
+          "violet"
+        ]
+      }
     },
     "finishPack": {
       "displayName": "Workshop Finishes",
@@ -30,7 +60,12 @@
       "marketplaceId": 0,
       "enabled": true,
       "affectsAccuracy": false,
-      "grants": { "markerSkins": ["duracoat", "splitDust"] }
+      "grants": {
+        "markerSkins": [
+          "duracoat",
+          "splitDust"
+        ]
+      }
     }
   }
 }

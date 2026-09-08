@@ -27,6 +27,8 @@ local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
 
 local Foliage = require(script.Parent.Foliage)
+local VehicleProps = require(script.Parent.VehicleProps)
+local YardProps = require(script.Parent.YardProps)
 local Surfaces = require(ReplicatedStorage.Shared.Surfaces)
 local PoleBarn = require(script.Parent.PoleBarn)
 local NoticeBoard = require(script.Parent.NoticeBoard)
@@ -61,19 +63,33 @@ export type Hub = {
 	destroy: (Hub) -> (),
 }
 
+--[[
+	Surface material per palette key.
+
+	These are the built-in materials, which under the current generation carry
+	real roughness and depth rather than a tinted noise overlay -- so picking the
+	right one is free detail, and picking a lazy one is a flat surface no amount
+	of lighting recovers. The ground is the largest thing on screen at all times
+	and was the worst offender: a single 88m slab of Grass reads as a bedsheet,
+	while LeafyGrass has actual relief to catch the sun.
+
+	Concrete was doing duty for both a gravel lane and a creek bed. Neither is
+	concrete. Pebble is loose stone, Ground is packed dirt, and Rock is what a
+	creek bed and a boulder are made of.
+]]
 local MATERIAL: { [string]: Enum.Material } = {
-	forestFloor = Enum.Material.Grass,
+	forestFloor = Enum.Material.LeafyGrass,
 	clearingGrass = Enum.Material.Grass,
-	gravel = Enum.Material.Concrete,
-	dirt = Enum.Material.Sand,
+	gravel = Enum.Material.Pebble,
+	dirt = Enum.Material.Ground,
 	water = Enum.Material.Water,
-	creekBed = Enum.Material.Concrete,
+	creekBed = Enum.Material.Rock,
 	barnWood = Enum.Material.Wood,
 	barnWoodDark = Enum.Material.WoodPlanks,
 	signPost = Enum.Material.Wood,
 	signBoard = Enum.Material.SmoothPlastic,
 	trunk = Enum.Material.Wood,
-	rock = Enum.Material.Slate,
+	rock = Enum.Material.Rock,
 	sheetMetal = Enum.Material.Metal,
 	truckRed = Enum.Material.Metal,
 	truckBlue = Enum.Material.Metal,
@@ -460,7 +476,7 @@ function Overworld.build(parent: Instance?): Hub
 	propFolder.Parent = root
 
 	--[[
-		Set dressing. Each prop is a handful of boxes; none of them are load
+		Set dressing. Vehicle and yard assemblies are authored separately; none are load
 		bearing and all of them are what makes a clearing look like somewhere
 		people actually spend a Saturday.
 	]]
@@ -477,14 +493,8 @@ function Overworld.build(parent: Instance?): Hub
 			return part
 		end
 
-		if prop.kind == "picnicTable" then
-			piece("Top", Vector3.new(0, 0.74, 0), Vector3.new(1.7, 0.08, 2.4), "barnWood")
-			piece("BenchL", Vector3.new(-1.1, 0.45, 0), Vector3.new(0.4, 0.07, 2.4), "barnWood")
-			piece("BenchR", Vector3.new(1.1, 0.45, 0), Vector3.new(0.4, 0.07, 2.4), "barnWood")
-			for _, z in ipairs({ -0.9, 0.9 }) do
-				piece(`LegA{z}`, Vector3.new(-0.7, 0.37, z), Vector3.new(0.1, 0.74, 0.1), "barnWoodDark", false)
-				piece(`LegB{z}`, Vector3.new(0.7, 0.37, z), Vector3.new(0.1, 0.74, 0.1), "barnWoodDark", false)
-			end
+		if YardProps.handles(prop.kind) then
+			YardProps.build(prop.kind, base, palette, holder)
 		elseif prop.kind == "firepit" then
 			for i = 0, 9 do
 				local angle = (i / 10) * math.pi * 2
@@ -503,30 +513,8 @@ function Overworld.build(parent: Instance?): Hub
 			log_.Shape = Enum.PartType.Cylinder
 			log_.Size = Units.vectorToStuds(Vector3.new(2.6, 0.55, 0.55))
 		elseif prop.kind == "truck" then
-			piece("Bed", Vector3.new(0, 1.0, -0.6), Vector3.new(2.0, 0.9, 2.6), prop.colorKey or "truckRed")
-			piece("Cab", Vector3.new(0, 1.35, 1.3), Vector3.new(1.95, 1.5, 1.8), prop.colorKey or "truckRed")
-			piece("Glass", Vector3.new(0, 1.75, 2.15), Vector3.new(1.7, 0.7, 0.1), "sheetMetal", false)
-			for _, x in ipairs({ -1, 1 }) do
-				for _, z in ipairs({ -1.3, 1.4 }) do
-					local wheel = piece(`Wheel{x}{z}`, Vector3.new(x * 1.0, 0.45, z), Vector3.new(0.3, 0.9, 0.9), "barnWoodDark", false)
-					wheel.Shape = Enum.PartType.Cylinder
-					wheel.Color = Color3.fromRGB(38, 38, 40)
-				end
-			end
-		elseif prop.kind == "airRack" then
-			piece("Frame", Vector3.new(0, 0.9, 0), Vector3.new(2.6, 1.8, 0.5), "sheetMetal")
-			for i = 0, 5 do
-				local tank = piece(`Tank{i}`, Vector3.new(-1.1 + i * 0.44, 1.2, 0.35), Vector3.new(0.26, 0.85, 0.26), "brass", false)
-				tank.Shape = Enum.PartType.Cylinder
-				tank.Size = Units.vectorToStuds(Vector3.new(0.85, 0.26, 0.26))
-				tank.CFrame = tank.CFrame * CFrame.Angles(0, 0, math.pi / 2)
-			end
-		elseif prop.kind == "palletStack" then
-			for i = 0, 3 do
-				piece(`Pallet{i}`, Vector3.new(0, 0.1 + i * 0.16, 0), Vector3.new(1.2, 0.14, 1.0), "barnWood")
-			end
-			local tarp = piece("Tarp", Vector3.new(0, 0.78, 0), Vector3.new(1.4, 0.06, 1.2), "tarp", false)
-			tarp.Transparency = 0.05
+			local vehicle = VehicleProps.build("pickup", base, palette[prop.colorKey or "truckRed"], holder)
+			VehicleProps.addHubCollision(vehicle, "pickup", base)
 		elseif prop.kind == "chronoStand" then
 			piece("Post", Vector3.new(0, 0.9, 0), Vector3.new(0.16, 1.8, 0.16), "signPost")
 			piece("Box", Vector3.new(0, 1.7, 0.2), Vector3.new(0.6, 0.4, 0.3), "sheetMetal", false)

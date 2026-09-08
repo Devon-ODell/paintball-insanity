@@ -80,6 +80,18 @@
           "displayName": "Night Range",
           "cost": 1800,
           "colorKey": "indigo"
+        },
+        "ironworks": {
+          "displayName": "Ironworks",
+          "colorKey": "rust"
+        },
+        "coldfront": {
+          "displayName": "Coldfront",
+          "colorKey": "slate"
+        },
+        "chalkline": {
+          "displayName": "Chalkline",
+          "colorKey": "bone"
         }
       },
       "masks": {
@@ -120,6 +132,18 @@
         "violet": {
           "displayName": "Violet",
           "cost": 800
+        },
+        "ember": {
+          "displayName": "Ember"
+        },
+        "frost": {
+          "displayName": "Frost"
+        },
+        "signal": {
+          "displayName": "Signal"
+        },
+        "moss": {
+          "displayName": "Moss"
         }
       },
       "markerSkins": {
@@ -134,6 +158,12 @@
         "splitDust": {
           "displayName": "Split Dust",
           "cost": 2600
+        },
+        "fieldGrey": {
+          "displayName": "Field Grey"
+        },
+        "emberwork": {
+          "displayName": "Emberwork"
         }
       }
     },
@@ -251,12 +281,18 @@
         "matches": 0,
         "flawless": 0
       },
-      "_coaching": "The last prescription the telemetry produced: the line the coach says and the drill it points at. Persisted because the coach is asked between matches, when the session that produced it is long gone -- without this the NPC falls back to 'not enough shots on record yet' forever, which is what it did.",
-    "coaching": {
-      "line": "",
-      "drill": ""
+      "_season": "Season track progress. `id` is the season it belongs to; Shared/Season replaces the whole record when the id changes, so marks reset and granted cosmetics do not -- those live in the owned* lists. `claimed` keys are '<tier>:free' / '<tier>:paid' so a free reward can be granted while the paid one is still owed.",
+    "season": {
+      "id": "",
+      "marks": 0,
+      "claimed": {}
     },
-    "fundamentals": {
+    "_coaching": "The last prescription the telemetry produced: the line the coach says and the drill it points at. Persisted because the coach is asked between matches, when the session that produced it is long gone -- without this the NPC falls back to 'not enough shots on record yet' forever, which is what it did.",
+      "coaching": {
+        "line": "",
+        "drill": ""
+      },
+      "fundamentals": {
         "reactivity": 0,
         "flicking": 0,
         "targetSwitching": 0,

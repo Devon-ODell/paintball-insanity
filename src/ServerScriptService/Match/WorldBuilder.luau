@@ -16,8 +16,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local Units = require(ReplicatedStorage.Shared.Units)
+local Tint = require(ReplicatedStorage.Shared.Tint)
 local Log = require(ReplicatedStorage.Shared.Log)
 local Inflatables = require(script.Parent.Inflatables)
+local VehicleProps = require(script.Parent.Parent.World.VehicleProps)
 local Atmosphere = require(script.Parent.Atmosphere)
 local Surfaces = require(game:GetService("ReplicatedStorage").Shared.Surfaces)
 
@@ -51,30 +53,41 @@ WorldBuilder.colourOf = colourOf
 	light differently from vinyl and timber, and that difference alone does most
 	of the work of making a field look like a place.
 ]]
+--[[
+	Surface material and reflectance per palette key.
+
+	The field floor is the largest unbroken surface a player ever looks at, and
+	Grass across 88 metres is a flat green sheet -- LeafyGrass has real relief
+	and catches the sun, which is most of what separates a field from a
+	backdrop. Slate is cut paving stone; a boulder and a rock face are Rock.
+	Speedball keeps plain Grass on `groundAlt` deliberately: a tournament field
+	is mown short, and long grass under the bunkers would fight the one palette
+	that map has.
+]]
 local SURFACE: { [string]: { material: Enum.Material, reflectance: number } } = {
 	concrete = { material = Enum.Material.Concrete, reflectance = 0 },
 	sand = { material = Enum.Material.Sand, reflectance = 0 },
 	asphalt = { material = Enum.Material.Asphalt, reflectance = 0.02 },
-	ground = { material = Enum.Material.Grass, reflectance = 0 },
+	ground = { material = Enum.Material.LeafyGrass, reflectance = 0 },
 	groundAlt = { material = Enum.Material.Grass, reflectance = 0 },
 	timber = { material = Enum.Material.Wood, reflectance = 0 },
 	timberDark = { material = Enum.Material.WoodPlanks, reflectance = 0 },
-	rock = { material = Enum.Material.Slate, reflectance = 0 },
-	mossRock = { material = Enum.Material.Slate, reflectance = 0 },
+	rock = { material = Enum.Material.Rock, reflectance = 0 },
+	mossRock = { material = Enum.Material.Rock, reflectance = 0 },
 	sheetMetal = { material = Enum.Material.Metal, reflectance = 0.03 },
 	rust = { material = Enum.Material.CorrodedMetal, reflectance = 0.03 },
 	-- These three were used by the maps but declared in neither table, so every
 	-- thicket, copse, outcrop and rusted screen rendered as concrete-grey smooth
 	-- plastic. Woods and Holdfast were drawing their scrub as pale grey boxes.
 	brush = { material = Enum.Material.LeafyGrass, reflectance = 0 },
-	stone = { material = Enum.Material.Slate, reflectance = 0 },
+	stone = { material = Enum.Material.Rock, reflectance = 0 },
 	containerRust = { material = Enum.Material.CorrodedMetal, reflectance = 0.03 },
 	-- Ground markings. A gravel freight lane and a dirt valley path were both
 	-- being laid as Material.Ground, hardcoded at the call site, so the two read
 	-- identically despite being different things in different places.
 	gravel = { material = Enum.Material.Pebble, reflectance = 0 },
 	trail = { material = Enum.Material.Ground, reflectance = 0 },
-	foliage = { material = Enum.Material.Grass, reflectance = 0 },
+	foliage = { material = Enum.Material.LeafyGrass, reflectance = 0 },
 	foliageDeep = { material = Enum.Material.LeafyGrass, reflectance = 0 },
 	netting = { material = Enum.Material.Fabric, reflectance = 0 },
 	bunkerA = { material = Enum.Material.SmoothPlastic, reflectance = 0.08 },
@@ -101,11 +114,40 @@ local function materialFor(colorKey: string, fallback: Enum.Material): Enum.Mate
 	return if surface then surface.material else fallback
 end
 
+--[[
+	The same answer, for a module decorating a field it did not build.
+
+	FieldDetails paints the surrounding ground -- the largest single plane on
+	screen, wider than the field on every side -- and was deciding its material
+	with its own `if colorKey == "sand"` rule. Two opinions about one surface is
+	how a field ends up with a floor that does not match its own surround.
+]]
+function WorldBuilder.materialFor(colorKey: string, fallback: Enum.Material): Enum.Material
+	return materialFor(colorKey, fallback)
+end
+
+--[[
+	Colour, material and reflectance for one piece of map geometry.
+
+	The colour is varied by where the piece stands. Holdfast places twenty-two
+	rocks from a single palette entry and Woods twelve timbers from another, and
+	at that count one exact colour reads as one object stamped repeatedly rather
+	than as twenty-two rocks. See Shared/Tint.
+
+	`part.CFrame` is already set by the time this runs, which is what makes the
+	variation free -- no argument to thread through, no generator to re-order,
+	and the same piece is the same colour on every server.
+]]
 local function style(part: BasePart, colorKey: string, transparency: number?)
 	local surface = SURFACE[colorKey] or { material = Enum.Material.SmoothPlastic, reflectance = 0.02 }
 	part.Material = surface.material
 	part.Reflectance = surface.reflectance
-	part.Color = colourOf(colorKey)
+	local variation = Config.get("presentation").geometryTint
+	if variation then
+		part.Color = Tint.at(colourOf(colorKey), part.CFrame.Position, variation.valueSpread, variation.warmthSpread)
+	else
+		part.Color = colourOf(colorKey)
+	end
 	part.Transparency = transparency or 0
 	part.CastShadow = true
 	part.Anchored = true
@@ -198,6 +240,12 @@ local function buildPiece(piece: any, mirrorX: boolean, mirrorZ: boolean, parent
 	part:SetAttribute("cover", piece.cover == true)
 	part:SetAttribute("concealment", piece.concealment == true)
 	part.Parent = parent
+	if piece.prop then
+		-- Keep the original map Part as the one authoritative collider.
+		part.Transparency, part.CastShadow = 1, false
+		VehicleProps.build(piece.prop, baseCFrame * CFrame.new(0, -Units.metresToStuds(sizeMetres.Y / 2), 0),
+			colourOf(piece.colorKey), part, sizeMetres)
+	end
 	return part
 end
 

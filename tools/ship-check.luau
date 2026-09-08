@@ -120,6 +120,88 @@ if Pricing.isFree() then
 	check(zero, "legacy Robux display prices are zero")
 end
 
+--[[
+	The season track, checked as data.
+
+	Three ways a battle pass becomes pay-to-win, all of them one edit away:
+
+	  * a reward in a category that carries stats -- markers, pods, pads
+	  * a reward that IS cosmetic but whose id also exists in gear.json with a
+	    multiplier that is not 1, because jerseys share a namespace between
+	    colour and sprint speed
+	  * an offer that grants currency instead of an item, since Field Fees buy
+	    the electronic marker and its 780rpm against the starting 350
+
+	None of these is visible in review of the data alone, so none is trusted to
+	it.
+]]
+do
+	local Season = env.require(env.Shared.Season)
+	local SeasonPass = env.require(env.Server.Progression.SeasonPass)
+	local seasons = Config.get("seasons")
+	local allowed = SeasonPass.allowedCategories()
+	local cosmetics = Config.require("economy", "shop.cosmetics")
+	local gear = Config.get("gear")
+
+	local function statBearing(category: string, id: string): boolean
+		for _, group in pairs(gear) do
+			if type(group) == "table" then
+				for name, slot in pairs(group) do
+					if name == category and type(slot) == "table" and type(slot.items) == "table" then
+						local entry = slot.items[id]
+						if type(entry) == "table" then
+							for key, value in pairs(entry) do
+								if string.find(key, "Multiplier") and value ~= 1 then
+									return true
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		return false
+	end
+
+	local rewardProblems = 0
+	local rewardCount = 0
+	for index, tier in ipairs(seasons.tiers) do
+		for _, column in ipairs({ "free", "paid" }) do
+			local reward = tier[column]
+			if reward then
+				rewardCount += 1
+				if not allowed[reward.category] then
+					print(`          tier {index} {column}: '{reward.category}' is not a colour-only category`)
+					rewardProblems += 1
+				elseif not (cosmetics[reward.category] and cosmetics[reward.category][reward.id]) then
+					print(`          tier {index} {column}: unknown cosmetic '{reward.category}/{reward.id}'`)
+					rewardProblems += 1
+				elseif statBearing(reward.category, reward.id) then
+					print(`          tier {index} {column}: '{reward.id}' carries a gear multiplier`)
+					rewardProblems += 1
+				end
+			end
+		end
+	end
+	check(rewardProblems == 0, `all {rewardCount} season rewards are cosmetic and carry no stats`)
+
+	-- Marks must be reachable: a track whose last tier cannot be hit is a lie.
+	local best = Season.marksFor({ eliminations = 40, cleared = true, deaths = 0, tier = "pro" }, seasons.scoring)
+	check(best > 0 and seasons.tiers[#seasons.tiers].marks / best < 40,
+		`the last tier is reachable ({math.ceil(seasons.tiers[#seasons.tiers].marks / best)} flawless pro clears)`)
+
+	local currencyGrant = false
+	for id, offer in pairs(Pricing.config().offers) do
+		for category in pairs(offer.grants or {}) do
+			if category == "currency" or category == "fieldFees" then
+				print(`          offer '{id}' grants currency`)
+				currencyGrant = true
+			end
+		end
+	end
+	check(not currencyGrant, "no commerce offer grants currency that could buy a marker")
+end
+
 -- The monetization rule, checked as data rather than trusted to review.
 local attachments = Config.get("markers").attachments
 local payToWin = false

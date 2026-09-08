@@ -4,6 +4,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local CommerceCatalog = require(ReplicatedStorage.Shared.CommerceCatalog)
 local Units = require(ReplicatedStorage.Shared.Units)
+local WorldBuilder = require(script.Parent.WorldBuilder)
 
 local FieldDetails = {}
 
@@ -58,7 +59,9 @@ function FieldDetails.build(mapName: string, parent: Instance): any
 	local surroundings = part("SurroundingGround", Vector3.new(0, -0.55, -6), Vector3.new(halfW * 2 + 60, 1, halfL * 2 + 70), "teal", true)
 	local groundRgb = Config.get("maps_index").palette[map.ground.colorKey]
 	surroundings.Color = Color3.fromRGB(groundRgb[1], groundRgb[2], groundRgb[3])
-	surroundings.Material = if map.ground.colorKey == "sand" then Enum.Material.Sand else Enum.Material.Grass
+	-- Asks the field's own surface table rather than keeping a second opinion, so
+	-- the ground beyond the tape is made of whatever the ground inside it is.
+	surroundings.Material = WorldBuilder.materialFor(map.ground.colorKey, Enum.Material.LeafyGrass)
 	local pieces: { [string]: Part } = {}
 	for _, prop in ipairs(cfg.props) do
 		pieces[prop[1]] = part(prop[1], vec(prop[2]) + offset, vec(prop[3]), prop[4], true)

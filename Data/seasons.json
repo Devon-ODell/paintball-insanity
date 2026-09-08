@@ -1,0 +1,117 @@
+{
+  "_comment": "The season track. Marks come from eliminations and clears, never from time played -- see Shared/Season for why. Rewards are cosmetic ids only; a track that paid Field Fees would be a way to buy the 780rpm electronic marker with real money one step removed, and ship-check refuses it.",
+  "_rollover": "Changing `id` starts a new season: marks and claims reset, granted cosmetics are kept because they live in the player's inventory rather than in this record. Give the new season its own pass and its own marketplaceId -- never re-sell the same pass.",
+  "id": "s1",
+  "displayName": "Season 1: Chalkline",
+  "passOfferId": "seasonPassS1",
+  "_scoring": "Deaths never subtract. They cost the flawless bonus and nothing else, which is exactly what the payout curve does -- the pass must not punish the experimentation the game is built to reward.",
+  "scoring": {
+    "perElimination": 10,
+    "clearBonus": 100,
+    "flawlessBonus": 150,
+    "tierMultiplier": {
+      "rec": 1.0,
+      "amateur": 1.6,
+      "semipro": 2.6,
+      "pro": 4.2
+    }
+  },
+  "tiers": [
+    {
+      "marks": 290,
+      "paid": {
+        "category": "paintColors",
+        "id": "frost"
+      }
+    },
+    {
+      "marks": 610
+    },
+    {
+      "marks": 980,
+      "free": {
+        "category": "paintColors",
+        "id": "ember"
+      }
+    },
+    {
+      "marks": 1380,
+      "paid": {
+        "category": "jerseys",
+        "id": "ironworks"
+      }
+    },
+    {
+      "marks": 1810
+    },
+    {
+      "marks": 2280
+    },
+    {
+      "marks": 2770,
+      "paid": {
+        "category": "paintColors",
+        "id": "signal"
+      }
+    },
+    {
+      "marks": 3300,
+      "free": {
+        "category": "jerseys",
+        "id": "chalkline"
+      }
+    },
+    {
+      "marks": 3850
+    },
+    {
+      "marks": 4440
+    },
+    {
+      "marks": 5060,
+      "paid": {
+        "category": "jerseys",
+        "id": "coldfront"
+      }
+    },
+    {
+      "marks": 5700
+    },
+    {
+      "marks": 6370
+    },
+    {
+      "marks": 7070,
+      "free": {
+        "category": "paintColors",
+        "id": "moss"
+      }
+    },
+    {
+      "marks": 7800
+    },
+    {
+      "marks": 8550,
+      "paid": {
+        "category": "markerSkins",
+        "id": "emberwork"
+      }
+    },
+    {
+      "marks": 9330
+    },
+    {
+      "marks": 10140
+    },
+    {
+      "marks": 10970
+    },
+    {
+      "marks": 11840,
+      "free": {
+        "category": "markerSkins",
+        "id": "fieldGrey"
+      }
+    }
+  ]
+}
