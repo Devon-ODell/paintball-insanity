@@ -966,3 +966,36 @@ The invariant that used to be asserted -- one authored spawn per bot -- was
 therefore wrong, and it was asserted in three places (`Maps.spec`, `Sim.spec`,
 `ship-check`). All three now assert what actually has to hold: at least six
 spawns, and no more than two bots to a spawn.
+
+
+## Known divergence: the sim still stacks bots at spawn
+
+`SimMatch.runRound` places bots with a plain `((i - 1) % #botSpawns) + 1`, which
+is what `MatchService` used to do. `MatchService` now fans reused spawns onto a
+small ring so a twelve-bot round does not open as a pile of bodies; the sim does
+not, so on Speedball the sim opens every round with six pairs of bots standing
+inside each other while the game opens with twelve separated ones.
+
+This was left alone deliberately. Changing where the sim starts bots moves every
+difficulty measurement in the project at once -- the tier curve, the trading
+probe, the engagement bands -- and those were only just re-stabilised after the
+rescale. It is a fidelity bug in the measuring instrument, not in the game, and
+it should be fixed on its own with all four probes re-run against it:
+
+    lune run tools/probe-trading
+    lune run tools/probe-difficulty-curve <map>
+    lune run tools/run-tests sim
+
+## Not attempted: the course in the sim
+
+`SimMatch` cannot run a Shoothouse. Its schedule comes from `RoundSchedule` and
+its bots come from `world.botSpawns`, where a course needs `Course.schedule` and
+the stage's anchors. `Course.schedule` is pure and already shared with
+`MatchService`, so the schedule half is a one-line swap; the spawn half needs
+`runRound` to take stage anchors and the checkpoint respawn.
+
+That is worth doing, because it is the only way to find out whether the par times
+are sane. Every par in `Data/maps/*.json` is derived from geometry -- span over
+2.4 m/s plus 28 defenders times a per-defender figure scaled by the engagement
+band -- and no human and no policy has ever run one. They are a defensible first
+guess and nothing more.
