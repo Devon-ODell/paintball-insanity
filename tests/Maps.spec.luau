@@ -320,6 +320,42 @@ return function()
 			end
 		end)
 
+		it("declares every colour its fields actually ask for", function()
+			--[[
+				An undeclared palette key does not fail. It falls back to concrete
+				grey and keeps building, which is how brush, stone and
+				containerRust rendered Woods' and Holdfast's treelines as pale
+				grey boxes, and how gravel and trail drew every freight lane,
+				market street and valley path in concrete.
+
+				Nothing caught it because nothing breaks. This is the check that
+				would have.
+			]]
+			local palette = Config.require("maps_index", "palette")
+			local missing: { string } = {}
+			local function want(key: any, where: string)
+				if type(key) == "string" and palette[key] == nil then
+					table.insert(missing, `{where} asks for '{key}'`)
+				end
+			end
+			for _, name in ipairs(Config.mapNames()) do
+				local map = Config.map(name)
+				for _, group in ipairs({ map.geometry or {}, map.terrain or {} }) do
+					for _, piece in ipairs(group) do
+						want(piece.colorKey, `{name}/{piece.id}`)
+					end
+				end
+				want((map.ground or {}).colorKey, `{name}/ground`)
+				want((map.walls or {}).colorKey, `{name}/walls`)
+				for _, detail in ipairs((map.presentation or {}).groundDetails or {}) do
+					want(detail.color, `{name}/{detail.id}`)
+				end
+			end
+			if #missing > 0 then
+				error(`undeclared palette keys: {table.concat(missing, ", ")}`)
+			end
+		end)
+
 		it("gives every map at least one sightline near its maximum band", function()
 			for _, name in ipairs(names) do
 				local world = worldFor(name)

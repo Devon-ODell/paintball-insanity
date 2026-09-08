@@ -32,7 +32,9 @@
     "brush": [74, 98, 58],
     "stone": [132, 130, 122],
     "containerRust": [124, 72, 46],
-    "_undeclared": "brush, stone and containerRust were in use on Woods, Holdfast and Dustline but had never been declared here, so every thicket, copse, outcrop and rusted screen was falling back to concrete grey on smooth plastic. Woods and Holdfast were rendering their treelines as pale grey boxes."
+    "_undeclared": "brush, stone, containerRust, gravel and trail were all in use and declared nowhere, so each fell back to concrete grey. brush/stone/containerRust were thickets, outcrops and a rusted screen on Woods, Holdfast and Dustline -- treelines rendering as pale grey boxes. gravel and trail are the ground markings on all four of those fields: every freight lane, market street and valley path was being drawn in concrete instead of gravel or dirt. WorldBuilder passes those two their own material explicitly, so only the colour was wrong -- which is exactly why nothing caught it.",
+    "gravel": [146, 142, 132],
+    "trail": [128, 106, 78]
   },
   "assembly": {
     "_note": "Nav edges are not hand-listed. The builder links any two nav nodes within navLinkRadiusMetres whose connecting segment is not blocked by a cover volume. Hand-authoring 80 edges per map is how maps stop getting edited.",
