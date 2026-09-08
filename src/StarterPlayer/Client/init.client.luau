@@ -235,13 +235,19 @@ Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
 	]]
 	courseMode = false
 	if payload.course then
-		Hud.setClock(payload.course.seconds, payload.course and coursePar)
-		Hud.showBanner(
-			if payload.course.medal
-				then string.format("%s  ·  %.1fs", string.upper(payload.course.medal), payload.course.seconds)
-				else string.format("NO MEDAL  ·  %.1fs", payload.course.seconds),
-			6
-		)
+		local run = payload.course
+		Hud.setClock(run.seconds, coursePar)
+		--[[
+			A time on its own says nothing. What a player wants at the end of a
+			timed run is the medal and whether they beat themselves, so the banner
+			carries the record it just broke -- or the one it did not.
+		]]
+		local headline = if run.medal then string.upper(run.medal) else "NO MEDAL"
+		local against = if run.isRecord
+			then (if run.previousBest then string.format("  ·  BEST, was %.1fs", run.previousBest) else "  ·  FIRST CLEAR")
+			elseif run.previousBest then string.format("  ·  best %.1fs", run.previousBest)
+			else ""
+		Hud.showBanner(string.format("%s  ·  %.1fs%s", headline, run.seconds, against), 6)
 	else
 		Hud.setClock(nil, nil)
 	end
