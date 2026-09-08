@@ -263,6 +263,63 @@ return function()
 			end
 		end)
 
+		--[[
+			Per-field lighting, constrained by the two things it can break.
+
+			A bot has to read as the most saturated thing on screen on every
+			field, and a dim field breaks that before it looks moody -- so
+			brightness lives in a narrow band. And haze has to scale with the
+			field's own engagement band: distance haze sells scale at 46 m and
+			just greys out the target at 16 m.
+		]]
+		it("lights every field differently, inside the band that keeps targets readable", function()
+			local lighting = Config.require("maps_index", "lighting")
+			local seenHours: { [string]: boolean } = {}
+			for _, name in ipairs(names) do
+				local profile = lighting.perMap[name]
+				expect(profile).to.be.ok()
+
+				local brightness = profile.brightness or lighting.default.brightness
+				expect(brightness >= 2.3).to.equal(true)
+				expect(brightness <= 2.8).to.equal(true)
+
+				-- Two fields sharing an hour would be two fields sharing a look.
+				local hour = tostring(profile.clockTime)
+				expect(seenHours[hour]).to.equal(nil)
+				seenHours[hour] = true
+			end
+		end)
+
+		it("hazes a field in proportion to how far it asks you to shoot", function()
+			local lighting = Config.require("maps_index", "lighting")
+			local previousBand, previousHaze = -1, -1
+			for _, name in ipairs(Config.mapNames()) do
+				local world = worldFor(name)
+				local profile = lighting.perMap[name]
+				local haze = (profile.atmosphere or {}).haze or lighting.default.atmosphere.haze
+				local band = world.engagementBand.targetMedianMetres
+				if previousBand >= 0 then
+					-- maps_index.order is the curriculum, ascending by distance.
+					expect(band > previousBand).to.equal(true)
+					expect(haze >= previousHaze).to.equal(true)
+				end
+				previousBand, previousHaze = band, haze
+			end
+		end)
+
+		it("never blurs the distance on a field you have to shoot across", function()
+			--[[
+				Far depth of field looks wonderful and costs you the target you
+				were about to shoot. On an aim trainer that is the one trade that
+				is never worth making, so it stays off on every field.
+			]]
+			local lighting = Config.require("maps_index", "lighting")
+			for _, name in ipairs(names) do
+				local dof = (lighting.perMap[name] or {}).depthOfField or lighting.default.depthOfField
+				expect(dof.farIntensity).to.equal(0)
+			end
+		end)
+
 		it("gives every map at least one sightline near its maximum band", function()
 			for _, name in ipairs(names) do
 				local world = worldFor(name)

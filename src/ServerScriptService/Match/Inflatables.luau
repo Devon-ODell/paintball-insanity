@@ -98,6 +98,13 @@ end
 local function seam(parent: Instance, cf: CFrame, diameter: number, colour: Color3, axis: string?)
 	local ring = tube(parent, "Seam", cf, Units.metresToStuds(0.05), diameter * 1.015, shade(colour, SEAM_DARKEN), axis)
 	ring.Reflectance = 0.02
+	--[[
+		Detail parts do not cast. A seam is a five-centimetre ring sitting 1.5%
+		proud of the body it wraps, so its shadow falls inside the body's own --
+		it costs a shadow caster and changes nothing on screen. The body casts;
+		the trim does not.
+	]]
+	ring.CastShadow = false
 end
 
 --- Webbing strap and stake ring at the base. Small, but it is the detail that
@@ -109,6 +116,8 @@ local function anchorStrap(parent: Instance, cf: CFrame, width: number, colour: 
 	strap.Reflectance = 0
 	strap.Material = Enum.Material.Fabric
 	strap.CFrame = cf
+	-- Sits on the ground under the bunker; its shadow is inside the bunker's.
+	strap.CastShadow = false
 end
 
 --------------------------------------------------------------------------------
@@ -230,6 +239,9 @@ local function buildBall(model: Model, size: Vector3, colour: Color3)
 	-- weight, and a sphere sitting on a perfect tangent looks like it is hovering.
 	local base = tube(model, "Base", CFrame.new(0, -height * 0.44, 0), Units.metresToStuds(0.08), diameter * 0.55, shade(colour, 0.9), "y")
 	base.Reflectance = 0.02
+	-- Tucked under the ball at 55% of its diameter: its shadow cannot fall
+	-- anywhere the ball's does not already cover.
+	base.CastShadow = false
 	anchorStrap(model, CFrame.new(0, -height / 2 + Units.metresToStuds(0.04), 0), diameter * 0.6, colour)
 end
 

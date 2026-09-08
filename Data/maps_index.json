@@ -88,106 +88,124 @@
     },
     "perMap": {
       "speedball": {
-        "_note": "Tournament field on a bright afternoon. Short sightlines, so almost no haze -- nothing should be softened at 20 m.",
-        "clockTime": 14.4,
-        "brightness": 2.9,
+        "_note": "Tournament field, high sun, no weather. Crisp and flat-lit so the netting reads and the bunkers keep their colour -- this is the one field where the paint is the whole palette. Almost no haze: at a 16 m band there is no distance to sell and haze would only grey out the thing you are shooting at.",
+        "brightness": 2.7,
+        "clockTime": 12.6,
+        "shadowSoftness": 0.18,
+        "ambient": [62, 64, 70],
+        "outdoorAmbient": [116, 120, 128],
         "atmosphere": {
-          "density": 0.18,
+          "density": 0.16,
           "haze": 0.5,
-          "glare": 0.35
+          "glare": 0.2,
+          "color": [214, 216, 220]
+        },
+        "sunRays": {
+          "intensity": 0.04
         },
         "colorCorrection": {
-          "saturation": 0.2,
-          "contrast": 0.13
-        }
-      },
-      "urban": {
-        "_note": "Dusty and hot. Warmer ambient, more haze bouncing off the sand, longer focus.",
-        "clockTime": 16.1,
-        "brightness": 2.4,
-        "ambient": [72, 66, 58],
-        "outdoorAmbient": [128, 116, 98],
-        "atmosphere": {
-          "density": 0.36,
-          "haze": 1.6,
-          "color": [214, 200, 174],
-          "glare": 0.32
-        },
-        "colorCorrection": {
-          "saturation": 0.08,
-          "contrast": 0.1,
-          "tintColor": [255, 248, 234]
-        }
-      },
-      "woods": {
-        "_note": "Late overcast light under a treeline. The heavy haze is doing a job here: it is what makes a 70 m shot LOOK like 70 m, which is the whole lesson of this map.",
-        "clockTime": 10.6,
-        "brightness": 2.1,
-        "ambient": [54, 62, 58],
-        "outdoorAmbient": [96, 110, 100],
-        "atmosphere": {
-          "density": 0.44,
-          "haze": 2.3,
-          "color": [186, 198, 190],
-          "decay": [92, 108, 98],
-          "glare": 0.12
-        },
-        "colorCorrection": {
-          "saturation": 0.05,
-          "contrast": 0.08
-        },
-        "depthOfField": {
-          "farIntensity": 0,
-          "focusDistance": 80,
-          "inFocusRadius": 120
+          "saturation": 0.18,
+          "contrast": 0.13,
+          "tintColor": [255, 253, 250]
         }
       },
       "dustline": {
-        "_note": "Desert freight yard, mid-afternoon, hard light. Very little haze up close so the container corners stay crisp, but a hot sand glare on everything.",
-        "clockTime": 13.6,
-        "brightness": 3.1,
-        "ambient": [82, 74, 60],
-        "outdoorAmbient": [140, 126, 100],
+        "_note": "Late afternoon in a freight yard, sun low and coming through dust. The warmest field by a distance: sand, rust and long shadows off the containers.\n\nThe dust is in the COLOUR and the GLARE, not in the density. It was authored at haze 1.5 first and the spec caught it -- a yard with an 18 m engagement band cannot carry more haze than the 27 m market quarter without greying out the thing you are aiming at. Looking west down a lane still costs you something; it costs you glare rather than visibility.",
+        "brightness": 2.5,
+        "clockTime": 16.8,
+        "shadowSoftness": 0.3,
+        "ambient": [70, 62, 52],
+        "outdoorAmbient": [132, 116, 92],
+        "colorShiftTop": [46, 32, 14],
         "atmosphere": {
           "density": 0.3,
-          "haze": 1.2,
-          "color": [226, 208, 172],
-          "glare": 0.42
+          "haze": 0.95,
+          "glare": 0.44,
+          "color": [224, 206, 172],
+          "decay": [136, 116, 86]
+        },
+        "sunRays": {
+          "intensity": 0.13,
+          "spread": 1.0
         },
         "colorCorrection": {
-          "saturation": 0.06,
-          "contrast": 0.15,
-          "tintColor": [255, 246, 226]
+          "saturation": 0.1,
+          "contrast": 0.1,
+          "tintColor": [255, 246, 230]
+        }
+      },
+      "urban": {
+        "_note": "Mid-morning in the market quarter. The coolest, cleanest light in the set: concrete, shade under the awnings, and enough contrast to read a silhouette on a roofline at 27 m. Deliberately the plainest profile -- this field's character is its geometry, not its weather.",
+        "brightness": 2.6,
+        "clockTime": 10.2,
+        "shadowSoftness": 0.24,
+        "ambient": [56, 60, 70],
+        "outdoorAmbient": [108, 116, 132],
+        "atmosphere": {
+          "density": 0.24,
+          "haze": 1.1,
+          "glare": 0.24,
+          "color": [204, 210, 218]
         },
-        "depthOfField": {
-          "farIntensity": 0,
-          "focusDistance": 40,
-          "inFocusRadius": 70
+        "colorCorrection": {
+          "saturation": 0.12,
+          "contrast": 0.12,
+          "tintColor": [250, 251, 255]
+        }
+      },
+      "woods": {
+        "_note": "Early morning under a canopy. Green-shifted, damp, with the sun low enough to come through the trunks in shafts -- the highest sunRays in the set, which is what a treeline is for. Haze is up because a 39 m band needs the far end of the field to fade rather than end.",
+        "brightness": 2.42,
+        "clockTime": 8.6,
+        "shadowSoftness": 0.4,
+        "ambient": [54, 66, 56],
+        "outdoorAmbient": [104, 120, 102],
+        "colorShiftTop": [26, 30, 14],
+        "colorShiftBottom": [12, 18, 14],
+        "atmosphere": {
+          "density": 0.46,
+          "haze": 1.8,
+          "glare": 0.3,
+          "color": [198, 210, 196],
+          "decay": [96, 116, 98]
+        },
+        "sunRays": {
+          "intensity": 0.17,
+          "spread": 1.05
+        },
+        "colorCorrection": {
+          "saturation": 0.15,
+          "contrast": 0.1,
+          "tintColor": [248, 255, 246]
         }
       },
       "holdfast": {
-        "_note": "Deep woods valley, low sun behind the north keep. The heaviest haze in the game and it is load-bearing: a 110 m lane has to LOOK like 110 m or nobody can judge the holdover it needs.",
-        "clockTime": 8.4,
-        "brightness": 2.0,
-        "ambient": [50, 58, 54],
-        "outdoorAmbient": [92, 106, 96],
+        "_note": "Cold light over a wide valley, late in the day. The dimmest field allowed and the haziest: at a 46 m band the far keep should be a shape in the air rather than a crisp object, and that haze is doing the work a 200 m field cannot do on its own. Blue-grey throughout so the two keeps read as stone.",
+        "brightness": 2.36,
+        "clockTime": 17.9,
+        "shadowSoftness": 0.44,
+        "ambient": [52, 58, 68],
+        "outdoorAmbient": [100, 110, 126],
+        "colorShiftTop": [24, 26, 34],
+        "colorShiftBottom": [10, 14, 22],
         "atmosphere": {
-          "density": 0.5,
-          "haze": 2.8,
-          "color": [180, 194, 186],
-          "decay": [86, 102, 92],
-          "glare": 0.16
+          "density": 0.52,
+          "haze": 2.1,
+          "glare": 0.26,
+          "color": [196, 204, 216],
+          "decay": [92, 104, 124]
+        },
+        "sunRays": {
+          "intensity": 0.1,
+          "spread": 0.95
         },
         "colorCorrection": {
-          "saturation": 0.04,
-          "contrast": 0.07
-        },
-        "depthOfField": {
-          "farIntensity": 0,
-          "focusDistance": 95,
-          "inFocusRadius": 140
+          "saturation": 0.09,
+          "contrast": 0.13,
+          "tintColor": [244, 248, 255]
         }
       }
-    }
+    },
+    "_perMap": "Each field gets its own hour and its own air. They were all rendering under one profile -- the same 15:20 sun, the same haze -- which made five places with five themes read as one place with five layouts.\n\nTwo rules constrain every value here. BRIGHTNESS stays in a narrow band (2.35 to 2.70) because a bot has to read as the most saturated thing on screen on every field, and a dim field breaks that before it looks moody. HAZE scales with the field's own engagement band: distance haze sells scale on Holdfast at 46 m and simply muddies Speedball at 16 m, where there is no distance to sell.\n\ndepthOfField stays off everywhere on purpose. Far blur looks wonderful and costs you the target you were about to shoot, which on an aim trainer is the one trade that is never worth making."
   }
 }
