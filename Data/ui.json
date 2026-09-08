@@ -1,51 +1,15 @@
 {
   "_comment": "Client presentation only. No values affect shots, rewards, unlocks or prices.",
   "palette": {
-    "panel": [
-      18,
-      29,
-      35
-    ],
-    "card": [
-      29,
-      44,
-      51
-    ],
-    "ink": [
-      243,
-      241,
-      227
-    ],
-    "muted": [
-      169,
-      190,
-      192
-    ],
-    "accent": [
-      64,
-      209,
-      184
-    ],
-    "gold": [
-      255,
-      208,
-      104
-    ],
-    "warning": [
-      255,
-      159,
-      133
-    ],
-    "line": [
-      63,
-      91,
-      96
-    ],
-    "black": [
-      0,
-      0,
-      0
-    ]
+    "panel": [18, 29, 35],
+    "card": [29, 44, 51],
+    "ink": [243, 241, 227],
+    "muted": [169, 190, 192],
+    "accent": [64, 209, 184],
+    "gold": [255, 208, 104],
+    "warning": [255, 159, 133],
+    "line": [63, 91, 96],
+    "black": [0, 0, 0]
   },
   "cornerPixels": 10,
   "smallTextPixels": 14,
@@ -74,15 +38,13 @@
   },
   "_scaling": "Text sizes below are pixel counts at referenceViewportPixels tall. Roblox reports real device pixels, so 13px is comfortable at 900 tall, unreadable at 2160 and oversized on a phone. UiTheme.px() scales them by the viewport height against that reference, clamped by textScaleLimits so a large monitor grows the UI without turning it into a billboard.",
   "referenceViewportPixels": 900,
-  "textScaleLimits": [
-    0.85,
-    1.7
-  ],
-  "_fonts": "Font names, resolved against Enum.Font by UiTheme with a fallback. BuilderSans is Roblox's current interface family and reads cleaner at small sizes than Gotham, which is the previous one -- verified present in Enum.Font (values 46-49) on 2026-09-07. Both families are supported; if a name here ever stops resolving the theme falls back to Gotham rather than to Legacy.",
+  "textScaleLimits": [0.85, 1.7],
+  "_fonts": "Every value in `fonts` is validated against Enum.Font by OverworldSpec, which iterates the whole table -- so notes live out here, not in it. `mono` is RobotoMono for the Shoothouse clock: a proportional face makes a ticking timer jitter sideways every time a digit changes width, which on a mode whose entire point is the clock is the one place that reads as broken.",
   "fonts": {
     "body": "BuilderSansMedium",
     "bold": "BuilderSansBold",
     "title": "BuilderSansExtraBold",
-    "numeric": "BuilderSansBold"
+    "numeric": "BuilderSansBold",
+    "mono": "RobotoMono"
   }
 }

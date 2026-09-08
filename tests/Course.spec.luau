@@ -281,27 +281,65 @@ return function()
 				.to.equal(Courses.courseCount())
 		end)
 
-		it("unlocks the course camos on medals, not on mask hits", function()
-			local empty = {}
-			expect(Camos.isUnlocked(empty, "chalkline")).to.equal(false)
-			expect(Camos.isUnlocked(empty, "aurumFinish")).to.equal(false)
-
-			local data = goldEverywhere()
-			expect(Camos.isUnlocked(data, "chalkline")).to.equal(true)
-			expect(Camos.isUnlocked(data, "shoothouse")).to.equal(true)
-			expect(Camos.isUnlocked(data, "aurumFinish")).to.equal(true)
+		it("makes deferred course finishes earnable through mask hits", function()
+			for _, id in ipairs({ "chalkline", "shoothouse", "aurumFinish" }) do
+				local required = Camos.visual(id).requiredHeadshots
+				expect(required > 0).to.equal(true)
+				expect(Camos.isUnlocked({ camoProgress = { headshots = required - 1 } }, id)).to.equal(false)
+				expect(Camos.isUnlocked({ camoProgress = { headshots = required } }, id)).to.equal(true)
+				expect(Camos.isUnlocked(goldEverywhere(), id)).to.equal(false)
+			end
 		end)
 
-		it("does not let a huge headshot count unlock a course camo", function()
-			local data = { camoProgress = { headshots = 100000 } }
-			expect(Camos.isUnlocked(data, "aurumFinish")).to.equal(false)
-			-- ...and the headshot ladder still works on its own terms.
-			expect(Camos.isUnlocked(data, "auroraFlux")).to.equal(true)
-		end)
-
-		it("keeps course camos off the headshot ladder's next-unlock prompt", function()
+		it("has no remaining unlock after completing the release headshot ladder", function()
 			local data = { camoProgress = { headshots = 100000 } }
 			expect(Camos.nextUnlock(data)).to.equal(nil)
+		end)
+	end)
+
+	--[[
+		The Shoothouse once shipped fully specced and completely unreachable: no
+		match loop referenced it and Bootstrap refused every mode but gauntlet.
+		Nothing in a unit suite noticed, because unit specs call the rules module
+		directly -- which is what they are for.
+
+		These assert the DATA INVARIANT the player path actually depends on, so
+		the gap cannot reopen quietly. The end-to-end proof that a course runs
+		lives in tools/run-live-checks, which goes through MatchService.
+	]]
+	describe("mode integration", function()
+		local modes = Config.get("gamemodes")
+
+		it("only offers modes that have a live match loop", function()
+			for _, name in ipairs(modes.order) do
+				local mode = modes.modes[name]
+				expect(mode).to.be.ok()
+				expect(mode.integrated).to.equal(true)
+			end
+		end)
+
+		it("offers the Shoothouse, and every field it lists has a course", function()
+			expect(table.find(modes.order, "shoothouse")).to.be.ok()
+			for _, name in ipairs(modes.modes.shoothouse.maps) do
+				expect(Course.hasCourse(name)).to.equal(true)
+			end
+		end)
+
+		it("keeps the default mode integrated", function()
+			expect(modes.modes[modes.default].integrated).to.equal(true)
+		end)
+
+		--[[
+			Deliberately asserted, not aspirational. Horde and Capture the Flag
+			are pure rules modules with specs and no match loop; marking them
+			integrated without wiring one would put them back in the exact state
+			the Shoothouse was found in.
+		]]
+		it("does not pretend Horde or Capture the Flag are playable", function()
+			expect(modes.modes.horde.integrated).to.equal(false)
+			expect(modes.modes.captureTheFlag.integrated).to.equal(false)
+			expect(table.find(modes.order, "horde")).to.equal(nil)
+			expect(table.find(modes.order, "captureTheFlag")).to.equal(nil)
 		end)
 	end)
 end

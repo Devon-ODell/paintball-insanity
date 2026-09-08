@@ -1,18 +1,32 @@
 {
-  "_comment": "The three ways to play. All solo PvE -- one player against a squad, always. There is no multiplayer in scope and none of these modes add any.",
+  "_comment": "Release: solo Gauntlet. Horde and Capture the Flag are deferred; their tuning is retained for future integration.",
   "order": [
-    "shoothouse",
     "gauntlet",
-    "horde",
-    "captureTheFlag"
+    "shoothouse"
   ],
-  "default": "shoothouse",
+  "default": "gauntlet",
   "modes": {
+    "gauntlet": {
+      "displayName": "Gauntlet",
+      "subtitle": "Five rounds. The field fills up.",
+      "blurb": "Four of them, then six, eight, ten, twelve. Better players for the last two. Clear all five or the match ends where you stopped.",
+      "unlockRequires": null,
+      "maps": [
+        "speedball",
+        "urban",
+        "woods",
+        "dustline"
+      ],
+      "rules": "match.rounds",
+      "leaderboard": "time",
+      "integrated": true
+    },
     "shoothouse": {
       "displayName": "Shoothouse",
       "subtitle": "One field, four stages, one clock.",
-      "blurb": "The same map, laid out in a line. Two defenders, then three, then four, then five, each group holding the next band of cover. Dying costs ten seconds and a checkpoint, never the run. Beat par and the medal is yours; beat par on all five fields and the gold marker is.",
+      "blurb": "The same map, laid out in a line. Two defenders, then three, then four, then five, each group holding the next band of cover, and every stage fought twice over. Dying costs ten seconds and a checkpoint, never the run.",
       "unlockRequires": null,
+      "integrated": true,
       "maps": [
         "speedball",
         "dustline",
@@ -23,23 +37,10 @@
       "rules": "course",
       "leaderboard": "time",
       "maxPlayers": 2,
-      "_maxPlayers": "The only mode that takes a second player. See course.coop -- one clock, shared stages, and a checkpoint that only banks when both of you are past it."
-    },
-    "gauntlet": {
-      "displayName": "Gauntlet",
-      "subtitle": "Five rounds. The field fills up.",
-      "blurb": "Two of them, then three, then four, five, six. Better players for the last two. Clear all five or the match ends where you stopped.",
-      "unlockRequires": null,
-      "maps": [
-        "speedball",
-        "urban",
-        "woods",
-        "dustline"
-      ],
-      "rules": "match.rounds",
-      "leaderboard": "time"
+      "_maxPlayers": "The only mode that takes a second player. See Data/course.json coop."
     },
     "horde": {
+      "enabled": false,
       "displayName": "Horde",
       "subtitle": "The Long Afternoon.",
       "blurb": "Endless waves. Breather every fifth, a marshal every seventh, and it does not have an end -- only a depth you stopped at.",
@@ -51,9 +52,12 @@
         "dustline"
       ],
       "rules": "endless",
-      "leaderboard": "wave"
+      "leaderboard": "wave",
+      "integrated": false,
+      "_integrated": "Endless.luau is pure and spec-covered; nothing starts it. See docs/PROGRESS.md."
     },
     "captureTheFlag": {
+      "enabled": false,
       "displayName": "Capture the Flag",
       "subtitle": "Holdfast. Their keep, your keep, one flag each.",
       "blurb": "Take their flag out of the north keep and get it back to yours. They are doing the same thing in the other direction, and they have six people to your one.",
@@ -62,7 +66,9 @@
         "holdfast"
       ],
       "rules": "captureTheFlag",
-      "leaderboard": "time"
+      "leaderboard": "time",
+      "integrated": false,
+      "_integrated": "CaptureTheFlag.luau is pure and spec-covered; nothing starts it."
     }
   },
   "captureTheFlag": {
@@ -116,5 +122,6 @@
       "usesAccuracyBonus": true
     }
   },
-  "_default": "Shoothouse is the default because it is the only mode that introduces a field before putting a squad in it. Gauntlet was the old default and remains the campaign's spine."
+  "_default": "Gauntlet is the first-release default. Shoothouse is deferred until live co-op integration is complete.",
+  "_integrated": "`integrated` is the single source of truth for whether a mode can actually be started. Bootstrap.asMode refuses anything that is not integrated, ship-check refuses to publish an `order` that lists one, and this file is the only place the answer lives. The Shoothouse shipped once as a fully specced rules module that no match loop referenced -- 30 green assertions and no way for a player to reach it -- and a boolean nobody can forget to update is the cheapest guard against a repeat."
 }

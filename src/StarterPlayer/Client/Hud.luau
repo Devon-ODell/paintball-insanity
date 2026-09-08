@@ -5,15 +5,18 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Theme = require(script.Parent.UiTheme)
+local Navigation = require(script.Parent.UiNavigation)
 local C = Theme.colors
 local cfg = Theme.config
 local Hud = {}
+local aimGui: ScreenGui
 local gui: ScreenGui
 local safe: Frame
 local crosshair: Frame
 local holdoverTick: Frame
 local hitMarker: Frame
 local roundLabel: TextLabel
+local clockLabel: TextLabel
 local bannerLabel: TextLabel
 local rangeLabel: TextLabel
 local hopperLabel: TextLabel
@@ -37,10 +40,15 @@ end
 
 function Hud.build()
 	gui = Instance.new("ScreenGui")
-	gui.Name, gui.ResetOnSpawn, gui.IgnoreGuiInset = "LiveRoundHud", false, true
+	gui.Name, gui.ResetOnSpawn = "LiveRoundHud", false
+	gui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
+	aimGui = Instance.new("ScreenGui")
+	aimGui.Name, aimGui.ResetOnSpawn = "LiveRoundAim", false
+	aimGui.ScreenInsets = Enum.ScreenInsets.None
+	aimGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
-	safe = Theme.frame(gui, "Readouts", UDim2.new(1, -32, 1, -76), UDim2.fromOffset(16, 56))
+	safe = Theme.frame(gui, "Readouts", UDim2.fromScale(0.94, 0.94), UDim2.fromScale(0.03, 0.03))
 	safe.BackgroundTransparency = 1
 	local matchCard = Theme.frame(safe, "MatchCard", UDim2.new(0.64, 0, 0, 108), UDim2.new())
 	matchCard.BackgroundTransparency = 0.15
@@ -50,6 +58,15 @@ function Hud.build()
 	cardLimit.Parent = matchCard
 	roundLabel = Theme.text(matchCard, "Round", "THE LANDING", UDim2.new(1, -24, 0, 22), UDim2.fromOffset(12, 9), cfg.smallTextPixels)
 	roundLabel.TextColor3, roundLabel.Font = C.accent, Theme.font("bold")
+	--[[
+		The Shoothouse clock, right-aligned on the same row as the stage. Blank
+		and invisible in every other mode -- a running timer on an untimed match
+		would be telling the player something that is not true.
+	]]
+	clockLabel = Theme.text(matchCard, "Clock", "", UDim2.new(0, 104, 0, 22), UDim2.new(1, -116, 0, 9), cfg.smallTextPixels)
+	clockLabel.TextXAlignment = Enum.TextXAlignment.Right
+	clockLabel.Font = Theme.font("mono")
+	clockLabel.Visible = false
 	remainingLabel = Theme.text(matchCard, "Remaining", "Welcome to the field", UDim2.new(1, -24, 0, 28), UDim2.fromOffset(12, 31), 19)
 	remainingLabel.Font = Theme.font("bold")
 	deathsLabel = Theme.text(matchCard, "Eliminations", "Clean run", UDim2.new(1, -24, 0, 20), UDim2.fromOffset(12, 61), cfg.smallTextPixels)
@@ -63,23 +80,23 @@ function Hud.build()
 	bannerLabel.Font, bannerLabel.TextColor3 = Theme.font("bold"), C.gold
 	bannerLabel.TextStrokeTransparency = 0.4
 
-	crosshair = Theme.frame(gui, "SpreadRing", UDim2.fromOffset(6, 6), UDim2.fromScale(0.5, 0.5))
+	crosshair = Theme.frame(aimGui, "SpreadRing", UDim2.fromOffset(6, 6), UDim2.fromScale(0.5, 0.5))
 	crosshair.AnchorPoint, crosshair.BackgroundTransparency = Vector2.new(0.5, 0.5), 1
 	Theme.round(crosshair, cfg.crosshairMaximumRadiusPixels)
 	Theme.outline(crosshair, C.ink)
 	local dot = Theme.frame(crosshair, "AimPoint", UDim2.fromOffset(3, 3), UDim2.fromScale(0.5, 0.5))
 	dot.AnchorPoint, dot.BackgroundColor3 = Vector2.new(0.5, 0.5), C.ink
 	Theme.round(dot)
-	holdoverTick = Theme.frame(gui, "Holdover", UDim2.fromOffset(14, 2), UDim2.fromScale(0.5, 0.5))
+	holdoverTick = Theme.frame(aimGui, "Holdover", UDim2.fromOffset(14, 2), UDim2.fromScale(0.5, 0.5))
 	holdoverTick.AnchorPoint, holdoverTick.BackgroundColor3 = Vector2.new(0.5, 0.5), C.gold
 	holdoverTick.Visible = false
-	hitMarker = Theme.frame(gui, "HitMarker", UDim2.fromOffset(28, 28), UDim2.fromScale(0.5, 0.5))
+	hitMarker = Theme.frame(aimGui, "HitMarker", UDim2.fromOffset(28, 28), UDim2.fromScale(0.5, 0.5))
 	hitMarker.AnchorPoint, hitMarker.BackgroundTransparency, hitMarker.Visible = Vector2.new(0.5, 0.5), 1, false
 	for _, rotation in ipairs({ 45, -45 }) do
 		local line = Theme.frame(hitMarker, "Stroke", UDim2.fromOffset(24, 2), UDim2.fromScale(0.5, 0.5))
 		line.AnchorPoint, line.Rotation, line.BackgroundColor3 = Vector2.new(0.5, 0.5), rotation, C.ink
 	end
-	rangeLabel = Theme.text(gui, "Range", "", UDim2.new(1, -32, 0, 24), UDim2.new(0, 16, 0.5, 42), cfg.smallTextPixels)
+	rangeLabel = Theme.text(aimGui, "Range", "", UDim2.new(1, -32, 0, 24), UDim2.new(0, 16, 0.5, 42), cfg.smallTextPixels)
 	centered(rangeLabel)
 	rangeLabel.TextColor3, rangeLabel.TextStrokeTransparency = C.muted, 0.4
 
@@ -102,13 +119,15 @@ function Hud.build()
 	camoLabel.TextStrokeTransparency = 0.5
 	chatterLabel = Theme.text(safe, "Chatter", "", UDim2.new(1, -8, 0, 56), UDim2.new(0, 4, 1, -170), cfg.bodyTextPixels)
 	chatterLabel.TextColor3, chatterLabel.TextStrokeTransparency = C.ink, 0.35
-	controls = Theme.text(safe, "Controls", "", UDim2.new(1, 0, 0, 22), UDim2.new(0, 0, 1, -22), 11)
+	controls = Theme.text(safe, "Controls", "", UDim2.new(1, 0, 0, 44), UDim2.new(0, 0, 1, -44), 11)
 	controls.TextColor3, controls.TextStrokeTransparency = C.muted, 0.4
 	local function resize()
-		controls.Text = if safe.AbsoluteSize.X < cfg.compactViewportPixels then "R reload  ·  Shift sprint  ·  Ctrl crouch"
+		controls.Text = if game:GetService("UserInputService").PreferredInput == Enum.PreferredInput.Gamepad then "R2 fire · X reload · L3 sprint · B crouch · R1 slide · D-pad lean"
+			elseif safe.AbsoluteSize.X < cfg.compactViewportPixels then "R reload  ·  Shift sprint  ·  Ctrl crouch"
 			else "WASD move  ·  Mouse fire  ·  R reload  ·  Shift sprint  ·  Ctrl crouch  ·  C slide  ·  Q/E lean"
 	end
 	safe:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
+	game:GetService("UserInputService"):GetPropertyChangedSignal("PreferredInput"):Connect(resize)
 	resize()
 	if ReplicatedStorage:FindFirstChild("DemoMode") then
 		local demo = Theme.text(safe, "Demo", "LOCAL DEMO\nProgress resets on exit", UDim2.new(0.36, -8, 0, 40), UDim2.new(0.64, 8, 0, 38), 11)
@@ -149,11 +168,47 @@ function Hud.setHopper(remaining: number, capacity: number, reloading: boolean)
 	hopperLabel.TextColor3 = if low then C.warning else C.ink
 	hopperFill.BackgroundColor3 = if low then C.warning else C.accent
 	hopperFill.Size = UDim2.fromScale(math.clamp(remaining / math.max(1, capacity), 0, 1), 1)
-	markerLabel.Text = if remaining == 0 and not reloading then "EMPTY · R TO RELOAD" else currentMarker
+	markerLabel.Text = if remaining == 0 and not reloading then "EMPTY · RELOAD" else currentMarker
 end
 
 function Hud.setRound(round: number, roundCount: number, _botCount: number)
 	roundLabel.Text = string.format("ROUND %d / %d", round, roundCount)
+end
+
+--- A course reads as a place on the field, not as a round number: "STAGE 3/4 ·
+--- THEIR HALF" tells the player where they are, "ROUND 6 / 8" does not.
+function Hud.setStage(name: string, index: number, count: number)
+	roundLabel.Text = string.format("STAGE %d / %d · %s", index, count, string.upper(name))
+end
+
+--[[
+	The clock, in m:ss.
+
+	Client-side and cosmetic: the server counts the time that decides the medal,
+	and this only has to agree with it closely enough to be worth watching. It
+	turns amber once the run is past gold and red once it is past silver, so a
+	player learns what par feels like without reading a number off a table.
+]]
+function Hud.setClock(seconds: number?, par: { [string]: number }?)
+	if seconds == nil then
+		clockLabel.Visible = false
+		return
+	end
+	clockLabel.Visible = true
+	clockLabel.Text = string.format("%d:%05.2f", math.floor(seconds / 60), seconds % 60)
+	-- Gold while the run is still on gold pace, then accent, then warning. The
+	-- colour is the medal you are currently earning.
+	local colour = C.gold
+	if par then
+		if seconds > (par.bronze or math.huge) then
+			colour = C.muted
+		elseif seconds > (par.silver or math.huge) then
+			colour = C.warning
+		elseif seconds > (par.gold or math.huge) then
+			colour = C.accent
+		end
+	end
+	clockLabel.TextColor3 = colour
 end
 
 function Hud.showBanner(text: string, seconds: number?)
@@ -209,7 +264,7 @@ function Hud.setPhase(phase: string)
 		phaseLabel.Text = "Field resetting · next round loading"
 	elseif phase == "shop" or phase == "hub" then
 		roundLabel.Text, remainingLabel.Text, deathsLabel.Text = "THE LANDING", "Find your next field", "Progress stays with you"
-		phaseLabel.Text = "F at counters · talk to the crew"
+		phaseLabel.Text = "Use counter prompts · talk to the crew"
 	elseif phase == "summary" then
 		phaseLabel.Text = "Match complete"
 	else phaseLabel.Text = "" end
@@ -283,9 +338,19 @@ function Hud.showSummary(summary: any, breakdown: any, onPlayAgain: (() -> any)?
 		local text = Theme.text(prescription, "Prescription", summary.prescription.line .. "\nRange drill: " .. summary.prescription.drill, UDim2.new(1, -24, 1, -16), UDim2.fromOffset(12, 8), cfg.smallTextPixels)
 		text.TextColor3 = C.gold
 	end
-	local payout = section("Payout", 76, 9)
-	Theme.text(payout, "Total", Theme.number(breakdown.total or 0) .. " FF EARNED", UDim2.new(1, -24, 0, 32), UDim2.fromOffset(12, 7), 20).TextColor3 = C.gold
-	Theme.text(payout, "Multiplier", string.format("Payout multiplier ×%.2f · progress kept", breakdown.deathPenalty or 1), UDim2.new(1, -24, 0, 25), UDim2.fromOffset(12, 42), cfg.smallTextPixels)
+	local payout = section("Payout", 0, 9)
+	payout.AutomaticSize = Enum.AutomaticSize.Y
+	Theme.list(payout, 8)
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop, padding.PaddingBottom = UDim.new(0, 10), UDim.new(0, 10)
+	padding.PaddingLeft, padding.PaddingRight = UDim.new(0, 12), UDim.new(0, 12)
+	padding.Parent = payout
+	Theme.text(payout, "Total", Theme.number(breakdown.total or 0) .. " FF EARNED", UDim2.new(1, 0, 0, 0), UDim2.new(), 20).TextColor3 = C.gold
+	Theme.text(payout, "Multiplier", string.format("Payout multiplier ×%.2f · progress kept", breakdown.deathPenalty or 1), UDim2.new(1, 0, 0, 0), UDim2.new(), cfg.smallTextPixels)
+	for index, name in ipairs({ "Total", "Multiplier" }) do
+		local label = payout:FindFirstChild(name) :: TextLabel
+		label.AutomaticSize, label.LayoutOrder = Enum.AutomaticSize.Y, index
+	end
 	local status = Theme.text(panel, "Status", "", UDim2.new(1, -36, 0, 20), UDim2.new(0, 18, 1, -72), 11)
 	status.TextColor3 = C.warning
 	local busy = false
@@ -310,6 +375,7 @@ function Hud.showSummary(summary: any, breakdown: any, onPlayAgain: (() -> any)?
 	local again = Theme.button(panel, "Play again", UDim2.new(0.5, -24, 0, 38), UDim2.new(0.5, 6, 1, -48))
 	again.Modal = true
 	again.Activated:Connect(function() act(onPlayAgain) end)
+	Navigation.bind(layer, again, nil)
 end
 
 return Hud

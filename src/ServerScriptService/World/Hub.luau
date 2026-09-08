@@ -38,6 +38,8 @@ local openBay: { [Player]: { id: string, categories: { string } } } = {}
 --- Hooks the bootstrap fills in, so this module does not have to know about
 --- match startup or profiles.
 Hub.onGateEntered = nil :: ((Player, string) -> ())?
+--- Same gate, other prompt: the timed course rather than the five rounds.
+Hub.onCourseEntered = nil :: ((Player, string) -> ())?
 Hub.onBayOpened = nil :: ((Player, string, { string }) -> ())?
 Hub.onNpcTalk = nil :: ((Player, string) -> ())?
 Hub.profileFor = nil :: ((Player) -> any)?
@@ -60,6 +62,13 @@ function Hub.build(): any
 	hub = Overworld.build(Workspace)
 
 	for _, gate in ipairs(hub.gates) do
+		if gate.coursePrompt then
+			(gate.coursePrompt :: ProximityPrompt).Triggered:Connect(function(player: Player)
+				if Hub.onCourseEntered then
+					(Hub.onCourseEntered :: any)(player, gate.map)
+				end
+			end)
+		end
 		gate.prompt.Triggered:Connect(function(player: Player)
 			if Hub.onGateEntered then
 				(Hub.onGateEntered :: any)(player, gate.map)

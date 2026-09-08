@@ -16,6 +16,7 @@ local Remotes = require(ReplicatedStorage.Net.Remotes)
 
 local Server = script.Parent
 local MatchService = require(Server.Match.MatchService)
+local Course = require(Server.Match.Course)
 local Profile = require(Server.Economy.Profile)
 local Shop = require(Server.Economy.Shop)
 local Commerce = require(Server.Economy.Commerce)
@@ -152,7 +153,28 @@ local function asTier(value: any): Types.BotTier?
 	return nil
 end
 
-local function startMatch(player: Player, mapName: string, tier: Types.BotTier): boolean
+--[[
+	Modes a player may actually start.
+
+	The answer lives in Data/gamemodes.json as `integrated`, and nowhere else. A
+	hardcoded list here would be a second source of truth that can disagree with
+	the data -- which is precisely how the Shoothouse ended up specced, tested
+	and unreachable. Horde and Capture the Flag have rules modules and specs but
+	no match loop, so they are refused by name rather than quietly running as a
+	gauntlet.
+]]
+local function asMode(value: any): string?
+	if type(value) ~= "string" then
+		return nil
+	end
+	local mode = Config.get("gamemodes").modes[value]
+	if not mode or mode.integrated ~= true then
+		return nil
+	end
+	return value
+end
+
+local function startMatch(player: Player, mapName: string, tier: Types.BotTier, mode: string?): boolean
 	local handle = Profile.load(player.UserId)
 	if not handle then
 		log.warn(`refusing match for {player.Name}: no profile session`)
@@ -171,7 +193,7 @@ local function startMatch(player: Player, mapName: string, tier: Types.BotTier):
 		first, restored by Hub.placePlayer on the way back out.
 	]]
 	Hub.park()
-	local match = MatchService.start(player, mapName, tier)
+	local match = MatchService.start(player, mapName, tier, nil, mode)
 	if not match then
 		Hub.restore()
 	end
@@ -186,16 +208,31 @@ requestMatch = function(player: Player, payload: any): any
 	returnTokens[player] = (returnTokens[player] or 0) + 1
 	local mapName = DEFAULT_MAP
 	local tier = DEFAULT_TIER
-	if type(payload) == "table" and payload.mode and payload.mode ~= "gauntlet" then
-		starting[player] = nil
-		return { ok = false, reason = "This mode is still in field preparation." }
+	--[[
+		Mode routing. Gauntlet and the Shoothouse are both live; Horde and
+		Capture the Flag have rules modules and specs but are still not wired to
+		a match, so they are refused here rather than starting something that
+		would silently run as a gauntlet.
+	]]
+	local mode = "gauntlet"
+	if type(payload) == "table" and payload.mode then
+		local requested = asMode(payload.mode)
+		if not requested then
+			starting[player] = nil
+			return { ok = false, reason = "This mode is still in field preparation." }
+		end
+		mode = requested
 	end
 	if type(payload) == "table" then
 		mapName = asMap(payload.map) or DEFAULT_MAP
 		tier = asTier(payload.tier) or DEFAULT_TIER
 	end
+	if mode == "shoothouse" and not Course.hasCourse(mapName) then
+		starting[player] = nil
+		return { ok = false, reason = "That field has no Shoothouse course." }
+	end
 	MatchService.stop(player)
-	local success, result = pcall(startMatch, player, mapName, tier)
+	local success, result = pcall(startMatch, player, mapName, tier, mode)
 	starting[player] = nil
 	if not success then
 		MatchService.stop(player)
@@ -204,7 +241,7 @@ requestMatch = function(player: Player, payload: any): any
 		log.warn(`match startup failed: {result}`)
 		return { ok = false, reason = "Could not start the match. Check Studio Output." }
 	end
-	return { ok = result, map = mapName, tier = tier }
+	return { ok = result, map = mapName, tier = tier, mode = mode }
 end
 
 Remotes.fn("RequestMatchStart").OnServerInvoke = requestMatch
@@ -221,7 +258,18 @@ Hub.onGateEntered = function(player: Player, mapName: string)
 		})
 		return
 	end
-	requestMatch(player, { map = mapName, tier = DEFAULT_TIER })
+	local handle = Profile.load(player.UserId)
+	if not handle or player.Parent ~= Players then return end
+	local tier = Campaign.recommendedTier(Campaign.recordFromProfile(handle.data))
+	requestMatch(player, { map = mapName, tier = tier })
+end
+
+--- The other prompt on the same post: the timed course.
+Hub.onCourseEntered = function(player: Player, mapName: string)
+	local handle = Profile.load(player.UserId)
+	if not handle or player.Parent ~= Players then return end
+	local tier = Campaign.recommendedTier(Campaign.recordFromProfile(handle.data))
+	requestMatch(player, { map = mapName, tier = tier, mode = "shoothouse" })
 end
 
 --[[

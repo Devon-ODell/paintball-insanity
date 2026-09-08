@@ -52,6 +52,18 @@ local deaths = 0
 local remaining = matchData.squadSize
 local roundBotCount = matchData.squadSize
 local currentRoundIndex, currentRoundCount = 1, 5
+--[[
+	Shoothouse state.
+
+	The clock is a DISPLAY. The server counts the time that decides the medal --
+	it has to, since it also decides what a death costs -- and this only has to
+	agree closely enough to be worth watching. It runs while a stage is live and
+	stops the moment the summary lands.
+]]
+local courseMode = false
+local courseStageIndex: number? = nil
+local courseElapsed = 0
+local coursePar: { [string]: number }? = nil
 local phaseRevision = 0
 local readoutElapsed = uiCfg.hudReadoutIntervalSeconds
 
@@ -215,6 +227,24 @@ end)
 
 Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
 	Input.setPointerFree(true)
+	--[[
+		The run is over, so the clock stops and is replaced by the server's own
+		figure -- which includes the ten seconds a death that the display clock
+		deliberately never showed, because charging it live would make the timer
+		jump backwards out from under the player.
+	]]
+	courseMode = false
+	if payload.course then
+		Hud.setClock(payload.course.seconds, payload.course and coursePar)
+		Hud.showBanner(
+			if payload.course.medal
+				then string.format("%s  ·  %.1fs", string.upper(payload.course.medal), payload.course.seconds)
+				else string.format("NO MEDAL  ·  %.1fs", payload.course.seconds),
+			6
+		)
+	else
+		Hud.setClock(nil, nil)
+	end
 	Hud.showSummary(payload.summary, payload.breakdown, function()
 		return Remotes.fn("RequestMatchStart"):InvokeServer({
 			map = payload.summary.map,
@@ -270,6 +300,10 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 		respawning = false
 		sustainedSpread = 0
 		deaths = 0
+		courseMode = payload.mode == "shoothouse"
+		courseStageIndex, courseElapsed = nil, 0
+		coursePar = payload.par
+		Hud.setClock(if courseMode then 0 else nil, coursePar)
 		roundBotCount = payload.botCount or roundBotCount
 		remaining = roundBotCount
 		currentRoundIndex, currentRoundCount = payload.round or 1, payload.roundCount or currentRoundCount
@@ -288,14 +322,32 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 		remaining = roundBotCount
 		currentRoundIndex, currentRoundCount = payload.round or currentRoundIndex, payload.roundCount or currentRoundCount
 		markerState = MarkerState.new(markerData)
-		Hud.setRound(currentRoundIndex, currentRoundCount, roundBotCount)
+		--[[
+			A course reports where you are on the field, not which round you are
+			on. Stage four of a Shoothouse is "THE BACK CORNERS", and the run-up
+			to it is the only thing the player is actually thinking about.
+		]]
+		if payload.mode == "shoothouse" and payload.stage then
+			courseMode = true
+			coursePar = payload.par or coursePar
+			if payload.stageIndex ~= courseStageIndex then
+				courseStageIndex = payload.stageIndex
+				Hud.showBanner(string.upper(payload.stage), 2)
+			end
+			Hud.setStage(payload.stage, payload.stageIndex or 1, payload.stageCount or 1)
+		else
+			Hud.setRound(currentRoundIndex, currentRoundCount, roundBotCount)
+			Hud.showBanner(string.format("ROUND %d", currentRoundIndex), 2)
+		end
 		Hud.setRemaining(remaining, roundBotCount)
-		Hud.showBanner(string.format("ROUND %d", currentRoundIndex), 2)
 	elseif phase == "intermission" then
-		Hud.showBanner(
-			string.format("ROUND %d CLEAR  ·  %d INCOMING", payload.round, payload.nextBotCount or 0),
-			payload.seconds or 5
-		)
+		-- The course clock never stops, so it has no intermission to announce.
+		if not courseMode then
+			Hud.showBanner(
+				string.format("ROUND %d CLEAR  ·  %d INCOMING", payload.round, payload.nextBotCount or 0),
+				payload.seconds or 5
+			)
+		end
 	end
 end)
 
@@ -326,6 +378,13 @@ RunService.RenderStepped:Connect(function(dt)
 		camera.FieldOfView = playerCfg.fieldOfViewDeg
 	end
 	Input.tick(dt)
+	-- The Shoothouse clock advances only while a stage is actually live, which
+	-- is what "the clock does not stop between stages" means in practice: there
+	-- is no intermission for it to stop for.
+	if courseMode and phase == "live" then
+		courseElapsed += dt
+		Hud.setClock(courseElapsed, coursePar)
+	end
 	ViewMarker.step(camera, phase == "live" or phase == "warmup")
 	markerState:update(os.clock())
 	sustainedSpread = math.max(0, sustainedSpread - markerData.spreadDecayPerSecondDeg * dt)

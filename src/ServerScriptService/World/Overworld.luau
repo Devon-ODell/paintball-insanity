@@ -32,6 +32,7 @@ local PoleBarn = require(script.Parent.PoleBarn)
 local NoticeBoard = require(script.Parent.NoticeBoard)
 local Npc = require(script.Parent.Npc)
 local Atmosphere = require(script.Parent.Parent.Match.Atmosphere)
+local Course = require(script.Parent.Parent.Match.Course)
 
 local log = Log.scope("LiveRound.World")
 
@@ -42,6 +43,9 @@ export type Gate = {
 	map: string,
 	displayName: string,
 	prompt: ProximityPrompt,
+	--- The Shoothouse prompt on the same post. Absent for a field with no
+	--- course authored, and for the Range.
+	coursePrompt: ProximityPrompt?,
 	position: Vector3,
 }
 
@@ -378,8 +382,33 @@ function Overworld.build(parent: Instance?): Hub
 		prompt.RequiresLineOfSight = false
 		prompt.Parent = trigger
 
+		--[[
+			The same post offers both ways to play the field: hold F for the five
+			rounds, hold E for the timed course. Two prompts on one trigger keeps
+			the mode choice where the player already is, which is the only place
+			a mode choice can live without a lobby -- and this project does not
+			have one on purpose.
+		]]
+		local coursePrompt: ProximityPrompt? = nil
+		if Course.hasCourse(gateCfg.map) then
+			local second = Instance.new("ProximityPrompt")
+			second.Name = "Shoothouse"
+			second.ActionText = "Run the Shoothouse"
+			local par = Course.parSeconds(gateCfg.map)
+			second.ObjectText = `Timed course -- gold at {par.gold}s`
+			second.KeyboardKeyCode = Enum.KeyCode.E
+			second.GamepadKeyCode = Enum.KeyCode.ButtonY
+			second.HoldDuration = 0.45
+			second.MaxActivationDistance = prompt.MaxActivationDistance
+			second.RequiresLineOfSight = false
+			second.UIOffset = Vector2.new(0, 44)
+			second.Parent = trigger
+			coursePrompt = second
+		end
+
 		gates[index] = {
 			id = gateCfg.id,
+			coursePrompt = coursePrompt,
 			map = gateCfg.map,
 			displayName = gateCfg.displayName,
 			prompt = prompt,
