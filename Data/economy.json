@@ -251,7 +251,12 @@
         "matches": 0,
         "flawless": 0
       },
-      "fundamentals": {
+      "_coaching": "The last prescription the telemetry produced: the line the coach says and the drill it points at. Persisted because the coach is asked between matches, when the session that produced it is long gone -- without this the NPC falls back to 'not enough shots on record yet' forever, which is what it did.",
+    "coaching": {
+      "line": "",
+      "drill": ""
+    },
+    "fundamentals": {
         "reactivity": 0,
         "flicking": 0,
         "targetSwitching": 0,

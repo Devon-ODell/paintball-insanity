@@ -45,10 +45,41 @@ Managed by [Rokit](https://github.com/rojo-rbx/rokit); versions are pinned in
 
 ---
 
+## Getting started
+
+Everything below works on **Windows, macOS and Linux**. Nothing here needs a
+Roblox account, and nothing here publishes anything.
+
+```sh
+git clone <this repo>
+cd paintball
+
+# Install the pinned toolchain (Rojo, Wally, Lune) and put it on PATH.
+# Get Rokit itself from https://github.com/rojo-rbx/rokit
+rokit install
+
+# Everything: 13 gates, ending with the 469-spec suite. Takes ~8 minutes.
+lune run tools/check-all
+```
+
+`rokit install` is the only setup step. There is **no `wally install`** — the one
+runtime dependency, ProfileStore, is vendored in `src/ServerScriptService/Vendor/`
+with its Apache-2.0 licence in `docs/licenses/`. A fresh clone builds and tests
+with no package directory at all.
+
+If `lune` is not on your PATH after `rokit install`, point at it explicitly:
+
+```sh
+LUNE=/path/to/lune lune run tools/check-all      # macOS / Linux
+$env:LUNE="C:\path\to\lune.exe"; lune run tools/check-all   # Windows PowerShell
+```
+
+---
+
 ## Build and test
 
-The headless Lune suite is the primary signal. It needs no Studio and no Roblox
-account.
+`tools/check-all` is the single entry point and the **only** place the gate list
+lives. Individual gates, if you want one:
 
 ```sh
 lune run tools/run-tests          # 469 specs across 19 files
@@ -57,8 +88,18 @@ lune run tools/check-source       # Luau syntax across every module
 lune run tools/run-live-checks    # MatchService against a mock engine
 lune run tools/run-profile-checks # persistence adapter
 lune run tools/check-budget       # part / shadow / alpha budgets per scene
-lune run tools/check-range        # drives a full aim drill end to end
 lune run tools/check-zfight       # coplanar surfaces that shimmer in motion
+lune run tools/check-client-ui    # HUD, shop, dialogue, tracers, input
+lune run tools/check-characters   # every bot and civilian builds
+```
+
+Diagnostics that report but never fail a build:
+
+```sh
+lune run tools/probe-hitbox       # visible body vs the capsule the server shoots at
+lune run tools/probe-ground       # what is seated on the floor and what hovers
+lune run tools/probe-shadows      # shadow casters attributed by part name
+lune run tools/foliage-report     # what the hub actually grows
 ```
 
 Build the release place:
@@ -67,9 +108,12 @@ Build the release place:
 rojo build default.project.json -o build/paintball-release.rbxlx
 ```
 
-On macOS, `Check Release.command` runs every automated gate and then builds;
-`Play.command` rebuilds and opens the result in Studio. Neither publishes
-anything to Roblox.
+Then open `build/paintball-release.rbxlx` in Roblox Studio and press **F5**.
+Click the viewport to control the player.
+
+On macOS only, `Check Release.command` runs `check-all` and then builds, and
+`Play.command` rebuilds and opens Studio. Both are convenience wrappers — the
+gate list they run is `tools/check-all.luau`, so no platform runs a different set.
 
 There is a second project file, `tests.project.json`, for running the same specs
 inside Studio via TestEZ. **It is currently incomplete** — it needs Wally packages

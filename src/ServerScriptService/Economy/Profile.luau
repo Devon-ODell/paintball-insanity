@@ -359,6 +359,26 @@ function Profile.recordMatch(handle: Handle, summary: any)
 			handle.data.fundamentals[name] = previous * 0.8 + entry.score * 0.2
 		end
 	end
+
+	--[[
+		Keep the last prescription.
+
+		The whole teaching loop is play, be told exactly what you are bad at,
+		drill it, play again -- and the telling happens at the barn, between
+		matches, when the session that produced the diagnosis is gone. Nothing
+		persisted it, so the coach fell back to "not enough shots on record yet"
+		no matter how much had been played.
+
+		Only overwritten when a match actually produced a diagnosis. A round too
+		short to be confident about leaves the previous advice standing, which is
+		better than clearing it.
+	]]
+	if summary.prescription then
+		handle.data.coaching = {
+			line = summary.prescription.line,
+			drill = summary.prescription.drill,
+		}
+	end
 end
 
 --- Whether a map is unlocked. Progression is by skill, never by time played.

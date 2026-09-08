@@ -120,18 +120,48 @@ DialogueService.onAction = function(player: Player, action: string, arg: string?
 			Remotes.event("MatchStateChanged"):FireClient(player, { phase = "hub", notice = "Horde field preparation is still underway. Gauntlet gates are open." })
 		end
 
-	elseif action == "startDrill" or action == "recommendDrill" or action == "readPrescription" then
-		-- The Range binding is still sim-only; the prescription text already
-		-- reached the player through the dialogue token.
-		Remotes.event("MatchStateChanged"):FireClient(player, {
-			phase = "hub",
-			notice = "The Range opens once the live drill binding ships.",
-		})
+	elseif action == "startDrill" then
+		--[[
+			"Set it up." The coach has just named the fundamental you are worst
+			at; this puts you on the drill for it.
+
+			The Range is live -- RangeService runs it and the hub gate has
+			started drills for a while -- but this branch still refused, so the
+			one NPC whose entire job is to send you to the Range was the one
+			route that could not. Falls back to the first drill when the profile
+			has no diagnosis yet, which is the same thing walking to the gate
+			does.
+		]]
+		local coaching = handle.data.coaching
+		local wanted = coaching and coaching.drill
+		startDrill(player, if wanted ~= nil and wanted ~= "" then wanted else nil)
+
+	elseif action == "recommendDrill" or action == "readPrescription" then
+		-- The diagnosis itself is substituted into the line through the
+		-- `prescription` dialogue token; there is nothing to do but let the
+		-- conversation continue to it.
 
 	elseif action == "focusBoard" then
 		Hub.refreshPersonal(player)
 		Hub.refreshBoard()
 	end
+end
+
+--[[
+	What the coach says when asked how you are doing.
+
+	The hook existed and nothing ever filled it, so `stateFor` fell through to
+	its "not enough shots on record yet" default on every conversation, forever,
+	regardless of how many matches were behind the player. Telemetry was being
+	measured, scored and thrown away.
+]]
+DialogueService.prescriptionFor = function(player: Player): string?
+	local handle = Profile.load(player.UserId)
+	local coaching = handle and handle.data.coaching
+	if not coaching or coaching.line == "" then
+		return nil
+	end
+	return coaching.line
 end
 
 DialogueService.bind()

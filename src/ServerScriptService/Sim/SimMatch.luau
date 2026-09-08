@@ -24,6 +24,7 @@ local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local Spread = require(ReplicatedStorage.Shared.Spread)
+local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
 local Log = require(ReplicatedStorage.Shared.Log)
 
 local Server = script.Parent.Parent
@@ -191,9 +192,17 @@ local function runRound(ctx: RoundContext): RoundReport
 		alive = true,
 		stance = "standing" :: Types.Stance,
 		aim = Vector3.new(0, 0, 1),
-		hopper = markerData.hopperCapacity,
-		reloadUntil = nil :: number?,
-		lastShotAt = -math.huge,
+		--[[
+			The hopper is the SAME state machine the live server runs.
+
+			It used to be three fields and an inline block here, which is two
+			implementations of one rule -- and the rule that decides how often the
+			player can shoot is the rule every balance number in
+			docs/PUBLISH_READINESS.md rests on. A gear stat or a variant that
+			changed reloading live would have left this copy on the old behaviour
+			and quietly invalidated the difficulty tuning without failing a test.
+		]]
+		marker = MarkerState.new(markerData),
 		respawnAt = nil :: number?,
 		invulnerableUntil = 0,
 		previousAim = nil :: Vector3?,
@@ -246,7 +255,7 @@ local function runRound(ctx: RoundContext): RoundReport
 			player.alive = true
 			player.respawnAt = nil
 			player.invulnerableUntil = t + matchData.respawn.invulnerabilitySeconds
-			player.hopper = markerData.hopperCapacity
+			player.marker = MarkerState.new(markerData)
 			table.clear(visibleSince)
 		end
 
@@ -312,18 +321,13 @@ local function runRound(ctx: RoundContext): RoundReport
 			ctx.spread:step(dt, t, player.velocity)
 
 			if intent.fire then
-				local interval = 60 / markerData.roundsPerMinute
-				local reloading = player.reloadUntil ~= nil and t < (player.reloadUntil :: number)
-				if player.reloadUntil ~= nil and t >= (player.reloadUntil :: number) then
-					player.reloadUntil = nil
-					player.hopper = markerData.hopperCapacity
-					reloading = false
+				-- Exactly what MatchService.onFire does: an empty hopper starts a
+				-- reload, and MarkerState decides whether a trigger pull produces
+				-- a ball. Rate of fire, reload lockout and refill all live there.
+				if player.marker.ammo <= 0 then
+					player.marker:reload(t)
 				end
-				if player.hopper <= 0 and not reloading then
-					player.reloadUntil = t + markerData.reloadSeconds
-					reloading = true
-				end
-				if not reloading and t - player.lastShotAt >= interval then
+				if player.marker:fire(t) then
 					local candidates: { ShotMeasure.Candidate } = {}
 					for _, bot in ipairs(visible) do
 						table.insert(candidates, {
@@ -356,8 +360,6 @@ local function runRound(ctx: RoundContext): RoundReport
 					})
 
 					player.previousAim = player.aim
-					player.lastShotAt = t
-					player.hopper -= 1
 					shots += 1
 				end
 			end

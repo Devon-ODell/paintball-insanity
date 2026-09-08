@@ -333,6 +333,54 @@ return function()
 			expect(handle.data.bestClears.speedball.deaths).to.equal(0)
 		end)
 
+		--[[
+			The teaching loop only closes if the diagnosis outlives the match that
+			produced it. It is read at the barn, between matches, from a profile.
+		]]
+		it("keeps the last prescription so the coach can read it later", function()
+			local handle = freshProfile()
+			expect(handle.data.coaching.line).to.equal("")
+
+			Profile.recordMatch(handle, {
+				map = "speedball", tier = "rec", marker = "mechanical",
+				shots = 40, hits = 12, eliminations = 6, deaths = 1,
+				cleared = true, durationSeconds = 120, scores = {},
+				prescription = { line = "You are under-leading by 0.4 m.", drill = "strafe" },
+			})
+
+			expect(handle.data.coaching.line).to.equal("You are under-leading by 0.4 m.")
+			expect(handle.data.coaching.drill).to.equal("strafe")
+		end)
+
+		it("leaves the previous advice standing when a match diagnoses nothing", function()
+			local handle = freshProfile()
+			Profile.recordMatch(handle, {
+				map = "speedball", tier = "rec", marker = "mechanical",
+				shots = 40, hits = 12, eliminations = 6, deaths = 1,
+				cleared = true, durationSeconds = 120, scores = {},
+				prescription = { line = "Track through the target.", drill = "switch" },
+			})
+			-- A round too short to be confident about carries no prescription.
+			Profile.recordMatch(handle, {
+				map = "speedball", tier = "rec", marker = "mechanical",
+				shots = 3, hits = 0, eliminations = 0, deaths = 1,
+				cleared = false, durationSeconds = 9, scores = {},
+			})
+			expect(handle.data.coaching.drill).to.equal("switch")
+		end)
+
+		--[[
+			`coaching` was added after profiles existed in the wild, so an old one
+			has to grow the field rather than index a nil.
+		]]
+		it("migrates a profile saved before coaching existed", function()
+			local handle = freshProfile()
+			handle.data.coaching = nil
+			Profile.reconcile(handle.data)
+			expect(handle.data.coaching).never.to.equal(nil)
+			expect(handle.data.coaching.drill).to.equal("")
+		end)
+
 		it("only improves a best clear, never worsens it", function()
 			local handle = freshProfile()
 			local function record(deaths: number)
