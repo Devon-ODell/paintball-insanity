@@ -8,3 +8,21 @@
 /Saved/Sims/*.json
 !/Saved/Sims/.gitkeep
 .DS_Store
+
+# Rojo sourcemaps embed absolute local filesystem paths.
+sourcemap.json
+*.sourcemap.json
+
+# Editor/local settings.
+.vscode/
+.idea/
+
+# Never commit credentials. Nothing in this project needs any, so a file
+# matching these patterns appearing is a mistake, not a new feature.
+.env
+.env.*
+*.key
+*.pem
+*.p12
+secrets.*
+*.secret
