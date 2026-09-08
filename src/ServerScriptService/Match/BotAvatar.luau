@@ -46,6 +46,15 @@ local function part(name: string, size: Vector3, colour: Color3, parent: Instanc
 	p.CanCollide = false
 	p.CanQuery = false
 	p.CanTouch = false
+	--[[
+		Characters cast no shadows, and that has to include what they are
+		carrying. World/Wardrobe already sets this false on every body part and
+		every piece of kit, but the marker was built here and missed it -- so a
+		bot's body cast nothing while its marker, barrel and hopper did. That is
+		a marker shadow with no person under it, and twelve squads' worth of it
+		is thirty-six MOVING casters, which cost far more than static ones.
+	]]
+	p.CastShadow = false
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
 	p.Parent = parent
@@ -194,6 +203,9 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 			splat.Anchored = true
 			splat.CanCollide = false
 			splat.CanQuery = false
+			-- Paint on a player, so it moves with the player: the same rule as
+			-- every other part of a character, and a caster nobody would see.
+			splat.CastShadow = false
 			splat.CFrame = CFrame.new(Units.vectorToStuds(at))
 			splat.Parent = self.model
 

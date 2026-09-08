@@ -137,6 +137,30 @@ do
 	report("shadows", shadows, budgets.hubFoliage.shadowCasters, "")
 end
 
+--[[
+	What a full squad costs to have on the field.
+
+	The squad doubled from six to twelve, and a pro bot is 72 parts, so this is
+	the largest thing in a match that is not the map. It is also the number
+	behind a deferred optimization: clearSquad destroys every avatar and
+	buildSquad builds new ones, so this whole figure is reconstructed at every
+	round boundary -- and a Shoothouse stage change has no intermission to absorb
+	it. See docs/PROGRESS.md.
+]]
+do
+	local BotAvatar = env.require(env.Server.Match.BotAvatar)
+	local squad = Config.require("match", "squadSize")
+	local folder = roblox.Instance.new("Folder")
+	for i = 1, squad do
+		BotAvatar.new(`budget_bot{i}`, `Bot {i}`, folder, "pro")
+	end
+	local parts, shadows = measure(folder)
+	print(`\n\27[1ma full squad ({squad} at pro)\27[0m`)
+	report("parts", parts, budgets.squad.parts, "")
+	report("shadows", shadows, budgets.squad.shadowCasters, "")
+	print(string.format("        %.0f parts rebuilt at every round boundary", parts))
+end
+
 print("")
 if problems > 0 then
 	print(`\27[31m{problems} budget(s) exceeded\27[0m`)

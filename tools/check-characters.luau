@@ -75,4 +75,25 @@ if problems > 0 then
 	print(`\27[31m{problems} problem(s)\27[0m`)
 	require("@lune/process").exit(1)
 end
-print("\27[32mevery character builds\27[0m")
+--[[
+	Nobody casts a shadow. Twelve bodies at 72 parts each, all moving, would be
+	the most expensive shadows in the game -- and a moving caster costs far more
+	than a static one. Wardrobe sets this on the body and the kit; the marker,
+	the barrel and the hopper are built in BotAvatar and were missing it, so a
+	bot's body cast nothing while the thing it was holding cast three.
+]]
+do
+	local casting = {}
+	for _, tier in ipairs({ "rec", "amateur", "semipro", "pro", "marshal" }) do
+		local folder = roblox.Instance.new("Folder")
+		BotAvatar.new(`shadow_{tier}`, "Probe", folder, tier)
+		for _, descendant in ipairs(folder:GetDescendants()) do
+			if descendant:IsA("BasePart") and descendant.CastShadow then
+				table.insert(casting, `{tier}/{descendant.Name}`)
+			end
+		end
+	end
+	assert(#casting == 0, `characters must cast no shadows, these do: {table.concat(casting, ", ")}`)
+end
+
+print("\27[32mevery character builds, and none of them casts a shadow\27[0m")
