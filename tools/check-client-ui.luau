@@ -206,6 +206,13 @@ input.WindowFocusReleased:fire()
 assert(not Input.state().firing, "focus loss must stop held fire")
 print("Input modal and focus-loss checks passed")
 
+--[[
+    A ceiling, not a target. The viewmodel is rebuilt on every equip and on
+    every camo change, and rebuildPanels removes and re-adds panels each time --
+    a leak there grows the model one camo swap at a time and would otherwise
+    only show up as a slow frame-rate slide nobody could attribute.
+]]
+local viewModelPartBudget = 64
 local ViewMarker = loaded(client.ViewMarker)
 local camera = Instance.new("Camera")
 for _, id in ipairs(Config.get("markers").order) do
@@ -221,16 +228,43 @@ for _, id in ipairs(Config.get("markers").order) do
         ViewMarker.step(camera, true)
         local marker = camera:FindFirstChild("LocalPaintballMarker")
         assert(marker and #marker:GetDescendants() > 0)
+        --[[
+            #descendants > 0 is not a shape check. It passes for a viewmodel
+            that has quietly doubled, which is the specific hazard the comment
+            above rebuildPanels warns about: a layout authored for one side and
+            then mirrored lands every panel on top of its own twin. Two coplanar
+            faces at identical depth have no stable winner, so the marker
+            shimmers -- on the object the player looks at for a whole match, and
+            only while the camera moves, which is never in a screenshot.
+
+            Same offset and same size is that failure exactly, so compare the
+            placed CFrame rather than trusting the mirroring arithmetic.
+        ]]
+        local seen: { [string]: string } = {}
+        local count = 0
         for _, part in ipairs(marker:GetDescendants()) do
             if part:IsA("BasePart") then
+                count += 1
                 assert(not part.CanQuery and not part.CanCollide and not part.CanTouch, "viewmodels must never affect shots or collision")
+                -- The bot's marker cast a shadow while the bot did not; the
+                -- viewmodel is parented to the camera, where a caster is pure
+                -- cost for a shadow nobody can be positioned to see.
+                assert(not part.CastShadow, `{id}/{camo}: viewmodel part {part.Name} casts a shadow`)
+                local at, size = part.CFrame.Position, part.Size
+                local key = string.format("%.3f,%.3f,%.3f/%.3f,%.3f,%.3f",
+                    at.X, at.Y, at.Z, size.X, size.Y, size.Z)
+                assert(seen[key] == nil,
+                    `{id}/{camo}: {part.Name} is stacked exactly on {seen[key]} -- these two will z-fight`)
+                seen[key] = part.Name
             end
         end
+        assert(count <= viewModelPartBudget,
+            `{id}/{camo}: {count} viewmodel parts, over the budget of {viewModelPartBudget}`)
     end
     ViewMarker.step(camera, false)
     assert(not camera:FindFirstChild("LocalPaintballMarker"))
 end
-print("All marker/skin/camo combinations constructed and reacted without collidable or queryable geometry")
+print("All marker/skin/camo combinations constructed: no collidable, queryable or shadow-casting geometry, no stacked panels, all inside the part budget")
 
 --------------------------------------------------------------------------------
 -- Tracers: the only thing in the game that allocates per shot.

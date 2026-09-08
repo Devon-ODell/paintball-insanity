@@ -85,13 +85,26 @@ unchanged.
    without touch controls and dedicated testing.
 5. Record rendered hub/12-bot frame time, memory, part and triangle counts.
    A provisional 60 FPS goal is 16.7 ms/frame; report hardware and worst-case
-   behavior. Current foliage alone constructs **1559 models / 8069 parts**,
-   including **5784 shadow casters** and **2285 non-shadow parts**. The older
-   ~940-prop handoff is stale. These are headless structural counts only.
+   behavior. `tools/check-budget` prints the current structural counts and
+   fails over budget, so read them from there rather than from this file --
+   the figures quoted here have already gone stale once. At the time of
+   writing: the hub is **8615 parts / 2548 shadow casters / 1745 m² of
+   semi-transparent surface**, of which foliage is **1339 plants / 7579 parts
+   / 2012 casters**; the largest field is Holdfast at 506 parts; a full pro
+   squad is 864 parts and **zero** shadow casters.
+
+   The hub is the heavy scene and it is also the first one a new player loads.
+   It does not compound with a match: `Hub.park` reparents it to ServerStorage
+   for the duration, so in-match a client holds roughly the field plus the
+   squad (~1400 parts), not the hub as well.
+
    Streaming stays off provisionally: do not call that a measured performance
    decision. Profile first, then decide whether to reduce decoration/shadows or
    implement/test streaming with the client's instance assumptions.
-6. In Creator Dashboard/Studio, verify MaxPlayers=1, supported device settings,
+6. In Creator Dashboard/Studio, verify **MaxPlayers=2** (co-op is authorized;
+   CLAUDE.md sets the published place to 2, and the server refuses a second
+   concurrent match rather than building two maps at the world origin),
+   supported device settings,
    private testing access, and complete the Maturity & Compliance questionnaire
    honestly from the actual experience (design target: Mild). Review the whole
    campaign for references to deferred modes before writing public launch copy.
