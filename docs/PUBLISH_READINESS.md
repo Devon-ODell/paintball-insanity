@@ -150,6 +150,21 @@ The separate `tests.project.json` still needs TestEZ packages and the missing
 `tools/TestRunner.server.luau`. Use the headless runner below for the automated
 suite; do not mistake that old Studio test project for the publish project.
 
+Eight client-to-server remotes accept unlimited calls per second: `RequestReload`,
+`RequestPurchase`, `RequestEquip`, `RequestSessionState`, `RequestShopVisit`,
+`RequestShopCatalogue`, `ReportLatency` and `DialogueChoice`. Only
+`RequestCommerce` carries an explicit cooldown; `FireMarker` is bounded by the
+marker's own fire rate and `RequestMatchStart` by the one-match-at-a-time rule.
+
+This is accepted for the first release and is **not** a release blocker. Every
+one of those handlers is correctness-guarded -- none can be driven into granting
+currency, items or progression -- so at `MaxPlayers = 2` on solo PvE the worst
+case is a player degrading their own server's frame rate. It stops being
+acceptable the moment player count rises: **add a shared per-player debounce
+before raising `MaxPlayers` or shipping co-op.** The pattern to lift is already
+in `Economy/Commerce.luau` (`self.lastRequest` against
+`requestCooldownSeconds`). Reviewed 2026-09-08.
+
 ## Reproducible checks
 
 ```sh
