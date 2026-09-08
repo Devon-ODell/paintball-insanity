@@ -96,4 +96,41 @@ do
 	assert(#casting == 0, `characters must cast no shadows, these do: {table.concat(casting, ", ")}`)
 end
 
-print("\27[32mevery character builds, and none of them casts a shadow\27[0m")
+--[[
+	Civilians have faces; the enemy team does not need one.
+
+	Every head used to be a bare skin-coloured ball, which is what made the
+	people at The Landing read as mannequins standing next to a squad whose mask
+	lenses gave them something to look at. The bots still get none: a full mask
+	covers the eyes exactly as it should, and building four parts a bot that
+	nobody can see costs forty-eight across a squad that is rebuilt at every
+	round boundary.
+]]
+do
+	local faceless = {}
+	for _, person in ipairs(people) do
+		local found = 0
+		for _, descendant in ipairs(person.model:GetDescendants()) do
+			if descendant:IsA("BasePart") and (descendant.Name == "EyeL" or descendant.Name == "EyeR") then
+				found += 1
+			end
+		end
+		if found < 2 then
+			table.insert(faceless, person.id)
+		end
+	end
+	assert(#faceless == 0, `everyone at The Landing needs a face, these have none: {table.concat(faceless, ", ")}`)
+
+	local masked = roblox.Instance.new("Folder")
+	BotAvatar.new("face_probe", "Probe", masked, "pro")
+	for _, descendant in ipairs(masked:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			assert(
+				descendant.Name ~= "EyeL" and descendant.Name ~= "EyeR",
+				"a bot builds eyes nobody can see behind its mask"
+			)
+		end
+	end
+end
+
+print("\27[32mevery character builds, the civilians have faces, and none of them casts a shadow\27[0m")

@@ -318,9 +318,9 @@
       "haze": 1.35
     },
     "bloom": {
-      "intensity": 0.45,
+      "intensity": 0.28,
       "size": 26,
-      "threshold": 1.5
+      "threshold": 1.9
     },
     "sunRays": {
       "intensity": 0.1,
@@ -341,7 +341,8 @@
       "focusDistance": 40,
       "inFocusRadius": 70,
       "nearIntensity": 0
-    }
+    },
+    "_bloom": "Bloom at 0.45 over a 1.5 threshold made every pale surface glow, not just the lights. Inside the barn that blew the bay signs -- 7.4 m of near-white board -- to flat white and took their text with them, so the counters could not be read from the floor. Raising the threshold keeps the glow on things that are actually emitting."
   },
   "ambience": {
     "_note": "Sound ids are left null on purpose -- audio assets are uploaded per experience and hardcoding someone else's id is how you ship a broken build. The emitters are placed and configured; drop ids into Data/overworld.json and they play.",
@@ -1236,7 +1237,8 @@
       "count": 6,
       "heightMetres": 6.4,
       "rangeMetres": 16,
-      "brightness": 1.1
+      "brightness": 0.85,
+      "_brightness": "Six overlapping PointLights at 1.1 stacked into an overexposed interior. 0.85 still reads as lit without washing the signage out."
     }
   },
   "_gates": "Trailheads to the three fields. Each is a signed arch at the end of its trail; walking into one and holding the interact key starts a match there.",

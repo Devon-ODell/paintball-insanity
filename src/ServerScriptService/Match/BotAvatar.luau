@@ -99,6 +99,8 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 		limbColour = trousers,
 		skinColour = Color3.fromRGB(198, 164, 132),
 		handsForward = true,
+		-- Every tier wears a full mask; the lens is the face.
+		face = false,
 	})
 	local worn = Wardrobe.dress(outfitName, model, build.height)
 

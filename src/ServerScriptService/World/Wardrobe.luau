@@ -205,6 +205,15 @@ export type BodyOptions = {
 	skinColour: Color3,
 	--- Bots hold a marker in both hands; people at the hub mostly do not.
 	handsForward: boolean?,
+	--[[
+		Whether to build a face.
+
+		The enemy team wears full masks, and a lens covers the eyes exactly as it
+		should -- so building them costs four parts a bot that nobody can ever
+		see, forty-eight across a full squad, rebuilt at every round boundary.
+		Civilians at The Landing get one; anyone in a mask does not.
+	]]
+	face: boolean?,
 }
 
 --[[
@@ -263,6 +272,28 @@ function Wardrobe.body(parent: Instance, options: BodyOptions): Body
 	end
 	piece("Neck", Vector3.new(0.13, 0.09, 0.13), options.skinColour)
 	piece("Head", Vector3.new(0.34, 0.36, 0.35), options.skinColour, true)
+
+	--[[
+		A face.
+
+		Every head in the game was a bare skin-coloured ball, which is what made
+		the civilians read as mannequins next to the enemy team -- the bots get
+		away with it because a mask lens is a face. Two dark ovals and a catch
+		light is the whole of it, and at the distance this is played at that is
+		all a face needs to be. Four parts on a figure that already has thirty.
+
+		Masks and goggles sit in front of these on the same anchor, so a bot in
+		full kit is unchanged: the lens covers them exactly as it should.
+	]]
+	local hasFace = options.face ~= false
+	if hasFace then
+		local eyeColour = colourOf("eye")
+		local shineColour = colourOf("eyeShine")
+		for _, side in ipairs({ "L", "R" }) do
+			piece(`Eye{side}`, Vector3.new(0.062, 0.078, 0.05), eyeColour, true)
+			piece(`Shine{side}`, Vector3.new(0.022, 0.022, 0.03), shineColour, true)
+		end
+	end
 
 	-- Upper and lower arms, hung off the shoulders.
 	for _, side in ipairs({ "L", "R" }) do
@@ -364,6 +395,26 @@ function Wardrobe.body(parent: Instance, options: BodyOptions): Body
 		byName.Chest.CFrame = frames.chest * CFrame.new(0, Units.metresToStuds(0.16 * height), 0)
 		byName.Neck.CFrame = frames.head * CFrame.new(0, -Units.metresToStuds(0.17), 0)
 		byName.Head.CFrame = frames.head
+		for _, side in ipairs({ "L", "R" }) do
+			if not hasFace then
+				continue
+			end
+			local sign = if side == "L" then -1 else 1
+			-- Forward is -Z, the same convention every worn head piece uses.
+			local eye = frames.head
+				* CFrame.new(
+					Units.metresToStuds(sign * 0.072),
+					Units.metresToStuds(0.028),
+					-Units.metresToStuds(0.142)
+				)
+			byName[`Eye{side}`].CFrame = eye
+			byName[`Shine{side}`].CFrame = eye
+				* CFrame.new(
+					Units.metresToStuds(sign * 0.014),
+					Units.metresToStuds(0.018),
+					-Units.metresToStuds(0.018)
+				)
+		end
 		for _, side in ipairs({ "L", "R" }) do
 			local sign = if side == "L" then -1 else 1
 			local shoulder = frames.chest
