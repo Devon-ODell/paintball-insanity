@@ -154,6 +154,31 @@ The separate `tests.project.json` still needs TestEZ packages and the missing
 `tools/TestRunner.server.luau`. Use the headless runner below for the automated
 suite; do not mistake that old Studio test project for the publish project.
 
+A bump helmet's crown stands **5cm above the hitbox capsule** on `botPro` and
+`botMarshal`. Bots are shot at as a capsule of radius 0.31m and height 1.80m
+(`Data/ballistics.json` `hitbox`), and `bumpHelmet.HelmetShell` reaches 1.85m, so
+paint landing on the top of a pro's helmet does not register. `tools/probe-hitbox`
+measures this and every other disagreement between a visible body and its capsule.
+
+It is **not** fixed, deliberately. Lowering the shell is one data line, but the
+helmet is narrower than the paintball mask underneath it (0.36 x 0.38 against
+0.38 x 0.40), so dropping it far enough to fit hides it inside the mask; keeping
+it visible means widening it and changing the pro silhouette, which is exactly the
+read the tier system depends on. Settle it in the Studio pass with the model on
+screen, then turn `probe-hitbox` into a gate. The same probe records two accepted
+deviations that are ordinary shooter design: hands holding a marker forward reach
+outside the capsule, and a chest is 1cm wider than it.
+
+Trails at The Landing sit **12-25cm above the forest floor**, and they do not
+collide -- the player walks on the floor and the path is drawn up their shin. It
+cannot currently be lowered further. A trail has to clear every zone slab it
+crosses (the highest being `pondBank` at 0.108m), and the zone tops
+0.072/0.084/0.096/0.108 are exactly one 12mm step apart, so a 12mm ladder either
+lands on one or misses by 6mm -- under the 9.8mm `check-zfight` requires. The fix
+is to fold the zone slabs into `Surfaces.assignLevels` alongside the trails, so
+only surfaces that actually overlap need to differ; that would drop the whole
+stack to a few millimetres. `tools/probe-ground` measures it.
+
 Eight client-to-server remotes accept unlimited calls per second: `RequestReload`,
 `RequestPurchase`, `RequestEquip`, `RequestSessionState`, `RequestShopVisit`,
 `RequestShopCatalogue`, `ReportLatency` and `DialogueChoice`. Only

@@ -240,6 +240,7 @@ function Overworld.build(parent: Instance?): Hub
 		]]
 		for i = 1, #trail.points - 1 do
 			local base = trail.baseMetres or layer.trailBaseMetres
+			local depth = layer.trailDepthMetres
 			local segmentY = Surfaces.segmentHeight(base, trailLevels[trailIndex], i, layer.alternateMetres)
 			local joinY = Surfaces.segmentHeight(base, trailLevels[trailIndex], i + 2, layer.alternateMetres)
 			local a = vec(trail.points[i])
@@ -249,30 +250,41 @@ function Overworld.build(parent: Instance?): Hub
 			if length < 1e-4 then
 				continue
 			end
+			--[[
+				segmentY is the trail's VISIBLE SURFACE, so the slab hangs below it
+				rather than straddling it. Trails are decals -- CanCollide and
+				CanQuery are both false and the player walks on the floor at y=0 --
+				so every centimetre of lift is a centimetre the path is drawn up the
+				player's leg. Hanging the depth downward into the two-metre floor
+				also means no trail ever shows a floating edge from a low angle.
+			]]
+			local segmentCentre = segmentY - depth / 2
 			local segment = slab(
 				`{trail.id}_{i}`,
-				(a + b) / 2 + Vector3.new(0, segmentY, 0),
-				Vector3.new(trail.widthMetres, 0.1, length + trail.widthMetres * 0.5),
+				(a + b) / 2 + Vector3.new(0, segmentCentre, 0),
+				Vector3.new(trail.widthMetres, depth, length + trail.widthMetres * 0.5),
 				trail.colorKey,
 				trailFolder,
 				false
 			)
 			segment.CFrame = CFrame.lookAt(
-				Units.vectorToStuds((a + b) / 2 + Vector3.new(0, segmentY, 0)),
-				Units.vectorToStuds(b + Vector3.new(0, segmentY, 0))
+				Units.vectorToStuds((a + b) / 2 + Vector3.new(0, segmentCentre, 0)),
+				Units.vectorToStuds(b + Vector3.new(0, segmentCentre, 0))
 			)
 			-- Rounded joins, so a bend does not show a notch.
 			local join = slab(
 				`{trail.id}_join{i}`,
-				b + Vector3.new(0, joinY, 0),
-				Vector3.new(trail.widthMetres, 0.1, trail.widthMetres),
+				b + Vector3.new(0, joinY - depth / 2, 0),
+				Vector3.new(trail.widthMetres, depth, trail.widthMetres),
 				trail.colorKey,
 				trailFolder,
 				false
 			)
 			join.Shape = Enum.PartType.Cylinder
 			join.CFrame = CFrame.new(join.CFrame.Position) * CFrame.Angles(0, 0, math.pi / 2)
-			join.Size = Units.vectorToStuds(Vector3.new(0.1, trail.widthMetres, trail.widthMetres))
+			-- A Roblox cylinder runs along its X axis, and the rotation above stands
+			-- that axis up, so X carries the depth and Y/Z carry the disc.
+			join.Size = Units.vectorToStuds(Vector3.new(depth, trail.widthMetres, trail.widthMetres))
 		end
 	end
 

@@ -94,20 +94,30 @@ local function blob(parent: Instance, name: string, cf: CFrame, size: Vector3, c
 end
 
 --[[
+	Marks a part as trim and hands it back.
+
+	Trim is geometry that rounds, welds or caps a body it sits on: a seam ring
+	1.5% proud of its tube, the rounded edge running up a dorito panel, the weld
+	along its base. Under Future lighting every caster is paid for, and trim's
+	shadow falls inside -- or within a few centimetres of -- the shadow of the
+	body it wraps. It costs a shadow caster and changes nothing on screen.
+
+	The body casts; the trim does not. Anything that changes the silhouette a
+	player reads from across the field is a body, not trim.
+]]
+local function trim(part: Part): Part
+	part.CastShadow = false
+	return part
+end
+
+--[[
 	A seam ring: the welded join around a tube. Slightly larger than the body it
 	sits on and noticeably darker, which is what makes the shape read as several
 	pressurised sections rather than one smooth lozenge.
 ]]
 local function seam(parent: Instance, cf: CFrame, diameter: number, colour: Color3, axis: string?)
-	local ring = tube(parent, "Seam", cf, Units.metresToStuds(0.05), diameter * 1.015, shade(colour, SEAM_DARKEN), axis)
+	local ring = trim(tube(parent, "Seam", cf, Units.metresToStuds(0.05), diameter * 1.015, shade(colour, SEAM_DARKEN), axis))
 	ring.Reflectance = 0.02
-	--[[
-		Detail parts do not cast. A seam is a five-centimetre ring sitting 1.5%
-		proud of the body it wraps, so its shadow falls inside the body's own --
-		it costs a shadow caster and changes nothing on screen. The body casts;
-		the trim does not.
-	]]
-	ring.CastShadow = false
 end
 
 --- Webbing strap and stake ring at the base. Small, but it is the detail that
@@ -120,7 +130,7 @@ local function anchorStrap(parent: Instance, cf: CFrame, width: number, colour: 
 	strap.Material = Enum.Material.Fabric
 	strap.CFrame = cf
 	-- Sits on the ground under the bunker; its shadow is inside the bunker's.
-	strap.CastShadow = false
+	trim(strap)
 end
 
 --------------------------------------------------------------------------------
@@ -173,13 +183,20 @@ local function buildDorito(model: Model, size: Vector3, colour: Color3)
 		for _, side in ipairs({ -1, 1 }) do
 			local base = Vector3.new(side * innerWidth / 2, -innerHeight / 2, z)
 			local middle = (base + apex) / 2
-			tube(model, "SlopedWeld", CFrame.lookAt(middle, apex), (apex - base).Magnitude, edge, colour, "z")
-			blob(model, "BaseCorner", CFrame.new(base), Vector3.new(edge, edge, edge), colour)
+			trim(tube(model, "SlopedWeld", CFrame.lookAt(middle, apex), (apex - base).Magnitude, edge, colour, "z"))
+			trim(blob(model, "BaseCorner", CFrame.new(base), Vector3.new(edge, edge, edge), colour))
 		end
-		blob(model, "Apex", CFrame.new(apex), Vector3.new(edge, edge, edge), colour)
-		tube(model, "BaseWeld", CFrame.new(0, -innerHeight / 2, z), innerWidth, edge, shade(colour, SEAM_DARKEN), "x")
+		trim(blob(model, "Apex", CFrame.new(apex), Vector3.new(edge, edge, edge), colour))
+		trim(tube(model, "BaseWeld", CFrame.new(0, -innerHeight / 2, z), innerWidth, edge, shade(colour, SEAM_DARKEN), "x"))
 	end
-	tube(model, "Crown", CFrame.new(0, innerHeight / 2, 0), depth - edge, edge, colour, "z")
+	--[[
+		The two wedge panels are the dorito's silhouette and they still cast. The
+		rounding around them is trim: at edgeFraction of the smallest dimension it
+		is a few centimetres proud of a panel that is already casting. Leaving all
+		of it casting put Speedball 24 shadow casters over budget the day the
+		tapered wedges landed.
+	]]
+	trim(tube(model, "Crown", CFrame.new(0, innerHeight / 2, 0), depth - edge, edge, colour, "z"))
 	anchorStrap(model, CFrame.new(0, -height / 2 + Units.metresToStuds(0.04), 0), width * 0.9, colour)
 end
 

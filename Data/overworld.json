@@ -1864,7 +1864,9 @@
   },
   "_surfaceLayerMetres": "Ground surfaces overlap on purpose -- trail bends, trail junctions, zone patches -- and two faces on the same plane shimmer as the camera moves. These are the offsets that keep every overlapping surface on its own plane. alternateMetres was 6 mm (0.021 studs), which the depth buffer cannot separate at range: consecutive segments of the same trail fought each other across seven studs while check-zfight, tolerant to 0.015 studs, called it clean. 12 mm (0.043 studs) clears it. The trails sink into a two-metre floor slab, so the extra travel stays invisible.",
   "surfaceLayerMetres": {
-    "trailBaseMetres": 0.14,
+    "_trailSurface": "trailBaseMetres is the height of a trail's VISIBLE SURFACE above the forest floor, not the centre of its slab; trailDepthMetres hangs the rest of the slab down into the 2m floor so no trail shows a floating edge from a low angle. Trails do not collide -- the player walks on the floor at y=0 -- so every centimetre here is drawn up the player's leg, and it wants to be as small as it can be. It cannot currently go below 0.118: a trail has to clear every zone slab it crosses, the highest being pondBank at 0.108, and the zone tops 0.072/0.084/0.096/0.108 are exactly one 12mm step apart, so a 12mm ladder either lands on one or misses by 6mm -- under the 9.8mm check-zfight requires. Folding the zone slabs into Surfaces.assignLevels alongside the trails is what would let this drop to a few millimetres.",
+    "trailBaseMetres": 0.12,
+    "trailDepthMetres": 0.5,
     "stepMetres": 0.026,
     "alternateMetres": 0.012,
     "waterLiftMetres": 0.03
