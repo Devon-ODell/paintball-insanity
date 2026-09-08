@@ -110,22 +110,31 @@ can be tuned without touching logic.
 
 ### Solo PvE on a multiplayer platform
 
-Matches are single-player, with exactly one exception. Set `MaxPlayers = 2` on the
-match place, or use reserved servers via `TeleportService`. Verify current best
-practice — this has changed.
+The first release is solo **Gauntlet and Shoothouse**. Set the published place's
+`MaxPlayers = 2`. Horde and Capture the Flag remain deferred: their rules modules
+and specs exist but nothing starts them, they are marked `integrated: false` in
+`Data/gamemodes.json`, and they must not be advertised as playable.
 
-**The exception is the Shoothouse.** The timed course mode takes at most two
-players; Gauntlet, Horde and Capture the Flag remain strictly solo and no work
-should make them otherwise. The rules live in `Data/course.json → coop`: one
-shared clock, stages that advance only when the pair has cleared them, a
-checkpoint that banks only when both players are past it, and defenders scaled up
-per extra player so two people do not walk a course built for one. Co-op medals
-are recorded and ranked but do not unlock the Aurum Kompressor — the gold marker
-stays a statement about your own aim.
+Whether a mode can be started is declared once, in `gamemodes.json` as
+`integrated`. Nothing may keep a second list of playable modes.
 
-Still do not build lobby, party or matchmaking systems. A second player joins a
-running course or there is no second player. Beyond that seat, there is no
-multiplayer in scope.
+**Co-op is authorized but not yet built.** The user's release decision on
+2026-09-07 deferred the Shoothouse; that was revised the same day to ship it with
+two-player co-op. The RULES are implemented and specced -- defender scaling, the
+shared clock, the checkpoint that banks only when both players are past it, medals
+that record but never buy the Aurum. The shared MATCH is not: `MatchService` runs
+one closure per player and the simulation identifies the player as a single entity
+(`id = "player"`), so two people on one course requires two player capsules
+through `ProjectileSim`, `SquadCoordinator`, `AimModel` and `ShotLog`. Until that
+lands, the server refuses a second concurrent match -- two matches would build two
+maps at the world origin and park the hub out from under whoever stayed behind.
+
+Do not build lobby, party or matchmaking systems. A second player joins a running
+course or there is no second player.
+
+Map sizes: Dustline, Woods and Holdfast are at 88%. Speedball and Urban are at
+full size because shrinking them inverted how they punish trading -- see each
+map's `_scale` note and re-run `tools/probe-trading` before changing either.
 
 ---
 

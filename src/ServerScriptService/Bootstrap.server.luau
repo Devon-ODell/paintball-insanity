@@ -231,6 +231,18 @@ requestMatch = function(player: Player, payload: any): any
 		starting[player] = nil
 		return { ok = false, reason = "That field has no Shoothouse course." }
 	end
+	--[[
+		One field at a time. The place is MaxPlayers = 2 so a course can take a
+		second player, but the shared-match plumbing for that is not built yet --
+		and two matches at once would build two maps at the world origin and park
+		the hub out from under whoever stayed behind. Refuse plainly rather than
+		producing that.
+	]]
+	local host = MatchService.currentHost()
+	if host and host ~= player then
+		starting[player] = nil
+		return { ok = false, reason = `{host.DisplayName} is on the field. One field at a time.` }
+	end
 	MatchService.stop(player)
 	local success, result = pcall(startMatch, player, mapName, tier, mode)
 	starting[player] = nil

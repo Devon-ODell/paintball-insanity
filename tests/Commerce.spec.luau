@@ -81,7 +81,17 @@ return function()
 				if row.requiredHeadshots > 0 then expect(Shop.equip(handle, "camos", row.id).ok).to.equal(false) end
 			end
 		end)
+		it("refuses release consumables whose live effects are unavailable", function()
+			for _, row in ipairs(Shop.catalogueFor(handle).consumables) do
+				expect(row.comingSoon).to.equal(true)
+				expect(row.purchasable).to.equal(false)
+				expect(Shop.purchase(handle, "consumables", row.id).ok).to.equal(false)
+			end
+		end)
 		it("bounds free consumable stock and still rejects red/gold items", function()
+			local kit = Config.get("consumables")
+			kit.liveEnabled = true
+			local ok, err = pcall(function()
 			for _, row in ipairs(Shop.catalogueFor(handle).consumables) do
 				if row.purchasable then
 					expect(Shop.purchase(handle, "consumables", row.id).ok).to.equal(true)
@@ -89,6 +99,9 @@ return function()
 					expect(Shop.purchase(handle, "consumables", row.id).ok).to.equal(false)
 				else expect(Shop.purchase(handle, "consumables", row.id).ok).to.equal(false) end
 			end
+			end)
+			kit.liveEnabled = false
+			assert(ok, tostring(err))
 		end)
 		it("claims cosmetic collections and saves inventory with the claim", function()
 			expect(service:claim(player, "paintPack").ok).to.equal(true)

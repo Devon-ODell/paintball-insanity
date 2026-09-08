@@ -1,6 +1,7 @@
 # Free launch and monetization framework
 
-Everything obtainable from Field Supply currently costs **0 FF**. Both optional
+Everything obtainable from Field Supply currently costs **0 FF**. Field kit
+consumables are preview-only and cannot be claimed until live effects exist. Both optional
 cosmetic collections are **free claims**. There are no Robux/local-currency
 prompts, subscriptions, ads, paid access, or paid skips in this build. Earned
 campaign rewards and headshot camos still require their gameplay achievements.
@@ -17,8 +18,11 @@ campaign rewards and headshot camos still require their gameplay achievements.
 Raw equipment costs remain in the original tuning files for future economy
 balancing. Every current shop display, world price plaque and server debit uses
 `CommerceCatalog.shopCost`, so those raw values do not charge players. Range
-payout remains zero; normal match rewards still accumulate. Existing development
-infinite-money/map-unlock flags remain as requested before this session.
+payout remains zero; normal match rewards still accumulate. Development infinite-money/map-unlock overrides are disabled for release.
+The full release campaign uses Gauntlet achievements, with the Aurum marker
+earned by flawless pro clears across all four campaign fields.
+All eight camo finishes now use confirmed headshots, including the deferred
+course finishes at 250, 500 and 1000 hits.
 
 ## Inventory and selection
 

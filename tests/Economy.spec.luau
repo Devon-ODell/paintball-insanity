@@ -203,6 +203,15 @@ return function()
 			return input
 		end
 
+		it("does not treat an early departure with only cleared reports as a full match", function()
+			local partialRounds = rounds(5)
+			while #partialRounds > 1 do table.remove(partialRounds) end
+			local partial = Payout.computeMatch(matchInput({ rounds = partialRounds }))
+			expect(partial.total > 0).to.equal(true)
+			expect(partial.cleared).to.equal(false)
+			expect(partial.flawlessBonus).to.equal(1)
+		end)
+
 		it("pays every round it cleared and nothing for the ones it did not", function()
 			local partial = Payout.computeMatch(matchInput({ rounds = rounds(3) }))
 			expect(partial.roundsCleared).to.equal(3)

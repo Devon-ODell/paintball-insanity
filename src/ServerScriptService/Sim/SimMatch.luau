@@ -23,6 +23,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
 local Rng = require(ReplicatedStorage.Shared.Rng)
+local Spread = require(ReplicatedStorage.Shared.Spread)
 local Log = require(ReplicatedStorage.Shared.Log)
 
 local Server = script.Parent.Parent
@@ -121,6 +122,7 @@ export type RoundContext = {
 	log: any,
 	policy: Policies.Policy,
 	playerRng: any,
+	spread: any,
 	squadRng: any,
 	botRngs: { any },
 	chatter: any,
@@ -140,6 +142,7 @@ export type RoundContext = {
 	round starts from the map's own spawns.
 ]]
 local function runRound(ctx: RoundContext): RoundReport
+	ctx.spread:reset()
 	local world = ctx.world
 	local matchData = ctx.matchData
 	local hitbox = ctx.ballisticsData.hitbox
@@ -305,10 +308,13 @@ local function runRound(ctx: RoundContext): RoundReport
 				player.stance = if intent.crouch then "crouching" else "standing"
 			end
 
+			player.stance = ctx.spread:stance(player.velocity, intent.crouch)
+			ctx.spread:step(dt, t, player.velocity)
+
 			if intent.fire then
 				local interval = 60 / markerData.roundsPerMinute
 				local reloading = player.reloadUntil ~= nil and t < (player.reloadUntil :: number)
-				if reloading and t >= (player.reloadUntil :: number) then
+				if player.reloadUntil ~= nil and t >= (player.reloadUntil :: number) then
 					player.reloadUntil = nil
 					player.hopper = markerData.hopperCapacity
 					reloading = false
@@ -341,7 +347,7 @@ local function runRound(ctx: RoundContext): RoundReport
 
 					projectiles:fire({
 						origin = muzzle,
-						direction = player.aim,
+						direction = ctx.spread:fire(player.aim, t, player.stance),
 						spec = spec,
 						ownerId = "player",
 						team = "player",
@@ -355,6 +361,8 @@ local function runRound(ctx: RoundContext): RoundReport
 					shots += 1
 				end
 			end
+		else
+			ctx.spread:step(dt, t, Vector3.zero)
 		end
 
 		local botTargets: { any } = {}
@@ -478,6 +486,7 @@ function SimMatch.run(options: Options): Result
 	local root = Rng.new(seed)
 	local chatterRng = root:fork(2)
 	local playerRng = root:fork(3)
+	local spread = Spread.new(markerData, matchData.player, root:fork(500))
 
 	local botLog: { string }? = if options.captureLog then {} else nil
 	local previousLevel = Log.getLevel()
@@ -535,6 +544,7 @@ function SimMatch.run(options: Options): Result
 			log = log,
 			policy = policy,
 			playerRng = playerRng,
+			spread = spread,
 			squadRng = root:fork(round.index * 7 + 1),
 			botRngs = botRngs,
 			chatter = chatter,
@@ -594,6 +604,7 @@ function SimMatch.run(options: Options): Result
 	end
 
 	local breakdown = Payout.computeMatch({
+		expectedRounds = #schedule,
 		map = mapName,
 		marker = markerName,
 		rounds = roundResults,

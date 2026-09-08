@@ -1,13 +1,13 @@
 {
   "_comment": "The campaign. A linear, single-player run from a loaner marker to the Aurum Kompressor. Chapters gate on SKILL -- clear this, at this tier -- never on time played, per BUILD_PLAN's out-of-scope list.",
-  "_modes": "GAUNTLET is the five fixed rounds. HORDE is endless. Horde stays locked until the gauntlet is beaten on every map, because horde has no curriculum in it -- it is a victory lap and a leaderboard, and handing it out first would let a player skip the thing that actually teaches them.",
+  "_modes": "Release campaign uses Gauntlet exclusively. Boss and Horde goals are replaced by pro clears and flawless sweeps; the final marker remains earned, never purchased.",
   "chapters": [
     {
       "id": "walkOn",
       "index": 1,
       "title": "Walk-On",
       "subtitle": "Everybody starts as a walk-on.",
-      "brief": "Marge hands you a loaner and points at the tournament field. Six of them, one of you, five rounds. Nobody expects you to clear it today.",
+      "brief": "Marge hands you a loaner and points at the tournament field. Twelve of them, one of you, five rounds. Nobody expects you to clear it today.",
       "requires": null,
       "goal": {
         "kind": "clearGauntlet",
@@ -84,8 +84,7 @@
       "rewards": {
         "currency": 1100,
         "unlocks": [
-          "holdfast",
-          "captureTheFlag"
+          "holdfast"
         ],
         "gear": [
           "fourPack"
@@ -98,7 +97,7 @@
       "index": 5,
       "title": "Local League",
       "subtitle": "They stopped going easy.",
-      "brief": "Same three fields, amateur squads. Faster hands, actual comms, and they punish you for holding one angle.",
+      "brief": "Same four fields, amateur squads. Faster hands, actual comms, and they punish you for holding one angle.",
       "requires": "backForty",
       "goal": {
         "kind": "clearGauntletAll",
@@ -142,13 +141,13 @@
       "id": "theMarshal",
       "index": 7,
       "title": "The Marshal",
-      "subtitle": "One shot, one very small target.",
-      "brief": "The field marshal plays now and then. She is padded to the eyes -- paint on the body does not count. The hopper counts. That is the whole fight.",
+      "subtitle": "The marshal sets the standard.",
+      "brief": "The marshal watches your Speedball run. Clear all five rounds against pro squads to earn her approval.",
       "requires": "regional",
       "goal": {
-        "kind": "beatBoss",
-        "boss": "marshal",
-        "map": "speedball"
+        "kind": "clearGauntlet",
+        "map": "speedball",
+        "tier": "pro"
       },
       "rewards": {
         "currency": 5000,
@@ -157,14 +156,14 @@
           "marshalPlate"
         ]
       },
-      "closer": "Nobody had done that in four years. She still did not say anything."
+      "closer": "A pro clear. She nods once. That is the whole ceremony."
     },
     {
       "id": "proCircuit",
       "index": 8,
       "title": "Pro Circuit",
       "subtitle": "Everything, at the top.",
-      "brief": "All three fields, pro squads, five rounds each. 170 ms reactions and they apply ninety-six percent of the correct lead. They are not cheating. They are just better than you were.",
+      "brief": "All four fields, pro squads, five rounds each. 170 ms reactions and they apply ninety-six percent of the correct lead. They are not cheating. They are just better than you were.",
       "requires": "theMarshal",
       "goal": {
         "kind": "clearGauntletAll",
@@ -173,24 +172,24 @@
       "rewards": {
         "currency": 9000,
         "unlocks": [
-          "horde"
+          "flawlessChallenge"
         ],
         "gear": [
           "proWrap"
         ]
       },
-      "closer": "The back gate is open. There is no round limit through it."
+      "closer": "The pro circuit is yours. Now make those clears flawless."
     },
     {
       "id": "theLongAfternoon",
       "index": 9,
       "title": "The Long Afternoon",
-      "subtitle": "Horde. It does not stop.",
-      "brief": "Endless waves, escalating, with the marshals turning up when it gets interesting. There is no clear condition. There is only how long.",
+      "subtitle": "Every field. No marks.",
+      "brief": "Clear every Gauntlet field at semi-pro or better without being marked once in each match. Every angle matters.",
       "requires": "proCircuit",
       "goal": {
-        "kind": "surviveWaves",
-        "waves": 20
+        "kind": "flawlessGauntletAll",
+        "tier": "semipro"
       },
       "rewards": {
         "currency": 15000,
@@ -199,27 +198,18 @@
           "gildedShoulders"
         ]
       },
-      "closer": "Twenty waves. Marge started keeping a note behind the counter."
+      "closer": "A flawless sweep. Marge started keeping a note behind the counter."
     },
     {
       "id": "aurum",
       "index": 10,
       "title": "Aurum",
       "subtitle": "The last thing on the shelf.",
-      "brief": "There is a marker in a case behind the counter that Marge has never sold. Wave forty in horde, and a flawless pro gauntlet on all three fields. Then she opens the case.",
+      "brief": "There is a marker in a case behind the counter that Marge has never sold. A flawless pro Gauntlet on all four campaign fields. Then she opens the case.",
       "requires": "theLongAfternoon",
       "goal": {
-        "kind": "composite",
-        "all": [
-          {
-            "kind": "surviveWaves",
-            "waves": 40
-          },
-          {
-            "kind": "flawlessGauntletAll",
-            "tier": "pro"
-          }
-        ]
+        "kind": "flawlessGauntletAll",
+        "tier": "pro"
       },
       "rewards": {
         "currency": 0,

@@ -4,6 +4,7 @@
 
 	    lune run tools/run-tests            -- everything
 	    lune run tools/run-tests Ballistics -- only specs whose name matches
+	    lune run tools/run-tests Sim --case=spawns -- one matching test
 
 	This is the primary verification signal for the project. Studio is used only
 	to look at the game; correctness is decided here.
@@ -14,6 +15,11 @@ local Harness = require("./Harness")
 local Expect = require("./Expect")
 
 local filter = if process.args[1] and process.args[1]:sub(1, 2) ~= "--" then process.args[1] else nil
+
+local caseFilter: string? = nil
+for _, argument in ipairs(process.args) do
+	if argument:sub(1, 7) == "--case=" then caseFilter = argument:sub(8) end
+end
 
 local env = Harness.build()
 local G = env.globals
@@ -64,6 +70,11 @@ end
 G.it = function(name: string, body: () -> ())
 	table.insert(currentSuite, name)
 	local label = path()
+	if caseFilter and not label:find(caseFilter, 1, true) then
+		results.skipped += 1
+		table.remove(currentSuite)
+		return
+	end
 	local ok, err = pcall(function()
 		runHooks("before")
 		body()

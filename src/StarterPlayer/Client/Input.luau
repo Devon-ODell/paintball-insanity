@@ -153,19 +153,19 @@ function Input.bind()
 			applySpeed()
 		end)
 		return Enum.ContextActionResult.Pass
-	end, false, Enum.KeyCode.C)
+	end, false, Enum.KeyCode.C, Enum.KeyCode.ButtonR1)
 
 	ContextActionService:BindAction("LR_LeanLeft", function(_, inputState)
 		if pointerFree then return Enum.ContextActionResult.Pass end
 		state.lean = if inputState == Enum.UserInputState.Begin then -1 else 0
 		return Enum.ContextActionResult.Pass
-	end, false, Enum.KeyCode.Q)
+	end, false, Enum.KeyCode.Q, Enum.KeyCode.DPadLeft)
 
 	ContextActionService:BindAction("LR_LeanRight", function(_, inputState)
 		if pointerFree then return Enum.ContextActionResult.Pass end
 		state.lean = if inputState == Enum.UserInputState.Begin then 1 else 0
 		return Enum.ContextActionResult.Pass
-	end, false, Enum.KeyCode.E)
+	end, false, Enum.KeyCode.E, Enum.KeyCode.DPadRight)
 
 	ContextActionService:BindAction("LR_Reload", function(_, inputState)
 		if pointerFree then return Enum.ContextActionResult.Pass end

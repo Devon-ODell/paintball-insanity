@@ -6,6 +6,7 @@ local GearStats = require(ReplicatedStorage.Shared.GearStats)
 local Remotes = require(ReplicatedStorage.Net.Remotes)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Theme = require(script.Parent.UiTheme)
+local Navigation = require(script.Parent.UiNavigation)
 local ShopUi = {}
 local gui: ScreenGui? = nil
 local closed: (() -> ())? = nil
@@ -68,6 +69,7 @@ function ShopUi.open(initialSnapshot: any, onClose: () -> ())
 	local screen = Instance.new("ScreenGui")
 	screen.Name, screen.ResetOnSpawn = "PitStopShop", false
 	screen.DisplayOrder = 20
+	screen.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 	screen.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 	gui = screen
 	local shade = Theme.frame(screen, "Shade", UDim2.fromScale(1, 1), UDim2.new())
@@ -143,13 +145,13 @@ function ShopUi.open(initialSnapshot: any, onClose: () -> ())
 			local statLine = Theme.text(row, "Details", stats, UDim2.new(1, -28, 0, 32), UDim2.fromOffset(14, 98), Theme.config.smallTextPixels)
 			statLine.TextColor3 = Theme.colors.gold
 			local earned = category == "camos" or (entry.cost == nil and category ~= "offers")
-			local price = if category == "offers" then (if entry.free then "FREE" else "Roblox purchase")
+			local price = if entry.comingSoon then "PREVIEW" elseif category == "offers" then (if entry.free then "FREE" else "Roblox purchase")
 				elseif earned then "EARNED" elseif entry.cost == 0 then "FREE" else Theme.number(entry.cost) .. " FF"
 			local priceLabel = Theme.text(row, "Price", price, UDim2.new(0.5, -20, 0, 36), UDim2.new(0, 14, 1, -46), Theme.config.smallTextPixels)
 			priceLabel.TextColor3 = Theme.colors.accent
 			local disabled = entry.equipped == true or (earned and not entry.owned) or (category == "offers" and entry.owned)
 				or (category ~= "camos" and entry.purchasable == false)
-			local actionText = if entry.equipped then "Equipped" elseif category == "offers" then
+			local actionText = if entry.comingSoon then "Coming later" elseif entry.equipped then "Equipped" elseif category == "offers" then
 				(if entry.owned then "Collected" elseif entry.free then "Claim free" else "See price")
 				elseif entry.owned then "Equip" elseif earned then "Earn on field" elseif entry.cost == 0 then "Claim free" else "Buy"
 			local action = Theme.button(row, actionText, UDim2.new(0.5, -18, 0, 36), UDim2.new(0.5, 4, 1, -46))
@@ -157,6 +159,7 @@ function ShopUi.open(initialSnapshot: any, onClose: () -> ())
 			if disabled then action.BackgroundColor3, action.TextColor3 = Theme.colors.panel, Theme.colors.muted end
 			action.Activated:Connect(function() if not disabled then transact(category, entry) end end)
 		end
+		Navigation.refresh(panel, tabButtons[selected] or close)
 		if #entries == 0 then Theme.text(list, "Empty", "Nothing at this counter yet.", UDim2.new(1, -16, 0, 50), UDim2.new()) end
 	end
 	for i, category in ipairs(categories) do
@@ -174,6 +177,7 @@ function ShopUi.open(initialSnapshot: any, onClose: () -> ())
 		if not processed and input.KeyCode == Enum.KeyCode.ButtonB then ShopUi.close() end
 	end)
 	render()
+	Navigation.bind(panel, tabButtons[selected] or close, ShopUi.close)
 end
 
 return ShopUi

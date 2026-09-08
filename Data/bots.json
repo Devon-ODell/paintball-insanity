@@ -78,7 +78,7 @@
       "marker": "electronic",
       "reactionTimeMs": 170,
       "reactionJitterMs": 35,
-      "aimErrorDeg": 0.7,
+      "aimErrorDeg": 0.6,
       "leadSolutionAccuracy": 0.96,
       "leadJitter": 0.05,
       "timeToSettleMs": 180,

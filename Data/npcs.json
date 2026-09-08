@@ -234,8 +234,8 @@
           "chapterComplete": "theLongAfternoon"
         },
         "lines": [
-          "Forty waves.",
-          "And a clean sweep at pro, on all three. No paint on you at all.",
+          "A flawless pro Gauntlet on every campaign field.",
+          "All four campaign fields. No paint on you at all.",
           "Right."
         ],
         "options": [
@@ -699,12 +699,12 @@
         },
         "lines": [
           "She turns and walks to the back gate.",
-          "She holds it open.",
+          "She points to a sign: Horde — coming later.",
           "There is no round counter on the sign above it."
         ],
         "options": [
           {
-            "text": "Go through.",
+            "text": "Ask about Horde (coming later).",
             "action": "startHorde",
             "goto": "exit"
           },

@@ -75,18 +75,19 @@ return function()
 			clearAll(r, "pro", 0)
 			local done = Campaign.newlyCompleted(r)
 			expect(done[1].id).to.equal("walkOn")
-			-- The boss chapter still gates everything past it.
-			expect(r.completed.proCircuit).to.equal(nil)
-			expect(r.completed.theMarshal).to.equal(nil)
+			-- Already-met goals still complete in prerequisite order.
+			for index, chapter in ipairs(Campaign.chapters()) do
+				expect(done[index].id).to.equal(chapter.id)
+			end
 		end)
 
-		it("requires the boss before the pro circuit", function()
+		it("requires a pro Speedball clear before the pro circuit", function()
 			local r = record()
 			clearAll(r, "semipro")
 			Campaign.newlyCompleted(r)
 			expect(r.completed.regional).to.equal(true)
 			expect(r.completed.theMarshal).to.equal(nil)
-			r.bosses.marshal = true
+			clear(r, "speedball", "pro")
 			Campaign.newlyCompleted(r)
 			expect(r.completed.theMarshal).to.equal(true)
 		end)
@@ -122,6 +123,15 @@ return function()
 		end)
 	end)
 
+	it("selects a playable tier for every release campaign chapter", function()
+		local r = record()
+		for _, chapter in ipairs(Campaign.chapters()) do
+			expect(Campaign.recommendedTier(r)).to.equal(chapter.goal.tier)
+			r.completed[chapter.id] = true
+		end
+		expect(Campaign.recommendedTier(r)).to.equal("pro")
+	end)
+
 	describe("horde gating", function()
 		--[[
 			The load-bearing gate. Horde has no curriculum in it -- it is a
@@ -141,7 +151,7 @@ return function()
 			end
 		end)
 
-		it("opens once the gauntlet is beaten at pro on every field", function()
+		it("keeps deferred Horde closed even after the pro sweep", function()
 			local r = record()
 			clearAll(r, "rec")
 			Campaign.newlyCompleted(r)
@@ -154,7 +164,7 @@ return function()
 			clearAll(r, "pro")
 			Campaign.newlyCompleted(r)
 			expect(r.completed.proCircuit).to.equal(true)
-			expect(Campaign.hordeUnlocked(r)).to.equal(true)
+			expect(Campaign.hordeUnlocked(r)).to.equal(false)
 		end)
 
 		it("does not open on a partial pro sweep", function()
@@ -196,9 +206,9 @@ return function()
 			expect(aurum.movingSpreadMultiplier > mech.movingSpreadMultiplier).to.equal(true)
 		end)
 
-		it("requires both a horde depth and a flawless pro sweep", function()
+		it("requires a flawless pro sweep without unavailable modes", function()
 			local chapter = Campaign.chapter("aurum") :: any
-			expect(chapter.goal.kind).to.equal("composite")
+			expect(chapter.goal.kind).to.equal("flawlessGauntletAll")
 			local r = record()
 			r.hordeBestWave = 40
 			expect(Campaign.goalMet(chapter.goal, r)).to.equal(false)

@@ -23,8 +23,13 @@ for _, layer in ipairs(report) do
 	local colour = if ratio >= 0.85 then "\27[32m" else "\27[31m"
 	print(string.format("%-14s %8d %s%8d\27[0m %8.2fm", layer.id, layer.requested, colour, layer.placed, reach))
 end
-local parts = 0
+local parts, shadows = 0, 0
 for _, d in ipairs(folder:GetDescendants()) do
-	if d:IsA("BasePart") then parts += 1 end
+	if d:IsA("BasePart") then
+		parts += 1
+		if d.CastShadow then shadows += 1 end
+	end
 end
 print(string.format("\n%d instances, %d parts (%.1f parts each)", total, parts, parts / math.max(1, total)))
+
+print(string.format("%d shadow casters; %d parts have shadows disabled (structural counts, not rendered performance)", shadows, parts - shadows))

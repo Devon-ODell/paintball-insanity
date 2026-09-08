@@ -37,17 +37,17 @@ return function()
 		end)
 		it("records every milestone once, persists and reports full mastery", function()
 			local earned = {}
-			for _ = 1, 155 do
+			for _ = 1, 1005 do
 				for _, id in ipairs(Camos.recordHeadshot(handle).unlockedCamos) do
 					expect(earned[id]).to.equal(nil)
 					earned[id] = true
 				end
 			end
-			expect(#handle.data.ownedCamos).to.equal(5)
+			expect(#handle.data.ownedCamos).to.equal(8)
 			expect(Rules.nextUnlock(handle.data)).to.equal(nil)
 			Profile.release(6543)
 			handle = Profile.load(6543)
-			expect(handle.data.camoProgress.headshots).to.equal(155)
+			expect(handle.data.camoProgress.headshots).to.equal(1005)
 			expect(Camos.equip(handle, "auroraFlux")).to.equal(true)
 		end)
 		it("refuses forged ownership and dev unlock flags", function()

@@ -1079,6 +1079,27 @@ function MatchService.isActive(player: Player): boolean
 end
 
 --[[
+	Whoever is currently on a field, if anyone.
+
+	Every map is built at the WORLD ORIGIN, and Hub.park is global. Two matches
+	running at once would stack two maps on top of each other and leave whoever
+	stayed behind standing in a parked hub. That was unreachable while the place
+	was MaxPlayers = 1; it is reachable now, so the server refuses a second
+	concurrent match rather than building the collision.
+
+	This is the guard, not co-op. Two players sharing ONE course is a separate
+	and much larger change -- the simulation identifies the player as a single
+	entity (`id = "player"`), so a shared match means two player capsules through
+	ProjectileSim, SquadCoordinator and ShotLog. See docs/PROGRESS.md.
+]]
+function MatchService.currentHost(): Player?
+	for player in pairs(active) do
+		return player
+	end
+	return nil
+end
+
+--[[
 	Grants a chapter's gear reward into the right ownership list.
 
 	Looks the item up across every category rather than the caller naming one,

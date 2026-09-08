@@ -265,6 +265,7 @@ end
 
 --- Is horde open? The one gate worth asking about by name.
 function Campaign.hordeUnlocked(record: Record): boolean
+	if Config.get("gamemodes").modes.horde.enabled == false then return false end
 	local rule = Config.require("progression", "modeUnlocks.horde")
 	return rule.requires == nil or record.completed[rule.requires] == true
 end
@@ -280,6 +281,13 @@ function Campaign.gearRewards(record: Record): { string }
 		end
 	end
 	return out
+end
+
+--- Gates select the current campaign challenge so later tiers are playable
+--- without requiring a client to forge a tier in RequestMatchStart.
+function Campaign.recommendedTier(record: Record): string
+	local chapter = Campaign.current(record)
+	return if chapter and chapter.goal.tier then chapter.goal.tier else "pro"
 end
 
 --- A card for the current chapter: what to do, and how far along you are.

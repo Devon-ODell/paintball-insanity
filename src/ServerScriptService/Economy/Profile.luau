@@ -56,6 +56,7 @@ local memory: { [number]: Data } = {}
 local sessions: { [number]: Handle } = {}
 local usingFallback = false
 local persistent = false
+local backend: any = nil
 local loading: { [number]: boolean } = {}
 
 local function template(): Data
@@ -94,6 +95,7 @@ function Profile.init()
 	end
 	local module = locateProfileStore()
 	if module then
+		backend = module
 		store = module.New(Config.require("economy", "profile.storeName"), template())
 		persistent = not game:GetService("RunService"):IsStudio()
 		if not persistent then
@@ -111,10 +113,9 @@ function Profile.init()
 	end
 end
 
---- True when running on the non-persistent fallback. Callers that must not run
---- without persistence check this rather than assuming.
+--- True only for the live backend with confirmed DataStore access.
 function Profile.isPersistent(): boolean
-	return persistent
+	return persistent and backend ~= nil and backend.DataStoreState == "Access"
 end
 
 --- Adds new schema fields without replacing existing inventory or progression.
@@ -141,7 +142,7 @@ end
 --- acknowledging a purchase. The receipt and inventory share the locked profile.
 function Profile.saveConfirmed(handle: Handle, contains: (Data) -> boolean): boolean
 	local backing = (handle :: any)._profile
-	if not persistent or not backing or not handle:isActive() then return false end
+	if not Profile.isPersistent() or not backing or not handle:isActive() then return false end
 	if contains(backing.LastSavedData) then return true end
 	local ok = pcall(function() backing:Save() end)
 	if not ok then return false end
@@ -185,6 +186,17 @@ end
 function Profile.load(userId: number): Handle?
 	Profile.init()
 
+	if persistent then
+		while backend.DataStoreState == "NotReady" do
+			if game:GetService("Players"):GetPlayerByUserId(userId) == nil then return nil end
+			task.wait()
+		end
+		if not Profile.isPersistent() then
+			log.warn("DataStore access unavailable; refusing temporary live progress.")
+			return nil
+		end
+	end
+
 	while loading[userId] do task.wait() end
 	local existing = sessions[userId]
 	if existing and existing:isActive() then
@@ -218,6 +230,11 @@ function Profile.load(userId: number): Handle?
 
 	if not opened or not profile then
 		log.warn(`could not open a profile session for {userId}`)
+		return nil
+	end
+
+	if game:GetService("Players"):GetPlayerByUserId(userId) == nil then
+		profile:EndSession()
 		return nil
 	end
 

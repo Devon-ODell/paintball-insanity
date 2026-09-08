@@ -111,6 +111,8 @@
     "_payout": "Each player is paid in full off their own profile. Co-op is not a way to halve an income and it is not a way to double one; it pays what the run was worth, twice, to two people.",
     "recordsMedal": true,
     "countsTowardAurum": false,
-    "_countsTowardAurum": "Co-op medals go on the board and into your records, but the Aurum Kompressor route requires SOLO gold on all five. The gold marker is a statement about your own aim and it stays one -- being carried to it would make it mean the opposite of what markers.json says it means."
+    "_countsTowardAurum": "Co-op medals go on the board and into your records, but the Aurum Kompressor route requires SOLO gold on all five. The gold marker is a statement about your own aim and it stays one -- being carried to it would make it mean the opposite of what markers.json says it means.",
+    "joinable": false,
+    "_joinable": "FALSE, and this is the honest state of it. Every RULE below is implemented and specced -- defender scaling per player, the shared clock, the checkpoint that banks only when both are past it, medals that record but do not buy the Aurum. What is NOT implemented is the shared match itself: MatchService runs one closure per player and the simulation identifies the player as a single entity (id = \"player\"), so two people on one course means two player capsules through ProjectileSim, SquadCoordinator, AimModel and ShotLog. That is an architectural change, not a flag. Until it lands, Bootstrap refuses a second concurrent match outright -- two matches would build two maps at the world origin and park the hub out from under whoever stayed behind."
   }
 }

@@ -115,11 +115,7 @@
     },
     "chalkline": {
       "displayName": "Chalkline",
-      "requiredHeadshots": 0,
-      "requires": {
-        "kind": "courseGold",
-        "count": 1
-      },
+      "requiredHeadshots": 250,
       "reactive": true,
       "layout": "band",
       "baseColor": [
@@ -137,15 +133,11 @@
         255,
         255
       ],
-      "blurb": "Field-marking white over dark line. One gold medal on any Shoothouse course."
+      "blurb": "Field-marking white over dark line. Earned with 250 confirmed mask hits."
     },
     "shoothouse": {
       "displayName": "Shoothouse",
-      "requiredHeadshots": 0,
-      "requires": {
-        "kind": "courseGold",
-        "count": 3
-      },
+      "requiredHeadshots": 500,
       "reactive": true,
       "layout": "chevron",
       "baseColor": [
@@ -163,15 +155,11 @@
         196,
         128
       ],
-      "blurb": "Range orange on slate, in chevrons. Gold on three courses -- worn by people who were there when the field opened."
+      "blurb": "Range orange on slate, in chevrons. Earned with 500 confirmed mask hits."
     },
     "aurumFinish": {
       "displayName": "Aurum",
-      "requiredHeadshots": 0,
-      "requires": {
-        "kind": "courseGold",
-        "count": 5
-      },
+      "requiredHeadshots": 1000,
       "reactive": true,
       "layout": "chevron",
       "baseColor": [
@@ -189,9 +177,9 @@
         238,
         180
       ],
-      "blurb": "Gold on every course. The same anodising as the Kompressor, and the only finish in the game that says where you got it."
+      "blurb": "One thousand confirmed mask hits. Gold anodising earned on the field."
     }
   },
-  "_earnedTwoWays": "Two ladders, and they never cross. The five original finishes are bought with CONFIRMED MASK HITS -- server-classified headshots, nothing else. The three below are bought with a CLOCK: gold medals on the Shoothouse courses. Neither is purchasable at any price and neither touches a single number that affects where paint goes.",
+  "_earnedTwoWays": "All release finishes unlock through server-confirmed mask hits. Course rewards are deferred.",
   "_requires": "A camo unlocks on requiredHeadshots by default. A camo carrying a `requires` block unlocks on that instead and its requiredHeadshots is ignored -- see Shared/Camos.isUnlocked and Shared/Courses.meets, which is the one place the rule is written."
 }

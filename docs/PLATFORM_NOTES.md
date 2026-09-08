@@ -110,3 +110,33 @@ fix (cylinders with explicit rotations) is right either way.
 **Not verified, and needs Studio.** Nothing in this pass has been rendered. The
 roof, gable infill, sign brackets, viewmodel framing and all shop stock are
 arithmetic-checked and spec-covered only. Screenshots remain owed.
+
+## 2026-09-07 — release preparation verification
+
+- [ProfileStore API](https://madstudioroblox.github.io/ProfileStore/api/) documents
+  DataStoreState and the non-persistent Mock backend. The release adapter now
+  requires Access for live sessions. [Installation tutorial](https://madstudioroblox.github.io/ProfileStore/tutorial/)
+  supports placing the source ModuleScript in ServerScriptService; the already
+  vendored dependency removes the need to install Rosetta/Wally for this build.
+- [Gamepad inputs](https://create.roblox.com/docs/input/gamepad) documents B as
+  cancel, triggers for primary actions and bumpers for secondary actions. R1
+  slide and D-pad lean are this game's choices; Roblox does not specify a
+  universal lean binding. Controller Emulator verification remains pending.
+- [UI containers](https://create.roblox.com/docs/ui/on-screen-containers) recommends
+  CoreUISafeInsets for interactive UI. HUD readouts use it; aiming graphics have
+  a separate screen-centered layer.
+- [GuiObject](https://create.roblox.com/docs/reference/engine/classes/GuiObject)
+  and [GuiService](https://create.roblox.com/docs/reference/engine/classes/GuiService)
+  provide Selectable, SelectionOrder, NextSelection links and SelectedObject.
+  Menus explicitly establish and dispose their focus; Back uses a high-priority
+  context action. Actual engine/controller layout behavior is not verified here.
+
+## Studio bridge discovery — 2026-09-07
+
+Verified Roblox's [Studio MCP guidance](https://create.roblox.com/docs/studio/mcp):
+the ARM-native proxy is installed at
+`/Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`. A read-only protocol
+probe initialized successfully after allowing the local socket, but tools/list
+timed out because no enabled Studio connection supplied tools. The user chose
+to continue without Studio for now. No Studio-authored source, playtest,
+publishing or account changes were made through this probe.

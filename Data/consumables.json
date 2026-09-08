@@ -1,4 +1,6 @@
 {
+  "liveEnabled": false,
+  "_release": "Preview only until live activation and effects are integrated.",
   "_comment": "Buyable, single-use field kit. Bought with earned currency only -- never Robux, per BUILD_PLAN's monetization rule.",
 
   "_theHardRule": "NOTHING in this file touches the player's own accuracy, spread, velocity or recoil, and nothing gives them information they could not have got from something audible in the world. Every offensive item requires you to LAND A SHOT first; the effect is on what happens after the hit, never on whether the hit lands. That is the line, and tools/ship-check audits it by field name.",

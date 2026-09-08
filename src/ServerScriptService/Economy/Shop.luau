@@ -169,6 +169,9 @@ function Shop.purchase(handle: Profile.Handle, category: Category, id: string): 
 		and deep horde waves, and nobody buys their way past getting good.
 	]]
 	if category == "consumables" then
+		if Config.get("consumables").liveEnabled ~= true then
+			return { ok = false, reason = "Field kit is coming later.", balance = handle.data.currency }
+		end
 		if not Consumables.item(id) then
 			return { ok = false, reason = "unknown item", balance = handle.data.currency }
 		end
@@ -295,6 +298,8 @@ function Shop.catalogueFor(handle: Profile.Handle): any
 	end
 	out.consumables = Consumables.catalogue(handle.data.consumables or {})
 	for _, row in ipairs(out.consumables) do
+		row.comingSoon = Config.get("consumables").liveEnabled ~= true
+		if row.comingSoon then row.purchasable = false end
 		row.cost = if row.purchasable then Pricing.shopCost(row.cost) else nil
 		row.free = row.cost == 0
 	end

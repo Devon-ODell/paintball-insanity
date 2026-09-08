@@ -68,14 +68,33 @@ for _, camo in pairs(Config.get("camos").camos) do
 end
 check(reachableCamos, "release camos do not require unavailable course medals")
 
+--[[
+	Spawns per field.
+
+	This used to demand one authored spawn per bot. Speedball cannot have that:
+	twelve spawn points were tried twice and both arrangements measurably damaged
+	the field -- one inverted how it punishes trading, the other flattened the top
+	of the difficulty curve. It fields twelve from six and MatchService fans the
+	reuses onto a small ring instead of stacking bodies.
+
+	So the invariant is what actually has to hold: enough spawns to open a round
+	without the fan-out spiralling, checked as "no more than two bots to a spawn".
+	That the fan-out really does separate them is asserted in run-live-checks,
+	which measures the positions MatchService produced.
+]]
 local RoundSchedule = env.require(env.Server.Match.RoundSchedule)
-local enoughSpawns = true
+local squad = Config.require("match", "squadSize")
+local spawnProblems: { string } = {}
 for _, mapName in ipairs(Config.mapNames()) do
-	for _, round in ipairs(RoundSchedule.all("pro")) do
-		if round.botCount > #Config.map(mapName).botSpawns then enoughSpawns = false end
+	local spawns = #Config.map(mapName).botSpawns
+	if spawns < 6 then
+		table.insert(spawnProblems, `{mapName} has only {spawns} spawns`)
+	elseif squad > spawns * 2 then
+		table.insert(spawnProblems, `{mapName} would put {math.ceil(squad / spawns)} bots on a spawn`)
 	end
 end
-check(enoughSpawns, "every map has enough authored spawns for every release round")
+for _, problem in ipairs(spawnProblems) do print(`          {problem}`) end
+check(#spawnProblems == 0, "every field has enough authored spawns for the squad it fields")
 
 local reachableCampaign = true
 for _, chapter in ipairs(Config.get("progression").chapters) do

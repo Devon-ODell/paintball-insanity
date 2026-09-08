@@ -131,6 +131,8 @@ export type RoundResult = {
 }
 
 export type MatchInput = {
+	-- Defaults to the full release schedule; single-round simulations may override.
+	expectedRounds: number?,
 	map: string,
 	marker: string,
 	rounds: { RoundResult },
@@ -185,7 +187,8 @@ function Payout.computeMatch(input: MatchInput): MatchBreakdown
 		subtotal += value
 	end
 
-	local allCleared = cleared == #input.rounds and #input.rounds > 0
+	local expectedRounds = input.expectedRounds or Config.require("match", "rounds.count")
+	local allCleared = cleared == expectedRounds and #input.rounds == expectedRounds and expectedRounds > 0
 	local deathPenalty = Payout.deathPenalty(input.deaths)
 	local accuracyBonus = Payout.accuracyBonus(input.shots, input.hits)
 	local streakBonus = Payout.streakBonus(input.longestStreak)

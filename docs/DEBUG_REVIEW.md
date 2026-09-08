@@ -45,3 +45,100 @@ Commands run from the project root:
 The original baseline passed all 163 tests. The full rerun passed 169 tests (including six new cases); the final focused run passed all seven new regression cases after adding the initial-phase notification check. These cover round phases, reload timing, rate limits, and nonfinite network inputs. `run-live-checks` also passed, exercising the actual MatchService against mocked engine/projectile boundaries for warmup, manual reload, and duplicate eliminations. It does not model asynchronous Roblox character loading or network delivery.
 
 All 44 source/spec Luau files were syntax-compiled successfully. This is not static type checking. Rojo build remains blocked by missing dependencies, as recorded in PLATFORM_NOTES.md. No Studio playtest was performed. The workspace has no Git repository, so these are direct file edits with no commit or Git diff.
+
+## Publish-prep re-verification — 2026-09-07
+
+The original findings above are historical. Current source inspection and
+`tools/run-live-checks` establish the following narrower status:
+
+- **Equip/start:** Bootstrap's `starting[player]` guard serializes the live
+  request route, including profile loading, and is cleared after `pcall`.
+  RequestEquip rejects pending startup and requires an allowed hub counter or
+  `MatchService.canShop`. Direct MatchService.start is not independently
+  serialized; all current live calls use the Bootstrap gate. Async engine
+  scheduling still needs Studio stress testing.
+- **Profile startup:** `loading[userId]` serializes StartSessionAsync. The adapter
+  refuses unavailable live DataStore access and releases late sessions after
+  departure. `tools/run-profile-checks` verifies access denial, session reuse,
+  release and departure with a fake backend; it does not test Roblox storage.
+- **Shot origin/spread:** current MatchService uses its server muzzle and applies
+  spread. It no longer rejects shots based on client-origin distance. Verify
+  moving fire under replication delay in Studio.
+- **Fixed step:** the live Heartbeat accumulator calls `step(fixedStep)` and thus
+  ProjectileSim at the configured interval. ProjectileSim itself still accepts
+  arbitrary dt; its standalone fixedStep option is not an internal accumulator.
+- **Lag compensation remains open:** history is captured but not queried during
+  collision resolution. Misleading live comments were corrected. Rewind is not
+  claimed as a completed feature.
+- **Build/persistence dependency:** the full Rojo build now includes the vendored
+  ProfileStore. Studio intentionally mocks progress. Save/rejoin validation on
+  a private published server is still a release gate.
+
+See `PUBLISH_READINESS.md` for current scope and remaining manual acceptance.
+
+Additional current findings: the trading-versus-holding acceptance ties at 5.33
+mean eliminations over six seeds and fails. The simulator omits live marker
+spread. Its impossible reload-completion condition was fixed with a short
+no-respawn regression. The old spawn-count spec hardcoded six; it now checks
+each actual map's botSpawns (all have twelve), instead of an obsolete constant.
+
+## Shooting and progression follow-up — 2026-09-07
+
+The trading failure described above is resolved by sharing Spread's stateful
+rules between live MatchService and SimMatch. Pro error is now 0.6 degrees;
+control-round difficulty increases across all four tiers, with a separate
+seed sample confirming pro remains harder than semi-pro. Map sizes and squad
+counts are unchanged. See PUBLISH_READINESS.md for measured values.
+
+Live boundary checks also exposed two release bugs: the server retained an empty
+hopper/stale reload across round transitions, while the client refilled; and
+Payout treated a list containing one cleared round as a cleared match when the
+player left early. Both are fixed with regression coverage, including checking
+that the early exit cannot complete the Walk-On chapter.
+
+---
+
+## 2026-09-07 — the same lesson, from the other direction
+
+The line at the top of this document ("passing headless tests does not establish
+that the game works in Studio") got its clearest demonstration yet, and it is
+worth recording as a pattern rather than an incident.
+
+The Shoothouse mode shipped with **thirty passing unit assertions and no way for
+a player to reach it**. `Bootstrap.requestMatch` refused every mode that was not
+`gauntlet`, and nothing in `MatchService` referenced `Course` at all. The specs
+were green because they called the pure module directly — which is what a unit
+spec is supposed to do, and exactly why a unit spec cannot see this class of bug.
+
+It had a second-order consequence that no test asserted in either direction:
+three camos had already been gated on course gold medals, so they were
+permanently unobtainable while the wardrobe displayed a countdown toward a mode
+that did not exist. A feature can be *unreachable* rather than *broken*, and
+nothing in a green suite distinguishes the two.
+
+**The check that closes it:** `tools/run-live-checks` now drives a complete
+course through `MatchService` the way a player does — start through the real
+entry point, clear all four stages, assert the profile record is written. Every
+mode added from here needs an equivalent front-door check before it is
+considered done. A rules module plus specs is half a mode.
+
+**Still open, same shape:** `Endless.luau` (Horde) and `CaptureTheFlag.luau` are
+pure, spec-covered and wired to nothing. `Bootstrap.asMode` now refuses them by
+name so a request gets an honest refusal instead of silently running a gauntlet,
+but they remain two more instances of this exact pattern.
+
+### Tooling that had rotted quietly
+
+Two verification tools were themselves broken and reporting nothing:
+
+- `tools/run-live-checks` stubbed `WorldBuilder.build` with a plain table. Once
+  the harness began injecting a real `Instance`, `MatchService` parenting its bot
+  folder to that table threw — the whole live check had been dying on its first
+  match for some time.
+- `tools/check-client-ui` had no stub for `UiNavigation` once `Hud` began
+  requiring it, so it died with "attempt to index nil" before testing anything.
+  It also needed `GetPropertyChangedSignal`, `BindActionAtPriority`, a
+  `Destroying` signal, and proxy-unwrapping on `NextSelection*` properties.
+
+A verification tool that fails to start looks a lot like a verification tool that
+found nothing. Both now run in CI-shaped form and exit non-zero.

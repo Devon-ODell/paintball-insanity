@@ -5,6 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Remotes = require(ReplicatedStorage.Net.Remotes)
 local Theme = require(script.Parent.UiTheme)
+local Navigation = require(script.Parent.UiNavigation)
 local DialogueUi = {}
 local gui: ScreenGui? = nil
 local onChoose: ((number) -> ())? = nil
@@ -33,6 +34,7 @@ function DialogueUi.show(node: any, choose: (number) -> ())
 	screen.Name, screen.ResetOnSpawn, screen.DisplayOrder = "LiveRoundDialogue", false, 30
 	screen.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 	gui = screen
+	screen.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
 	local panel = Theme.frame(screen, "Conversation", UDim2.new(1, -24, 0.58, 0), UDim2.new(0.5, 0, 1, -12))
 	panel.AnchorPoint, panel.BackgroundTransparency = Vector2.new(0.5, 1), 0.04
 	Theme.round(panel); Theme.outline(panel)
@@ -73,9 +75,10 @@ function DialogueUi.show(node: any, choose: (number) -> ())
 		button.Activated:Connect(function() pick(index) end)
 	end
 	if #options == 0 then
-		local hint = Theme.text(scroll, "Hint", "Select Leave, or press E to step away.", UDim2.new(1, -8, 0, 36), UDim2.new(), Theme.config.smallTextPixels)
+		local hint = Theme.text(scroll, "Hint", "Select Leave to step away.", UDim2.new(1, -8, 0, 36), UDim2.new(), Theme.config.smallTextPixels)
 		hint.LayoutOrder, hint.TextColor3 = 1, Theme.colors.muted
 	end
+	Navigation.bind(panel, buttons[1] or close, stepAway)
 	keyConnection = UserInputService.InputBegan:Connect(function(input, processed)
 		if processed or not gui then return end
 		if input.KeyCode == Enum.KeyCode.E or input.KeyCode == Enum.KeyCode.ButtonB then stepAway(); return end

@@ -3,7 +3,7 @@
 
   "_shipChecklist": "Before publishing: set enabled=false. tools/ship-check verifies it and fails the build if it is still true.",
 
-  "enabled": true,
+  "enabled": false,
 
   "infiniteCurrency": {
     "on": true,

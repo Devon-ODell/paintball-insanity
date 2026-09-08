@@ -4,6 +4,55 @@ Updated at the end of every session, per `BUILD_PLAN.md`.
 
 ---
 
+## Session — publish preparation, 2026-09-07
+
+**Not cleared for public release.** Start with [PUBLISH_READINESS.md](PUBLISH_READINESS.md).
+The handoffs were checked against current source; several claims were stale.
+
+User decisions: solo Gauntlet for first release, current map sizes retained,
+Shoothouse/Horde/CTF deferred, and the full campaign converted to Gauntlet goals.
+Dev overrides are disabled. The Marshal requires pro Speedball, The Long
+Afternoon a flawless semi-pro sweep, and Aurum a flawless pro sweep across the
+four campaign fields. Gates now select the current campaign tier instead of
+always rec. Former course camos require 250/500/1000 confirmed mask hits.
+Field kit has no live activation and is now a non-claimable coming-later preview.
+
+ProfileStore was already vendored and live missing-dependency fallback refused.
+Added actual DataStore access verification and late-session departure cleanup.
+New adapter checks cover unavailable access, session reuse/release and departure
+with a fake backend. Studio remains intentionally non-persistent.
+
+Controller slide/lean, explicit menu selection/navigation and high-priority B
+close handling are implemented. HUD uses safe insets with a separate centered
+aiming layer. Payout labels grow when wrapping. These changes compile but have
+not been tested with Studio's renderer or Controller Emulator.
+
+Verification:
+
+- Full default Rojo place builds: `/tmp/paintball-release.rbxlx`.
+- `ship-check`, live-service checks and new profile-adapter checks pass.
+- 90 source/spec Luau files syntax-compile; this is not static type checking.
+- The second complete suite reported 439 passed / 2 failed in 390.05 seconds.
+  One failure was the old hardcoded six-spawn assertion, corrected while that
+  run was in flight; its targeted rerun passes against all five authored maps.
+  All 16 non-Sim spec files were then rerun against final files: **421 passed,
+  zero failed**. The corrected spawn assertion also passes separately.
+- **The trading/holding acceptance remains failing:** both policies average
+  5.33 eliminations over six Speedball semi-pro seeds. No assertion was relaxed.
+  Simulator reload completion was also impossible; fixed with a no-respawn
+  regression. The trading tie persists after the fix. The simulator lacks the
+  live player's spread model, limiting its usefulness for balance tuning.
+- Foliage constructs 1559 models / 8069 parts, 5784 casting shadows and 2285
+  with shadows off. These are structural counts, not frame times. Streaming
+  remains off pending measured rendering performance.
+
+Outstanding: balance/simulation parity, rendered full-match and controller/UI
+acceptance, published save/rejoin/shutdown validation, performance measurements,
+and actual place settings/questionnaire. No Studio playtest, public upload,
+questionnaire submission or published-setting change was performed.
+
+---
+
 ## Session — world pass 01 (barn roof, foliage, viewmodel, shop interior)
 
 Worked `HANDOFF_worldpass_01.md`. All four tasks done. No Studio in the loop, so
@@ -734,3 +783,142 @@ in `CLAUDE.md`.
 - Ambience has no audio assets. See above — that is deliberate, not unfinished.
 - The Range gate is signed and standing but returns a "not yet" notice; the live
   drill binding is still sim-only.
+
+---
+
+## The Shoothouse, and the modes that are still dead code (2026-09-07)
+
+### What was wrong
+
+The Shoothouse shipped as ~600 lines across `Course.luau`, `Courses.luau`,
+`CourseProgress.luau`, `Data/course.json` and 30 passing specs — and was
+**unreachable from an actual match**. Nothing in `Bootstrap` or `MatchService`
+referenced any of it, and `Bootstrap.requestMatch` refused every mode that was
+not `gauntlet` outright. An external review caught it, correctly, as the
+headline defect of that commit.
+
+It had a second-order consequence that is worth remembering, because it is the
+kind of bug that unit tests structurally cannot see: `Shared/Camos.luau` had
+already been wired to gate three finishes on course gold medals. Since no course
+could be played, `data.courseRecords` was never written, so those three camos
+were **permanently unobtainable** while the wardrobe cheerfully displayed
+"3 more gold medals on the Shoothouse" for a mode that did not exist.
+
+Thirty green assertions and a mode a player can never reach. `docs/DEBUG_REVIEW.md`
+already flagged this exact risk: *passing headless tests does not establish that
+the game works.*
+
+### How it is wired now
+
+The mode is expressed as **a schedule, not a second match loop**. A course is
+flattened into the same round shape the gauntlet uses — each stage's cover
+refills `wavesPerStage` times, so a four-stage course becomes eight rounds, each
+carrying the anchors its defenders hold and the checkpoint the player respawns
+on. Everything below that line — firing, hit validation, lag compensation,
+telemetry, respawn — is one engine serving both modes, so a fix to the gauntlet
+is a fix to the course and the two cannot drift.
+
+Five touchpoints, and no more than five deliberately:
+
+| Concern | Gauntlet | Shoothouse |
+|---|---|---|
+| Schedule | `RoundSchedule.all` | `Course.all`, flattened by wave |
+| Bot spawns | `world.botSpawns`, cycled | the stage's own anchors |
+| Player respawn | furthest respawn from the squad | the stage checkpoint |
+| Intermission | 7 s | 0 — the clock never stops |
+| Payout | `Payout.computeMatch` | `CourseProgress.record`, by medal |
+
+A player reaches it from the same trailhead post: hold **F** for the five
+rounds, hold **E** for the timed course. That is the only place a mode choice
+can live in a game with no lobby, and this project does not have one on purpose.
+
+### The check that would have caught it
+
+`tools/run-live-checks` now runs a whole course through `MatchService` exactly as
+a player does — 28 defenders over 4 stages — and asserts the record is written,
+that defenders start on the anchors their stage names, and that a course clear
+never counts as a gauntlet clear. The unit specs call `Course` directly and
+always did; this one goes through the front door.
+
+### Still dead code
+
+**Horde and Capture the Flag remain unwired.** `Endless.luau` and
+`CaptureTheFlag.luau` are pure, spec-covered rules modules that no match ever
+starts, exactly as the Shoothouse was. `Bootstrap.asMode` now names the modes
+that actually have a match loop and refuses the rest, so requesting Horde gets an
+honest "still in field preparation" instead of silently running a gauntlet. Do
+not add a fourth until one of those two is finished.
+
+## Fields at 88%, and the probe that was only ever run on one map
+
+Dustline, Urban, Woods and Holdfast were scaled to 88% of their footprint —
+positions **and** plan-view sizes together, Y untouched. Scaling positions alone
+was tried first and was wrong: it left cover at full size in a smaller field,
+which pushed nav nodes into buildings and disconnected the nav graphs on Dustline
+and Holdfast. Y is left alone because heights carry tuned see-over relationships
+(a snake tops at 1.30 m against a 1.32 m crouched eye line) and shrinking them
+would retune the game without saying so.
+
+`navLinkRadiusMetres` is deliberately **not** scaled: it is a three-dimensional
+reach and the rescale was horizontal only, so scaling it dropped tower and roof
+nodes out of range and disconnected Holdfast outright.
+
+**Speedball was not rescaled at all.** It is already the smallest field and the
+only one built as a knife fight, and its core property — trading punished harder
+than holding an angle — does not survive being shrunk while the squad doubles.
+Measured at squad size 12: full size `+3.33`, 95% `-1.67` (trading becomes
+*safer*, inverting the map), 88% `+0.00` (the two policies stop differing at
+all).
+
+That measurement was the hole. `tools/probe-trading` was hardcoded to Speedball,
+so one map was measured and the resulting number was applied to four that were
+not. It now walks the whole curriculum and fails non-zero on any field that does
+not punish trading.
+
+Running it across all five, and against the pre-rescale baseline where a field
+had regressed:
+
+| Field | Scale | Trading gap | Baseline | Verdict |
+|---|---|---|---|---|
+| Speedball | 100% | **+2.50** | — | never rescaled; see above |
+| Dustline | 88% | −3.17 | **−7.83** | pre-existing failure, *improved* by the rescale |
+| Urban | 100% | **+1.50** | +2.67 at full size, −0.33 at 88% | **rescale reverted** |
+| Woods | 88% | **+5.17** | — | fine |
+| Holdfast | 88% | 0.00 / 0.00 | — | degenerate: see below |
+
+Two conclusions, both of which needed the baseline column to be honest about:
+
+- **Urban was a genuine regression and is reverted.** At full size it punishes
+  trading by +2.67; at 88% that inverts to −0.33, meaning trading became
+  marginally *safer* than holding an angle. Two of five fields turn out not to
+  survive a shrink while the squad doubles, and they are the two shortest.
+- **Dustline's failure is not from the rescale.** It measured −7.83 before any
+  of this and −3.17 after, so the shrink made it less wrong, not more. It is a
+  standing problem with that field and predates this work; do not "fix" it by
+  reverting a scale change that helped.
+
+**Holdfast returns zero deaths for both policies**, which is not a pass — it is
+the probe finding nothing to measure. Round 3 on a 132x176 m field with the
+benchmark policy produces no player deaths at all, so the control round is
+vacuous there. That is the same root cause as the long-standing note about
+engagement distances: both sim policies plant on first contact (`move = nil`),
+so on a large field they simply never meet. Fixing that moves every difficulty
+measurement at once and is still deliberately deferred.
+
+## Bugs found on the way
+
+- **Three palette keys were never declared.** `brush`, `stone` and
+  `containerRust` were used by Woods, Holdfast and Dustline but appeared in
+  neither `maps_index.palette` nor `WorldBuilder.SURFACE`, so every thicket,
+  copse, outcrop and rusted screen rendered as concrete-grey smooth plastic.
+  Woods and Holdfast were drawing their treelines as pale grey boxes.
+- **`tools/run-live-checks` had been silently broken** since the harness began
+  injecting a real `Instance`: it stubbed `WorldBuilder.build` with a plain
+  table, and `MatchService` parents its bot folder to whatever that returns.
+- **`tools/check-client-ui` had been dead** since `Hud` started requiring
+  `UiNavigation`, which the tool never stubbed. It also needed
+  `GetPropertyChangedSignal`, `BindActionAtPriority`, a `Destroying` signal and
+  proxy-unwrapping on `NextSelection*` — gamepad focus wiring assigns Instance
+  refs to properties the stub only handled for `Parent`.
+- **Two specs pinned the squad size at 6** rather than reading it, so doubling
+  the squad failed them. They read `match.squadSize` now.
