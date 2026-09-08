@@ -69,6 +69,11 @@ local SURFACE: { [string]: { material: Enum.Material, reflectance: number } } = 
 	brush = { material = Enum.Material.LeafyGrass, reflectance = 0 },
 	stone = { material = Enum.Material.Slate, reflectance = 0 },
 	containerRust = { material = Enum.Material.CorrodedMetal, reflectance = 0.03 },
+	-- Ground markings. A gravel freight lane and a dirt valley path were both
+	-- being laid as Material.Ground, hardcoded at the call site, so the two read
+	-- identically despite being different things in different places.
+	gravel = { material = Enum.Material.Pebble, reflectance = 0 },
+	trail = { material = Enum.Material.Ground, reflectance = 0 },
 	foliage = { material = Enum.Material.Grass, reflectance = 0 },
 	foliageDeep = { material = Enum.Material.LeafyGrass, reflectance = 0 },
 	netting = { material = Enum.Material.Fabric, reflectance = 0 },
@@ -76,6 +81,25 @@ local SURFACE: { [string]: { material: Enum.Material, reflectance: number } } = 
 	bunkerB = { material = Enum.Material.SmoothPlastic, reflectance = 0.08 },
 	bunkerC = { material = Enum.Material.SmoothPlastic, reflectance = 0.08 },
 }
+
+--[[
+	Does the surface table have an opinion about this colour key?
+
+	An undeclared key does not fail: it renders as smooth plastic and keeps
+	building, which is how thickets and outcrops spent a while looking like
+	concrete boxes. MapsSpec asserts every key a field asks for is declared here
+	as well as in the palette -- the colour and the material are two separate
+	fallbacks and either one alone is enough to make a field look wrong.
+]]
+function WorldBuilder.declaresSurface(colorKey: string): boolean
+	return SURFACE[colorKey] ~= nil
+end
+
+--- The material a colour key implies, or `fallback` if the table has no opinion.
+local function materialFor(colorKey: string, fallback: Enum.Material): Enum.Material
+	local surface = SURFACE[colorKey]
+	return if surface then surface.material else fallback
+end
 
 local function style(part: BasePart, colorKey: string, transparency: number?)
 	local surface = SURFACE[colorKey] or { material = Enum.Material.SmoothPlastic, reflectance = 0.02 }
@@ -225,7 +249,8 @@ local function buildPresentation(mapData: any, root: Folder, geometry: Folder)
 			local finish = Vector3.new(b[1], b[2] + lift, b[3])
 			local midpoint = (start + finish) / 2
 			scenery(trail.id, Vector3.new(trail.widthMetres, cfg.groundMarking.thicknessMetres, (finish - start).Magnitude),
-				CFrame.lookAt(Units.vectorToStuds(midpoint), Units.vectorToStuds(finish)), trail.color, Enum.Material.Ground)
+				CFrame.lookAt(Units.vectorToStuds(midpoint), Units.vectorToStuds(finish)),
+				trail.color, materialFor(trail.color, Enum.Material.Ground))
 		end
 	end
 	for _, facade in ipairs(look.facades or {}) do

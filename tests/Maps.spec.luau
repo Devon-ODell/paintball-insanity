@@ -331,11 +331,25 @@ return function()
 				Nothing caught it because nothing breaks. This is the check that
 				would have.
 			]]
+			--[[
+				Colour and material are two separate fallbacks. A key missing from
+				the palette renders concrete grey; a key missing from
+				WorldBuilder's surface table renders as smooth plastic. Either one
+				alone is enough to make a field look wrong, and neither fails, so
+				both are checked here.
+			]]
 			local palette = Config.require("maps_index", "palette")
+			local WorldBuilder = require(game:GetService("ServerScriptService").Server.Match.WorldBuilder)
 			local missing: { string } = {}
 			local function want(key: any, where: string)
-				if type(key) == "string" and palette[key] == nil then
-					table.insert(missing, `{where} asks for '{key}'`)
+				if type(key) ~= "string" then
+					return
+				end
+				if palette[key] == nil then
+					table.insert(missing, `{where} asks for colour '{key}'`)
+				end
+				if not WorldBuilder.declaresSurface(key) then
+					table.insert(missing, `{where} asks for material '{key}'`)
 				end
 			end
 			for _, name in ipairs(Config.mapNames()) do
@@ -352,7 +366,7 @@ return function()
 				end
 			end
 			if #missing > 0 then
-				error(`undeclared palette keys: {table.concat(missing, ", ")}`)
+				error(`undeclared: {table.concat(missing, ", ")}`)
 			end
 		end)
 
