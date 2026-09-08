@@ -62,19 +62,19 @@ export type Hub = {
 }
 
 local MATERIAL: { [string]: Enum.Material } = {
-	forestFloor = Enum.Material.LeafyGrass,
+	forestFloor = Enum.Material.Grass,
 	clearingGrass = Enum.Material.Grass,
-	gravel = Enum.Material.Pebble,
-	dirt = Enum.Material.Ground,
+	gravel = Enum.Material.Concrete,
+	dirt = Enum.Material.Sand,
 	water = Enum.Material.Water,
-	creekBed = Enum.Material.Pebble,
+	creekBed = Enum.Material.Concrete,
 	barnWood = Enum.Material.Wood,
 	barnWoodDark = Enum.Material.WoodPlanks,
 	signPost = Enum.Material.Wood,
 	signBoard = Enum.Material.SmoothPlastic,
 	trunk = Enum.Material.Wood,
 	rock = Enum.Material.Slate,
-	sheetMetal = Enum.Material.CorrodedMetal,
+	sheetMetal = Enum.Material.Metal,
 	truckRed = Enum.Material.Metal,
 	truckBlue = Enum.Material.Metal,
 	tarp = Enum.Material.Fabric,
@@ -300,7 +300,11 @@ function Overworld.build(parent: Instance?): Hub
 		tuning problem -- too many exclusions, too small an annulus -- and it is
 		invisible from inside the game, so say so here.
 	]]
-	local placed, scatterReport = Foliage.scatter(cfg.scatter, palette, cfg.trails, foliageFolder)
+	-- The floor slab is centred on the origin, so its walkable surface is half a
+	-- thickness up. Scatter is sampled in XZ only and has to be told.
+	local placed, scatterReport = Foliage.scatter(
+		cfg.scatter, palette, cfg.trails, foliageFolder, cfg.ground.thicknessMetres / 2
+	)
 	for _, layer in ipairs(scatterReport) do
 		if layer.placed < layer.requested * 0.85 then
 			log.warn(`foliage layer '{layer.id}' placed {layer.placed} of {layer.requested} -- crowded out`)

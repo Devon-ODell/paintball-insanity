@@ -23,8 +23,10 @@ local Overworld = env.require(env.ServerScriptService.Server.World.Overworld)
 local WorldBuilder = env.require(env.ServerScriptService.Server.Match.WorldBuilder)
 
 -- Two faces closer than this in Y, with overlapping footprints, will fight.
--- A stud is 0.28m here, so this is about four millimetres of world space.
-local EPSILON_STUDS = 0.015
+-- A stud is 0.28m here, so this is about one centimetre of world space. It was
+-- 0.015 studs (4 mm), which passed markings the depth buffer could not actually
+-- separate at range -- the fields shimmered while this tool reported them clean.
+local EPSILON_STUDS = 0.035
 local MIN_OVERLAP_STUDS = 0.4
 
 --[[
@@ -98,6 +100,142 @@ local function overlap(a: Face, b: Face): number
 	return smallest
 end
 
+--------------------------------------------------------------------------------
+-- Vertical surfaces
+--------------------------------------------------------------------------------
+
+--[[
+	Walls fight too.
+
+	The horizontal pass above deliberately ignores upright parts, on the
+	reasoning that "a wall sharing a plane with another wall is normal
+	construction". That is true when they sit EDGE TO EDGE and false when their
+	footprints OVERLAP -- two panels occupying the same plane over the same
+	square metre have no depth winner, which is the shimmer you see strafing
+	past a bunker face or a barn wall.
+
+	So the test is the same one, rotated: take every thin upright part, group by
+	the plane it lies in (parallel normal, same offset along that normal), and
+	report the pairs whose rectangles genuinely overlap inside that plane.
+]]
+type Panel = {
+	name: string,
+	nx: number, ny: number, nz: number,   -- plane normal
+	d: number,                             -- plane offset along the normal
+	cx: number, cy: number, cz: number,    -- centre
+	ux: number, uy: number, uz: number, hu: number, -- in-plane axis 1 + half extent
+	vx: number, vy: number, vz: number, hv: number, -- in-plane axis 2 + half extent
+}
+
+local function collectVertical(root: any): { Panel }
+	local panels: { Panel } = {}
+	for _, d in ipairs(root:GetDescendants()) do
+		if d:IsA("BasePart") and d.Transparency < 1 then
+			local size, cf = d.Size, d.CFrame
+			local axes = {
+				{ v = cf.RightVector, s = size.X },
+				{ v = cf.UpVector, s = size.Y },
+				{ v = cf.LookVector, s = size.Z },
+			}
+			-- The thin axis is the panel's normal.
+			local ti = 1
+			for i = 2, 3 do
+				if axes[i].s < axes[ti].s then ti = i end
+			end
+			local n = axes[ti].v
+			local thin = axes[ti].s
+			-- Upright: the normal points sideways, not up. And genuinely thin
+			-- relative to the face it carries, or it is a block, not a panel.
+			local other1, other2 = nil, nil
+			for i = 1, 3 do
+				if i ~= ti then
+					if other1 == nil then other1 = axes[i] else other2 = axes[i] end
+				end
+			end
+			local a1 = other1 :: any
+			local a2 = other2 :: any
+			local upright = math.abs(n.Y) < 0.2
+			local flat = thin < math.min(a1.s, a2.s) * 0.5
+			local big = math.min(a1.s, a2.s) > 1
+			if upright and flat and big then
+				table.insert(panels, {
+					name = d.Name,
+					nx = n.X, ny = n.Y, nz = n.Z,
+					d = n.X * cf.Position.X + n.Y * cf.Position.Y + n.Z * cf.Position.Z,
+					cx = cf.Position.X, cy = cf.Position.Y, cz = cf.Position.Z,
+					ux = a1.v.X, uy = a1.v.Y, uz = a1.v.Z, hu = a1.s / 2,
+					vx = a2.v.X, vy = a2.v.Y, vz = a2.v.Z, hv = a2.s / 2,
+				})
+			end
+		end
+	end
+	return panels
+end
+
+--- Separating-axis overlap of two rectangles that share a plane, measured in 3D
+--- against each rectangle's own in-plane axes.
+local function overlapPlanar(a: Panel, b: Panel): number
+	local dx, dy, dz = b.cx - a.cx, b.cy - a.cy, b.cz - a.cz
+	local smallest = math.huge
+	local axes = {
+		{ a.ux, a.uy, a.uz }, { a.vx, a.vy, a.vz },
+		{ b.ux, b.uy, b.uz }, { b.vx, b.vy, b.vz },
+	}
+	for _, ax in ipairs(axes) do
+		local px, py, pz = ax[1], ax[2], ax[3]
+		local reachA = math.abs(a.ux * px + a.uy * py + a.uz * pz) * a.hu
+			+ math.abs(a.vx * px + a.vy * py + a.vz * pz) * a.hv
+		local reachB = math.abs(b.ux * px + b.uy * py + b.uz * pz) * b.hu
+			+ math.abs(b.vx * px + b.vy * py + b.vz * pz) * b.hv
+		local gap = math.abs(dx * px + dy * py + dz * pz) - (reachA + reachB)
+		if gap >= 0 then
+			return 0
+		end
+		smallest = math.min(smallest, -gap)
+	end
+	return smallest
+end
+
+local function reportVertical(label: string, root: any): number
+	local panels = collectVertical(root)
+	local found, seen = {}, {}
+	for i = 1, #panels do
+		for j = i + 1, #panels do
+			local a, b = panels[i], panels[j]
+			local dot = a.nx * b.nx + a.ny * b.ny + a.nz * b.nz
+			if math.abs(dot) > 0.98 then
+				-- Same plane? Compare offsets with b's normal flipped to match a.
+				local db = if dot > 0 then b.d else -b.d
+				if math.abs(a.d - db) <= EPSILON_STUDS then
+					local shared = overlapPlanar(a, b)
+					if shared >= MIN_OVERLAP_STUDS then
+						local key = a.name .. "|" .. b.name
+						if not seen[key] then
+							seen[key] = true
+							table.insert(found, { a = a.name, b = b.name, shared = shared })
+						end
+					end
+				end
+			end
+		end
+	end
+	print(`  {#panels} upright panels`)
+	if #found == 0 then
+		print("  \27[32mno upright overlaps\27[0m")
+		return 0
+	end
+	table.sort(found, function(p, q) return p.shared > q.shared end)
+	for i = 1, math.min(#found, 12) do
+		local p = found[i]
+		print(string.format("  \27[31mfights\27[0m  %-26s %-26s %.1f studs shared",
+			p.a, p.b, p.shared))
+	end
+	if #found > 12 then
+		print(`  ... and {#found - 12} more`)
+	end
+	return #found
+end
+
 local function report(label: string, root: any): number
 	local faces = collect(root)
 	table.sort(faces, function(p, q) return p.y < q.y end)
@@ -143,11 +281,13 @@ local hub = roblox.Instance.new("Folder")
 -- parented before that point, so build as far as it gets and measure that.
 pcall(function() Overworld.build(hub) end)
 total += report("the landing", hub)
+total += reportVertical("the landing", hub)
 
 for _, name in ipairs(Config.get("maps_index").order) do
 	local holder = roblox.Instance.new("Folder")
 	pcall(function() WorldBuilder.build(name, holder) end)
 	total += report(name, holder)
+	total += reportVertical(name, holder)
 end
 
 print("")

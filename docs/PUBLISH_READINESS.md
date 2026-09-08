@@ -27,7 +27,11 @@ and verified through the real entry point, so the release is:
   world origin. A second player can join the server; they cannot yet join a run.
 - Map dimensions changed: Dustline, Woods and Holdfast are at 88%; Speedball and
   Urban are at full size because shrinking them inverted how they punish trading.
-- The Range remains a preview: live drills are not connected.
+- **The Range is live.** `RangeService` runs the drill schedule against the
+  authoritative projectile sim and scores it with the same `DrillScoring` the
+  simulation uses, so a drill run at the gate and a drill run headlessly differ
+  only in who pulls the trigger. It pays nothing, and `ship-check` still asserts
+  that. `tools/check-range` drives a full drill end to end.
 
 Dev overrides are off. Free supply and cosmetic claims remain enabled; paid
 prompts remain disabled. Former course finishes now require 250 (Chalkline),
@@ -172,6 +176,8 @@ in `Economy/Commerce.luau` (`self.lastRequest` against
 ~/.local/bin/lune run tools/run-tests
 ~/.local/bin/lune run tools/run-live-checks
 ~/.local/bin/lune run tools/run-profile-checks
+~/.local/bin/lune run tools/check-range
+~/.local/bin/lune run tools/check-zfight
 ~/.local/bin/lune run tools/foliage-report
 ~/.local/bin/rojo build default.project.json -o /tmp/paintball-release.rbxlx
 ```

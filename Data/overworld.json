@@ -25,14 +25,14 @@
   },
   "palette": {
     "forestFloor": [
-      64,
-      78,
-      52
+      88,
+      106,
+      68
     ],
     "clearingGrass": [
-      96,
-      118,
-      68
+      112,
+      134,
+      78
     ],
     "gravel": [
       136,
@@ -273,21 +273,21 @@
   "lighting": {
     "_note": "Late afternoon under a canopy. Warmer and dimmer than any of the fields, with heavy haze so the treeline fades out instead of ending. The hub should feel like the sun is going down on a long day.",
     "technology": "Future",
-    "brightness": 1.9,
-    "exposureCompensation": 0.08,
+    "brightness": 2.2,
+    "exposureCompensation": 0.04,
     "globalShadows": true,
     "shadowSoftness": 0.42,
     "environmentDiffuseScale": 0.7,
     "environmentSpecularScale": 0.2,
     "ambient": [
-      62,
-      68,
-      58
+      74,
+      80,
+      68
     ],
     "outdoorAmbient": [
-      112,
-      116,
-      98
+      132,
+      136,
+      116
     ],
     "colorShiftTop": [
       42,
@@ -302,7 +302,7 @@
     "clockTime": 17.4,
     "geographicLatitude": 34,
     "atmosphere": {
-      "density": 0.42,
+      "density": 0.32,
       "offset": 0.2,
       "color": [
         206,
@@ -315,7 +315,7 @@
         88
       ],
       "glare": 0.18,
-      "haze": 2.0
+      "haze": 1.35
     },
     "bloom": {
       "intensity": 0.45,
@@ -1860,11 +1860,11 @@
     "placementAttempts": 40,
     "_nearPathsMetres": "Ground detail is scattered only within this many metres of a trail or an open area, rather than out to the hub's edge. A fern is three parts and stands half a metre tall: four hundred of them spread to the treeline spent most of that budget behind trees nobody walks through. The counts came down with the area, and the result is denser cover where it reads and none where it does not. Trees have no band -- a treeline is precisely the thing you see from a distance."
   },
-  "_surfaceLayerMetres": "Ground surfaces overlap on purpose -- trail bends, trail junctions, zone patches -- and two faces on the same plane shimmer as the camera moves. These are the offsets that keep every overlapping surface on its own plane. Millimetres: enough for the depth buffer, invisible to walk on. tools/check-zfight verifies it.",
+  "_surfaceLayerMetres": "Ground surfaces overlap on purpose -- trail bends, trail junctions, zone patches -- and two faces on the same plane shimmer as the camera moves. These are the offsets that keep every overlapping surface on its own plane. alternateMetres was 6 mm (0.021 studs), which the depth buffer cannot separate at range: consecutive segments of the same trail fought each other across seven studs while check-zfight, tolerant to 0.015 studs, called it clean. 12 mm (0.043 studs) clears it. The trails sink into a two-metre floor slab, so the extra travel stays invisible.",
   "surfaceLayerMetres": {
     "trailBaseMetres": 0.14,
     "stepMetres": 0.026,
-    "alternateMetres": 0.006,
+    "alternateMetres": 0.012,
     "waterLiftMetres": 0.03
   }
 }

@@ -57,6 +57,8 @@ lune run tools/check-source       # Luau syntax across every module
 lune run tools/run-live-checks    # MatchService against a mock engine
 lune run tools/run-profile-checks # persistence adapter
 lune run tools/check-budget       # part / shadow / alpha budgets per scene
+lune run tools/check-range        # drives a full aim drill end to end
+lune run tools/check-zfight       # coplanar surfaces that shimmer in motion
 ```
 
 Build the release place:
@@ -145,7 +147,7 @@ Whether a mode can be started is declared once, in
 | Shoothouse | Playable — timed course, solo |
 | Horde | **Not playable.** Rules and specs exist; nothing starts them |
 | Capture the Flag | **Not playable.** Rules and specs exist; nothing starts them |
-| The Range | **Preview only.** Drills run in simulation; the live binding is unbuilt |
+| The Range | Playable — five aim drills, free, no payout |
 
 Two-player co-op on the Shoothouse is authorized and **not yet built**. Every
 co-op rule is implemented and specced, but the shared match is not: the

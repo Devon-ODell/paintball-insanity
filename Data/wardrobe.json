@@ -4,9 +4,9 @@
   "_rating": "Fashion only. Nothing in here is armour, nothing changes a hitbox, and nothing is a firearm or firearm accessory. Night vision, camo and pads are how paintball players actually dress, and on Denny they are a joke about how they dress. LiveRulesSpec asserts no piece declares a stat.",
   "palette": {
     "gearBlack": [
-      30,
-      32,
-      36
+      48,
+      52,
+      58
     ],
     "gearGrey": [
       88,
@@ -160,13 +160,13 @@
         "name": "HelmetShell",
         "anchor": "head",
         "size": [
-          0.4,
-          0.34,
-          0.42
+          0.36,
+          0.3,
+          0.38
         ],
         "at": [
           0,
-          0.1,
+          0.12,
           0
         ],
         "colorKey": "gearBlack",
@@ -1549,7 +1549,7 @@
           0.18,
           -0.22
         ],
-        "colorKey": "hiVis"
+        "colorKey": "gearTan"
       },
       {
         "name": "PatchB",
@@ -1564,7 +1564,7 @@
           0.18,
           -0.22
         ],
-        "colorKey": "flannelRed"
+        "colorKey": "camoDark"
       },
       {
         "name": "PatchC",
@@ -1579,7 +1579,7 @@
           0.18,
           -0.22
         ],
-        "colorKey": "lensGreen"
+        "colorKey": "hiVis"
       }
     ],
     "radio": [

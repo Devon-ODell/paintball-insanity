@@ -7,6 +7,8 @@ cd "$(dirname "$0")"
 "$HOME/.local/bin/lune" run tools/run-tests
 "$HOME/.local/bin/lune" run tools/run-live-checks
 "$HOME/.local/bin/lune" run tools/run-profile-checks
+"$HOME/.local/bin/lune" run tools/check-range
+"$HOME/.local/bin/lune" run tools/check-zfight
 mkdir -p build
 "$HOME/.local/bin/rojo" build default.project.json -o build/paintball-release.rbxlx
 printf '\nAutomated checks passed. Complete the Studio/private-server gates in docs/PUBLISH_READINESS.md before publishing.\n'

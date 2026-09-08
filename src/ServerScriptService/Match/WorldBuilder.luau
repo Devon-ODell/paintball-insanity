@@ -247,7 +247,17 @@ local function buildPresentation(mapData: any, root: Folder, geometry: Folder)
 			)
 			local start = Vector3.new(a[1], a[2] + lift, a[3])
 			local finish = Vector3.new(b[1], b[2] + lift, b[3])
+			--[[
+				Top-anchored, not centre-anchored.
+
+				The separation that stops these shimmering has to be big enough
+				for the depth buffer to resolve at range, and a wafer lifted that
+				far reads as a floating ribbon. So the slab is thick and only its
+				TOP face sits at the computed height -- the rest is buried in the
+				ground, where the extra millimetres cost nothing to look at.
+			]]
 			local midpoint = (start + finish) / 2
+				- Vector3.new(0, cfg.groundMarking.thicknessMetres / 2, 0)
 			scenery(trail.id, Vector3.new(trail.widthMetres, cfg.groundMarking.thicknessMetres, (finish - start).Magnitude),
 				CFrame.lookAt(Units.vectorToStuds(midpoint), Units.vectorToStuds(finish)),
 				trail.color, materialFor(trail.color, Enum.Material.Ground))

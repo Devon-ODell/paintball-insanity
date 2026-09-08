@@ -22,6 +22,7 @@ local Profile = require(Server.Economy.Profile)
 local Shop = require(Server.Economy.Shop)
 local Commerce = require(Server.Economy.Commerce)
 local Hub = require(Server.World.Hub)
+local RangeService = require(Server.Range.RangeService)
 local DialogueService = require(Server.Dialogue.DialogueService)
 local Campaign = require(Server.Progression.Campaign)
 local Dev = require(ReplicatedStorage.Shared.Dev)
@@ -33,12 +34,14 @@ if demo and (demo :: BoolValue).Value and not game:GetService("RunService"):IsSt
 end
 local starting: { [Player]: boolean } = {}
 local returnTokens: { [Player]: number } = {}
+local startDrill: (Player, string?) -> boolean
 
 Remotes.init()
 Dev.announce()
 Profile.init()
 Shop.assertNoPayToWin()
 MatchService.bindLatencyReporting()
+RangeService.bind()
 local commerce = Commerce.new()
 commerce:bind()
 
@@ -262,13 +265,56 @@ MatchService.onReturnToField = function(player)
 	requestMatch(player, nil)
 end
 
+--[[
+	Opening the Range.
+
+	The Range is built at the world origin exactly as a match map is, so the hub
+	has to be parked first or the drill assembles inside The Landing -- the same
+	trap MatchService documents. It is put back when the drill ends.
+
+	No unlock gate and no payout: Data/range.json pays zero and ship-check
+	asserts it. The Range is free because charging for practice on an aim
+	trainer would be charging for the game.
+]]
+function startDrill(player: Player, drillId: string?): boolean
+	if starting[player] or MatchService.isActive(player) or RangeService.isActive(player) then
+		return false
+	end
+	local wanted = drillId or Config.require("range", "drillOrder")[1]
+	if not RangeService.isDrill(wanted) then
+		Remotes.event("MatchStateChanged"):FireClient(player, {
+			phase = "hub", notice = "No such drill.",
+		})
+		return false
+	end
+	Hub.park()
+	local ok = RangeService.start(player, wanted)
+	if not ok then
+		Hub.restore()
+		Remotes.event("MatchStateChanged"):FireClient(player, {
+			phase = "hub", notice = "The Range could not open. Check Studio Output.",
+		})
+	end
+	return ok
+end
+
+RangeService.onFinished = function(player: Player, result)
+	Hub.restore()
+	if player.Parent ~= Players then
+		return
+	end
+	Remotes.event("MatchStateChanged"):FireClient(player, {
+		phase = "hub",
+		notice = `{result.drill}: {result.hits}/{result.shots} -- {result.score} pts`,
+	})
+	Hub.placePlayer(player, Hub.gateReturnPosition("range"))
+	Hub.refreshBoard()
+end
+
 --- Walking into a trailhead and holding the key starts that map's five rounds.
 Hub.onGateEntered = function(player: Player, mapName: string)
 	if mapName == "range" then
-		Remotes.event("MatchStateChanged"):FireClient(player, {
-			phase = "hub",
-			notice = "The Range opens once the live drill binding ships.",
-		})
+		startDrill(player, nil)
 		return
 	end
 	local handle = Profile.load(player.UserId)
@@ -437,8 +483,21 @@ Remotes.fn("RequestCommerce").OnServerInvoke = function(player: Player, payload:
 	return commerce:request(player, payload)
 end
 
-Remotes.fn("RequestRangeDrill").OnServerInvoke = function(_player: Player, _drillId: any): any
-	return { ok = false, reason = "range is sim-only until the live binding ships" }
+Remotes.fn("RequestRangeDrill").OnServerInvoke = function(player: Player, drillId: any): any
+	if starting[player] then
+		return { ok = false, reason = "Wait for the field to open." }
+	end
+	if RangeService.isActive(player) then
+		return { ok = false, reason = "You are already on the line." }
+	end
+	if MatchService.isActive(player) then
+		return { ok = false, reason = "Finish the field first." }
+	end
+	if drillId ~= nil and not RangeService.isDrill(drillId) then
+		return { ok = false, reason = "No such drill." }
+	end
+	local started = startDrill(player, drillId)
+	return { ok = started, drills = Config.require("range", "drillOrder") }
 end
 
 --[[
