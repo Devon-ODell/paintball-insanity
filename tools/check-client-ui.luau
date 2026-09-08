@@ -18,6 +18,8 @@ local function signal()
 		fire = function(_, ...) for _, fn in ipairs(callbacks) do fn(...) end end }
 end
 local wrappers = {}
+--- proxy -> raw, so any Ref property can be unwrapped on assignment.
+local raws = {}
 local wrap
 wrap = function(raw)
 	if wrappers[raw] then return wrappers[raw] end
@@ -40,22 +42,53 @@ wrap = function(raw)
 			if key == "Destroy" or key == "ClearAllChildren" then return function() raw[key](raw) end end
 			if key == "Parent" then return if raw.Parent then wrap(raw.Parent) else nil end
 			if key == "AbsoluteSize" then return roblox.Vector2.new(390, 800) end
+			--[[
+				Signals the engine has and Lune's Instance does not. UiNavigation
+				releases gamepad focus on Destroying, and without a stub the whole
+				check died on "Destroying is not a valid member".
+			]]
+			if key == "Destroying" or key == "AncestryChanged" or key == "ChildAdded" then
+				events[key] = events[key] or signal()
+				return events[key]
+			end
 			return raw[key]
 		end,
-		__newindex = function(_, key, value) raw[key] = if key == "Parent" and value then value._raw else value end,
+		--[[
+			Unwrap on EVERY Instance-reference property, not just Parent.
+			UiNavigation wires gamepad focus with NextSelectionUp/Down/Left/Right,
+			which are Refs like Parent is -- assigning a proxy to one failed with
+			"Failed to convert from 'table' into 'Ref'".
+		]]
+		__newindex = function(_, key, value) raw[key] = if raws[value] then raws[value] else value end,
 	})
 	wrappers[raw] = proxy
+	raws[proxy] = raw
 	return proxy
 end
 local Instance = { new = function(class) return wrap(roblox.Instance.new(class)) end }
 local playerGui = Instance.new("Folder")
 local players = { LocalPlayer = { WaitForChild = function() return playerGui end, CharacterAdded = signal() } }
+-- PreferredInput is watched by the HUD so the control hint follows touch vs
+-- keyboard. The stub needs the signal accessor or Hud.build dies on it.
 local input = { InputBegan = signal(), InputEnded = signal(), WindowFocusReleased = signal() }
+input.GetPropertyChangedSignal = function() return signal() end
 local actions = {}
-local contextActions = { BindAction = function(_, name, callback) actions[name] = callback end }
+local contextActions = {
+	BindAction = function(_, name, callback) actions[name] = callback end,
+	-- UiNavigation binds the gamepad Back button at a priority and unbinds it
+	-- when the menu closes; both have to exist or menu construction dies.
+	BindActionAtPriority = function(_, name, callback) actions[name] = callback end,
+	UnbindAction = function(_, name) actions[name] = nil end,
+}
 local shared = env.ReplicatedStorage.Shared
 local client = {}
-for _, name in ipairs({ "UiTheme", "Hud", "ShopUi", "DialogueUi", "ViewMarker", "Input" }) do client[name] = { name = name, Parent = client } end
+-- Every client module, not a hand-listed subset. Hud started requiring
+-- UiNavigation and this tool had no stub for it, so the whole check died on
+-- "attempt to index nil" instead of reporting anything -- a list that has to be
+-- edited by hand is a list that goes stale silently.
+for _, name in ipairs({ "UiTheme", "UiNavigation", "Hud", "ShopUi", "DialogueUi", "ViewMarker", "Input" }) do
+	client[name] = { name = name, Parent = client }
+end
 local cache = {}
 local loaded
 local latestSnapshot

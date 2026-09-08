@@ -42,6 +42,50 @@ if dev.enabled == true then
 	end
 end
 
+--[[
+	Every mode offered to a player must have a live match loop.
+
+	This used to assert "gauntlet and nothing else", which was true when it was
+	written and became a lie the moment the Shoothouse was wired. Asserting the
+	PROPERTY -- everything in `order` is integrated -- means the check keeps
+	working as modes land instead of having to be edited alongside them.
+]]
+local modes = Config.get("gamemodes")
+local unintegrated: { string } = {}
+for _, name in ipairs(modes.order) do
+	local mode = modes.modes[name]
+	if not mode or mode.integrated ~= true then
+		table.insert(unintegrated, name)
+	end
+end
+for _, name in ipairs(unintegrated) do print(`          offered but not integrated: {name}`) end
+check(#unintegrated == 0, "every mode the release offers has a live match loop")
+check(modes.modes[modes.default] ~= nil and modes.modes[modes.default].integrated == true,
+	"the default mode is integrated")
+local reachableCamos = true
+for _, camo in pairs(Config.get("camos").camos) do
+	if camo.requires then reachableCamos = false end
+end
+check(reachableCamos, "release camos do not require unavailable course medals")
+
+local RoundSchedule = env.require(env.Server.Match.RoundSchedule)
+local enoughSpawns = true
+for _, mapName in ipairs(Config.mapNames()) do
+	for _, round in ipairs(RoundSchedule.all("pro")) do
+		if round.botCount > #Config.map(mapName).botSpawns then enoughSpawns = false end
+	end
+end
+check(enoughSpawns, "every map has enough authored spawns for every release round")
+
+local reachableCampaign = true
+for _, chapter in ipairs(Config.get("progression").chapters) do
+	local kind = chapter.goal.kind
+	if kind ~= "clearGauntlet" and kind ~= "clearGauntletAll" and kind ~= "flawlessGauntletAll" then
+		reachableCampaign = false
+	end
+end
+check(reachableCampaign, "release campaign requires only playable Gauntlet achievements")
+
 local Commerce = env.require(env.Server.Economy.Commerce)
 local Pricing = env.require(env.Shared.CommerceCatalog)
 local commerceProblems = Commerce.audit()
@@ -89,6 +133,7 @@ check(#gearViolations == 0, "no gear item declares a disallowed stat")
 
 -- Single-use kit, audited by field name. This is where a damage term or a
 -- full-map reveal on the drone would be caught.
+check(Config.get("consumables").liveEnabled == false, "unintegrated field kit remains preview-only")
 local kitViolations = Consumables.audit()
 for _, violation in ipairs(kitViolations) do
 	print(`          {violation}`)
