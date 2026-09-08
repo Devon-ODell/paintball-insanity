@@ -131,6 +131,31 @@ local Config = env.require(shared.Config)
 local Ballistics = env.require(shared.Ballistics)
 Hud.setRange(25, Ballistics.specFromMarker(Config.get("markers").markers.mechanical, Config.get("ballistics")), 80, 900)
 Hud.setHopper(18, 180, false)
+--[[
+	The per-frame readouts, and the caching that keeps them from writing the same
+	string sixty times a second. Called twice with the same input on purpose: the
+	second call must be a no-op, and a cache that silently stopped caching would
+	otherwise look exactly like one that works.
+]]
+do
+	local rangeSpec = Ballistics.specFromMarker(Config.get("markers").markers.mechanical, Config.get("ballistics"))
+	Hud.setRange(25, rangeSpec, 80, 900)
+	Hud.setRange(25, rangeSpec, 80, 900)
+	Hud.setRange(nil, rangeSpec, 80, 900)
+	Hud.setRange(nil, rangeSpec, 80, 900)
+
+	Hud.setStage("Their Half", 3, 4)
+	local par = { gold = 145, silver = 195, bronze = 270 }
+	Hud.setClock(0, par)
+	Hud.setClock(12.34, par)
+	Hud.setClock(12.34, par)
+	-- Past bronze, past silver, past gold and inside gold: every colour branch.
+	Hud.setClock(300, par)
+	Hud.setClock(200, par)
+	Hud.setClock(150, par)
+	Hud.setClock(90, par, true)
+	Hud.setClock(nil, nil)
+end
 Hud.setCurrency(99999999)
 Hud.setDeaths(2, 0.63)
 Hud.flashHit(true)
