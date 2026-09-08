@@ -1,6 +1,6 @@
 {
-  "_comment": "THE SHOOTHOUSE. Every field has a course laid through it: the same map, the same cover, fought in a line. You start at the near end, the far end is the objective, and the field is divided into four stages that you have to clear in order. It is the fourth mode and the only one that is timed.",
-  "_whyItExists": "Gauntlet teaches a map as a place -- six of them somewhere in it, you somewhere else, and the whole field live at once. The Shoothouse teaches the same map as a SEQUENCE. Two defenders, then three, then four, then five, each group holding the next band of cover up the field. That is a curriculum you can actually fail one piece of, which is the thing a timer needs before it means anything.",
+  "_comment": "THE SHOOTHOUSE. Every field has a course laid through it: the same map, the same cover, fought in a line. You start at the near end, the far end is the objective, and the field is divided into four stages you have to clear in order. It is the second playable mode and the only one that is timed.",
+  "_whyItExists": "Gauntlet teaches a map as a PLACE -- twelve of them somewhere in it, you somewhere else, and the whole field live at once. The Shoothouse teaches the same map as a SEQUENCE. Two defenders holding the near cover, then three, then four, then five, each group holding the next band up the field, and each stage refilling once before you are through it. That is a curriculum you can fail one piece of at a time, which is the thing a timer needs before it means anything.",
   "_theStagesAreTheMap": "A stage is not new geometry. Every field already declares fourteen anchors -- the authored cover positions the bots fight from -- and the Shoothouse is those fourteen anchors sorted by depth and dealt out two, three, four, five. Nothing was moved, nothing was invented, and the map still plays as itself. What changed is that you meet it in order.",
   "advanceOnClear": true,
   "_advanceOnClear": "The next stage does not exist until the current one is empty. No trigger volumes, no leaking a back-stage defender into a fight you are already losing. Clear it and the field moves up.",
@@ -41,7 +41,7 @@
     "_secondsPerBot": "Scales with the map's declared engagement band. A 52 m fight on Holdfast is not a 16 m fight on Speedball and par should not pretend it is."
   },
   "payout": {
-    "_comment": "The Shoothouse pays off the map's basePayout in economy.json, multiplied by the medal. It deliberately pays LESS than a full five-round gauntlet on the same map -- a course is fourteen defenders and a gauntlet is twenty over five rounds -- so the mode is a skill test and a leaderboard, never the efficient way to farm.",
+    "_comment": "The Shoothouse pays off the map's basePayout in economy.json, multiplied by the medal. It deliberately pays LESS than a full five-round gauntlet on the same field -- a course is 28 defenders and a gauntlet is 40 across five rounds -- so the mode is a skill test and a leaderboard, never the efficient way to farm. CourseSpec asserts a clean gold stays under one clean gauntlet.",
     "medalMultiplier": {
       "none": 0.25,
       "bronze": 0.5,

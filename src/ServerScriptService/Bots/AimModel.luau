@@ -171,7 +171,7 @@ end
 
 	`peekDiscipline` is the probability it waits for a reason rather than
 	standing in the open. Low discipline is why rec bots feed themselves to the
-	player one at a time, and it is the only thing that makes a 1v6 survivable
+	player one at a time, and it is the only thing that makes the fight survivable
 	at the bottom tier.
 ]]
 function AimModel.willExpose(tier: Tier, rng: Rng.Generator, hasReason: boolean): boolean

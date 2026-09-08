@@ -9,7 +9,8 @@ Persistent instructions. Read fully before every session.
 A single-player Roblox PvE paintball shooter built as a **disguised aim trainer**.
 One player against twelve bots per match. Low-poly, flat-shaded, saturated palette.
 
-The game is deliberately hard. Losing a straight 1v6 is the expected outcome; the
+The game is deliberately hard. Losing a straight fight against the squad is the
+expected outcome; the
 player is meant to die repeatedly and improve. Death costs no progress — it costs
 payout. You can brute-force any match with enough respawns and earn almost nothing
 for it. That is the accessibility floor and the skill ceiling in one mechanic.

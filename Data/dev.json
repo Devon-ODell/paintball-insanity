@@ -30,6 +30,6 @@
 
   "verboseBots": {
     "on": false,
-    "_note": "Turns the LiveRound.Bots logger up to verbose on a live server. Noisy: six bots' state transitions every tick."
+    "_note": "Turns the LiveRound.Bots logger up to verbose on a live server. Noisy: twelve bots' state transitions every tick."
   }
 }

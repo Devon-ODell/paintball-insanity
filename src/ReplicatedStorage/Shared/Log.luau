@@ -4,7 +4,7 @@
 
 	CLAUDE.md requires every bot state transition to log through a
 	`LiveRound.Bots` logger at verbose. Verbose is off by default so a live
-	server is not writing six bots' worth of transitions to output every frame;
+	server is not writing a squad's worth of transitions to output every frame;
 	the sim harness turns it on, which is where you actually want to read it.
 ]]
 

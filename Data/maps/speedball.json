@@ -7,7 +7,7 @@
     "flicking",
     "targetSwitching"
   ],
-  "_intent": "A meat grinder on purpose. Shallow cover, no real flank, short sightlines. This is where the player learns that trading is death: six markers beat one every single time you stand and fight. The only way out is timing and isolation.",
+  "_intent": "A meat grinder on purpose. Shallow cover, no real flank, short sightlines. This is where the player learns that trading is death: a dozen markers beat one every single time you stand and fight. The only way out is timing and isolation.",
   "engagementBand": {
     "minMetres": 5,
     "targetMedianMetres": 16,

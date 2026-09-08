@@ -1,6 +1,6 @@
 --!strict
 --[[
-	SquadCoordinator -- the reason six bots beat one player.
+	SquadCoordinator -- the reason a squad beats one player.
 
 	Individually a bot is beatable; that is the point of every parameter in
 	AimModel being human-matchable. The squad is what makes a straight fight
