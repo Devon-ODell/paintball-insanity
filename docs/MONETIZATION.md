@@ -170,7 +170,33 @@ it.
 | `paintPack` | Paint Locker | pink, cyan, lime, violet paint |
 | `finishPack` | Workshop Finishes | Duracoat, Split Dust marker finishes |
 
-### 2. Set the price on Roblox, not in this repo
+### 2. Prices
+
+**These are dashboard values. They are deliberately not in this repository and
+must not be added to it** -- see the note below on why there is no price
+constant.
+
+| Pass | Price | In-game value | Ratio |
+| --- | ---: | ---: | ---: |
+| Paint Locker | **75 R$** | 2000 FF | 1.0x |
+| Workshop Finishes | **149 R$** | 4100 FF | 2.0x |
+
+The ratio is not a guess -- it is the game's own tuning. Four paint colours cost
+400/400/400/800 FF and the two finishes cost 1500/2600 FF, so the economy already
+says finishes are worth twice the paints. The Robux prices hold that same 2x, so
+the two currencies do not tell the player contradictory things about what a thing
+is worth.
+
+The absolute numbers are anchors, not market research. Both sit low enough to be
+an impulse rather than a decision that needs a new Robux purchase, and the two
+distinct points give price optimization something to learn from instead of one.
+
+Neither pass is exclusive: at a semi-pro clear both are earnable, the Paint Locker
+in roughly three or four Speedball runs and the Finishes in seven, or about one
+and two runs of Holdfast. The pass buys time, not access -- which is why headshot
+camos, the things that actually mark skill, sit outside commerce entirely.
+
+### 3. Set the price on Roblox, not in this repo
 
 There is **no price constant in this codebase and there must not be one.** The
 shop card reads "Roblox purchase" and its button reads "See price"; the actual
@@ -181,7 +207,14 @@ Opt the passes into **price optimization / managed pricing** on the dashboard an
 let it tune them. That is what it is for, and a hand-set constant cannot follow
 regional pricing.
 
-### 3. Flip the config
+### 4. Flip the config
+
+**`shopFree` is a bigger decision than the other three.** It does not only affect
+Robux: `CommerceCatalog.shopCost` returns 0 for everything while it is true, so
+turning it off activates **13 Field Fee prices** across jerseys, masks, paints and
+marker finishes -- the whole in-game economy, which has been switched off for the
+free build. That is a gameplay change, not a monetization one, and it can be made
+independently of the Robux flip.
 
 In `Data/monetization.json`:
 
@@ -193,7 +226,7 @@ In `Data/monetization.json`:
             "finishPack": { "marketplaceId": <real id> } }
 ```
 
-### 4. Run ship-check before building
+### 5. Run ship-check before building
 
 This was dry-run in both directions on 2026-09-08:
 
