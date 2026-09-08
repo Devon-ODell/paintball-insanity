@@ -236,7 +236,9 @@ Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
 	courseMode = false
 	if payload.course then
 		local run = payload.course
-		Hud.setClock(run.seconds, coursePar)
+		-- The run is over, so this one gets its hundredth: it is the number the
+		-- medal was decided on.
+		Hud.setClock(run.seconds, coursePar, true)
 		--[[
 			A time on its own says nothing. What a player wants at the end of a
 			timed run is the medal and whether they beat themselves, so the banner

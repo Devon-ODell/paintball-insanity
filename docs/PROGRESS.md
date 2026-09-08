@@ -1064,3 +1064,33 @@ a bad trade for a silhouette change nobody here can look at.
   does not fail -- it falls back and keeps building. `MapsSpec` now walks every
   field's geometry, terrain, ground, walls and ground markings and names any
   colour the palette does not declare.
+
+
+## Measured but not done: the squad is rebuilt from scratch every round
+
+`clearSquad` destroys every avatar and `buildSquad` builds new ones, so a whole
+squad's worth of parts is constructed at every round boundary. A pro bot is 72
+parts (`tools/check-characters`), which makes it:
+
+| | avatars rebuilt | parts constructed | worst single transition |
+|---|---|---|---|
+| Course, rec | 28 | 868 | 155 parts in one frame |
+| Course, pro | 28 | 2016 | **360 parts in one frame** |
+| Gauntlet, rec | 40 | 1240 | |
+| Gauntlet, pro | 40 | 2880 | |
+
+The course makes this worse than the gauntlet does, and it is the mode that was
+just added. A gauntlet has a seven-second intermission to absorb the rebuild; a
+course has **zero** -- `clockStopsBetweenStages` is false, so the field moves up
+immediately and those 360 constructions land during live play.
+
+The obvious saving is that wave 2 of a course stage is identical to wave 1 in
+tier, count and anchors, so half of every course's rebuilds are rebuilding the
+same squad.
+
+**Not done, deliberately.** Reuse needs `BotAvatar` to gain a reset -- rename the
+model, restore the nameplate, clear the splatter -- and needs bot ids stable
+across waves, which the shot log and the telemetry both key off. That is live
+match code, and the payoff is a frame hitch that cannot be measured headlessly:
+there is no frame here to drop. It wants a Studio profile first, and then it is
+worth doing.

@@ -17,6 +17,11 @@ local holdoverTick: Frame
 local hitMarker: Frame
 local roundLabel: TextLabel
 local clockLabel: TextLabel
+--- What the clock and range labels currently read, so a per-frame update that
+--- would not change anything does not touch the instance at all. setHopper has
+--- always done this; these two had not.
+local clockText = ""
+local rangeText = ""
 local bannerLabel: TextLabel
 local rangeLabel: TextLabel
 local hopperLabel: TextLabel
@@ -147,7 +152,10 @@ end
 
 function Hud.setRange(distanceMetres: number?, spec: Ballistics.Spec, fieldOfViewDeg: number, viewportHeight: number)
 	if not combatVisible or not distanceMetres or distanceMetres <= 0 then
-		rangeLabel.Text, holdoverTick.Visible = "", false
+		if rangeText ~= "" then
+			rangeText, rangeLabel.Text = "", ""
+		end
+		holdoverTick.Visible = false
 		return
 	end
 	local drop = Ballistics.dropAt(spec, distanceMetres)
@@ -156,7 +164,16 @@ function Hud.setRange(distanceMetres: number?, spec: Ballistics.Spec, fieldOfVie
 	-- Extremely distant scenery must not put a teaching tick offscreen.
 	holdoverTick.Visible = offset < viewportHeight / 2
 	holdoverTick.Position = UDim2.new(0.5, 0, 0.5, offset)
-	rangeLabel.Text = string.format("%.0f m  ·  %.2f m drop  ·  %.0f ms flight", distanceMetres, drop, flight * 1000)
+	--[[
+		Written only when it differs, the same way setHopper does it. This runs
+		every frame, and the readout is rounded to whole metres and whole
+		milliseconds -- so while the player holds an angle it is the same string
+		sixty times a second, built and assigned each time.
+	]]
+	local text = string.format("%.0f m  ·  %.2f m drop  ·  %.0f ms flight", distanceMetres, drop, flight * 1000)
+	if text ~= rangeText then
+		rangeText, rangeLabel.Text = text, text
+	end
 end
 
 function Hud.setHopper(remaining: number, capacity: number, reloading: boolean)
@@ -189,13 +206,29 @@ end
 	turns amber once the run is past gold and red once it is past silver, so a
 	player learns what par feels like without reading a number off a table.
 ]]
-function Hud.setClock(seconds: number?, par: { [string]: number }?)
+function Hud.setClock(seconds: number?, par: { [string]: number }?, precise: boolean?)
 	if seconds == nil then
 		clockLabel.Visible = false
+		clockText = ""
 		return
 	end
 	clockLabel.Visible = true
-	clockLabel.Text = string.format("%d:%05.2f", math.floor(seconds / 60), seconds % 60)
+	--[[
+		Tenths while running, hundredths when the run is over.
+
+		This is called every frame from RenderStepped. At hundredths the last
+		digit changes faster than anyone can read it, and formatting it built a
+		string per frame for the privilege; at tenths the text changes ten times a
+		second and the label is only written when it actually differs. The final
+		time still gets its hundredth, because that is the number being judged.
+	]]
+	local text = if precise
+		then string.format("%d:%05.2f", math.floor(seconds / 60), seconds % 60)
+		else string.format("%d:%04.1f", math.floor(seconds / 60), seconds % 60)
+	if text ~= clockText then
+		clockText = text
+		clockLabel.Text = text
+	end
 	-- Gold while the run is still on gold pace, then accent, then warning. The
 	-- colour is the medal you are currently earning.
 	local colour = C.gold
