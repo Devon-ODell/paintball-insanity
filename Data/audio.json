@@ -1,23 +1,105 @@
 {
-  "_comment": "Every sound the game makes, in one place. IDs are deliberately EMPTY. Audio assets belong to whoever uploaded them, and hardcoding someone else's id ships a build that is either silent or moderated out from under you. Put a Creator Store id in `soundId` -- the full 'rbxassetid://0000000000' string -- and that cue plays. Nothing else needs wiring: every cue below is already called from the right moment in the client. This mirrors how Data/overworld.json already handles the hub's ambience beds.",
-
-  "_howToFill": "In Studio: View -> Toolbox -> Marketplace -> Audio, audition a sound, right-click Copy Asset ID, and paste it here as 'rbxassetid://<id>'. Audio you did not upload is subject to Roblox's audio privacy rules -- a sound that is not public or not yours will simply not play in a published experience, so check it in a published test place, not only in Studio.",
-
+  "_comment": "Every sound the game makes, in one place. The ids are EMPTY and the game is silent until they are filled in; everything else is already built and called from the right moment. Paste an asset id into a cue and it plays -- there is nothing else to wire.",
+  "_whereToGetIds": "Two sources are safe, and only two. (1) The Creator Store's free-to-use library: in Studio, View -> Toolbox -> Marketplace -> Audio, audition, right-click -> Copy Asset ID. Roblox documents over 100,000 professionally produced free sound effects and music tracks there. (2) Audio you uploaded yourself -- drop files into assets/audio/ and follow the README there. An id from anywhere else is a trap: Roblox's audio privacy rules mean private audio will not play in an experience whose owner did not upload it, so it works in Studio and then is silent in a published place. Always confirm sound in a published test place, never only in Studio.",
+  "_format": "Ids are the full string, 'rbxassetid://1234567890'. null means this cue is not supplied yet and is skipped silently.",
+  "sfxVolume": 1.0,
   "maxConcurrent": 12,
-  "_maxConcurrent": "Ceiling on sounds playing at once from this system. A full-auto marker against twelve bots can ask for a lot of one-shots in a second, and the cheapest way for audio to ruin a build is to become the thing that costs the frame.",
-
+  "_maxConcurrent": "Ceiling on one-shots playing at once. A full-auto marker against twelve bots can ask for a lot in a second, and the cheapest way for audio to ruin a build is to become the thing that costs the frame.",
   "cues": {
-    "fire": { "soundId": null, "volume": 0.45, "pitchVariance": 0.07 },
-    "dryFire": { "soundId": null, "volume": 0.35, "pitchVariance": 0.03 },
-    "reloadStart": { "soundId": null, "volume": 0.4, "pitchVariance": 0.02 },
-    "reloadEnd": { "soundId": null, "volume": 0.4, "pitchVariance": 0.02 },
-    "hit": { "soundId": null, "volume": 0.5, "pitchVariance": 0.05 },
-    "headshot": { "soundId": null, "volume": 0.6, "pitchVariance": 0.02 },
-    "botEliminated": { "soundId": null, "volume": 0.5, "pitchVariance": 0.04 },
-    "playerEliminated": { "soundId": null, "volume": 0.6, "pitchVariance": 0.0 },
-    "swing": { "soundId": null, "volume": 0.45, "pitchVariance": 0.06 },
-    "roundStart": { "soundId": null, "volume": 0.5, "pitchVariance": 0.0 },
-    "matchCleared": { "soundId": null, "volume": 0.6, "pitchVariance": 0.0 }
+    "fire": {
+      "soundId": null,
+      "volume": 0.45,
+      "pitchVariance": 0.07,
+      "lengthSeconds": 0.6
+    },
+    "dryFire": {
+      "soundId": null,
+      "volume": 0.35,
+      "pitchVariance": 0.03,
+      "lengthSeconds": 0.5
+    },
+    "reloadStart": {
+      "soundId": null,
+      "volume": 0.4,
+      "pitchVariance": 0.02,
+      "lengthSeconds": 1.2
+    },
+    "reloadEnd": {
+      "soundId": null,
+      "volume": 0.4,
+      "pitchVariance": 0.02,
+      "lengthSeconds": 0.8
+    },
+    "hit": {
+      "soundId": null,
+      "volume": 0.5,
+      "pitchVariance": 0.05,
+      "lengthSeconds": 0.7
+    },
+    "headshot": {
+      "soundId": null,
+      "volume": 0.6,
+      "pitchVariance": 0.02,
+      "lengthSeconds": 1.0
+    },
+    "botEliminated": {
+      "soundId": null,
+      "volume": 0.5,
+      "pitchVariance": 0.04,
+      "lengthSeconds": 1.2
+    },
+    "playerEliminated": {
+      "soundId": null,
+      "volume": 0.6,
+      "pitchVariance": 0.0,
+      "lengthSeconds": 2.0
+    },
+    "swing": {
+      "soundId": null,
+      "volume": 0.45,
+      "pitchVariance": 0.06,
+      "lengthSeconds": 0.8
+    },
+    "roundStart": {
+      "soundId": null,
+      "volume": 0.5,
+      "pitchVariance": 0.0,
+      "lengthSeconds": 3.0
+    },
+    "matchCleared": {
+      "soundId": null,
+      "volume": 0.6,
+      "pitchVariance": 0.0,
+      "lengthSeconds": 4.0
+    }
   },
-  "_cues": "volume is the cue's own level. pitchVariance is how far PlaybackSpeed is allowed to wander either side of 1.0 -- the difference between a marker that sounds like a marker and one that sounds like a loop, and the reason fire varies more than a round-start sting does."
+  "_cues": "volume is the cue's own level, multiplied by sfxVolume. pitchVariance is how far PlaybackSpeed may wander either side of 1.0 -- the difference between a marker that sounds like a marker and one that sounds like a loop, and the reason fire varies more than a round-start sting does. lengthSeconds is a pooling hint, not a fade: it is how long before the voice is handed back for reuse. It exists because a cue whose asset fails to load never fires Ended, and anything waiting on that event would leak voices until the game went permanently silent. Set it at or a little above the real length of the clip.",
+  "music": {
+    "_comment": "Music DUCKS, deliberately. This game is an audio-information game: the report of a marker, the squad's chatter and the direction a hit came from are all things the player is being asked to read. A track that competes with those is not atmosphere, it is a handicap. So the match playlist sits well under the hub's, and combat pulls it down further still.",
+    "volume": 0.55,
+    "fadeSpeed": 1.4,
+    "_fadeSpeed": "Exponential approach per second. Rounds change every couple of minutes and a hard cut on each one would be the most irritating thing in the build.",
+    "duckMultiplier": 0.35,
+    "duckSeconds": 2.5,
+    "contextVolume": {
+      "hub": 1.0,
+      "match": 0.55,
+      "results": 0.9
+    },
+    "_context": "Which playlist each situation uses. The client reads this rather than deciding in code, so 'the hub and the shop share a track' is a tuning decision in data instead of a branch somebody has to find. A situation mapped to a playlist that does not exist, or a playlist nothing maps to, is a check-audio failure -- both are silence somebody spent time on.",
+    "context": {
+      "hub": "hub",
+      "shop": "hub",
+      "warmup": "match",
+      "live": "match",
+      "intermission": "match",
+      "results": "results"
+    },
+    "_playlists": "One track is picked at random from the context's list each time that context begins. A context with an empty list is silence, which is the shipped state. Drop several ids into a list and the hub stops sounding the same every visit.",
+    "playlists": {
+      "hub": [],
+      "match": [],
+      "results": []
+    }
+  }
 }

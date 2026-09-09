@@ -26,3 +26,15 @@ sourcemap.json
 *.p12
 secrets.*
 *.secret
+
+# Audio you supply is staged in assets/audio/ and uploaded to Roblox; the folder
+# structure and its README are tracked, the media is not. Mixes are large
+# binaries and this is an open-source repository. Add an exception deliberately
+# if a particular track should ship with the source.
+assets/audio/**/*.mp3
+assets/audio/**/*.ogg
+assets/audio/**/*.wav
+assets/audio/**/*.flac
+assets/audio/**/*.aif
+assets/audio/**/*.aiff
+assets/audio/**/*.m4a

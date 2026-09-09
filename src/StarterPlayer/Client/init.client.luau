@@ -29,6 +29,7 @@ local DialogueUi = require(script.DialogueUi)
 local Theme = require(script.UiTheme)
 local ViewMarker = require(script.ViewMarker)
 local Audio = require(script.Audio)
+local Music = require(script.Music)
 local FoliageWind = require(script.FoliageWind)
 
 local player = Players.LocalPlayer
@@ -264,6 +265,8 @@ Remotes.event("PlayerEliminated").OnClientEvent:Connect(function(payload)
 	respawning = true
 	Tracers.clear()
 	Audio.play("playerEliminated")
+	-- The one moment the player most needs to hear what happened.
+	Music.duck()
 	deaths = payload.deaths
 	-- Mirror of the server's curve, for display only. The server computes the
 	-- real payout and this number never leaves the client.
@@ -281,6 +284,7 @@ Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
 	if payload.cleared then
 		Audio.play("matchCleared")
 	end
+	Music.setContext(Config.get("audio").music.context.results)
 	-- Voices are pooled under SoundService, which outlives the match; a run
 	-- that ends is the natural place to hand them back.
 	Audio.clear()
@@ -367,6 +371,14 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 	if type(payload.notice) == "string" and payload.notice ~= "" then
 		Hud.showBanner(payload.notice, payload.noticeSeconds)
 	end
+	--[[
+		The track follows the phase, through the mapping in audio.json rather
+		than a branch here -- "the hub and the shop share a track" is a tuning
+		decision, and check-audio can only verify it if it lives in the data.
+		setContext is idempotent, so re-announcing a phase every round is free;
+		restarting the music once a round would be a stutter nobody asked for.
+	]]
+	Music.setContext(Config.get("audio").music.context[phase])
 	if phase == "warmup" or phase == "shop" or phase == "hub" then
 		ShopUi.close()
 		Hud.hideSummary()
@@ -476,6 +488,7 @@ RunService:BindToRenderStep("LR_Presentation", Enum.RenderPriority.Camera.Value 
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local velocity = if root and root:IsA("BasePart") then root.AssemblyLinearVelocity else Vector3.zero
 	local speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
+	Music.step(dt)
 	local wasReloading = markerState.reloadUntil ~= nil
 	ViewMarker.step(camera, not respawning and (phase == "live" or phase == "warmup"), dt,
 		Input.state(), speed, markerState.reloadUntil, markerState.reloadSeconds)

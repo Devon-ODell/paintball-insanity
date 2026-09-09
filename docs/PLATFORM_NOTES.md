@@ -187,3 +187,52 @@ Checked [RunService render priorities](https://create.roblox.com/docs/reference/
 Checked [Trail.Clear](https://create.roblox.com/docs/reference/engine/classes/Trail) for explicit history clearing during reuse, and [ContextActionService](https://create.roblox.com/docs/reference/engine/classes/ContextActionService) for action-state handling. Input now treats End/Cancel as release. The headless checks stub engine events and Trail.Clear; they validate lifecycle calls, not rendered trail pixels.
 
 Current build status and handoffs live in [CHANGE_REPORT.md](CHANGE_REPORT.md). Earlier platform notes describe the dependencies available on their original dates; they are not current release status.
+
+## 2026-09-09 — audio, verified before building
+
+Checked [Audio objects](https://create.roblox.com/docs/audio/objects) and
+[Audio assets](https://create.roblox.com/docs/audio/assets) before writing any
+of the sound system. The API has moved and the old shape would have been the
+wrong thing to build:
+
+- **`Sound`, `SoundGroup` and `SoundEffect` are discouraged.** The current
+  objects are `AudioPlayer` (the source), `AudioEmitter` / `AudioListener` (3D),
+  `AudioDeviceOutput` (the speakers) and `Wire` (`SourceInstance` ->
+  `TargetInstance`) to connect them. Nothing routes implicitly: an `AudioPlayer`
+  with no `Wire` to anything is silent, which is the single easiest way to spend
+  an afternoon on audio that was never connected.
+- **2D audio** -- music, UI, hit confirmation -- is `AudioPlayer` -> `Wire` ->
+  `AudioDeviceOutput`. No listener and no emitter are involved. This is what
+  `Client/Audio` and `Client/Music` build.
+- **3D audio** additionally needs `AudioPlayer` -> `Wire` -> `AudioEmitter`, an
+  `AudioListener` somewhere on the player, and a second `Wire` from that
+  listener to the output.
+- `AudioPlayer.Asset` is the current property; `AssetId` still exists and is
+  deprecated. `Play()`, `Stop()`, `Ended` and `Looped` are the useful surface,
+  and `IsPlaying` / `IsReady` are read-only state.
+
+Lune's API dump does know all five classes, so the headless gates construct the
+real graph rather than a stub. Two properties behave differently there:
+`Asset`, `AssetId`, `IsPlaying` and `IsReady` are all *writable/valid* members
+but cannot be **read** without a default value, so nothing in the audio code
+reads playback state -- voices are reclaimed on `Ended` and by an age cap
+instead. That is better code anyway; it just was not the reason for it.
+
+**Asset limits, for the drop folder:** `.mp3`, `.ogg`, `.wav` or `.flac`, under
+20 MB, under 7 minutes, sample rate at or below 48 kHz, mono or stereo 2.0 / 3.0
+/ 5.1. Free upload quota is 2,000 assets per 30 days ID-verified, 100
+unverified.
+
+**Audio privacy is the real constraint, not "no uploaded assets".** Private
+audio cannot be played by an experience whose owner did not upload it, so an
+arbitrary id copied from somewhere plays in Studio and then does not play in a
+published place. Two sources are safe: audio you uploaded yourself, and the
+Creator Store's free-to-use library, which Roblox documents as more than 100,000
+professionally produced sound effects and music tracks available through the
+Toolbox.
+
+The hub's ambience beds in `World/Overworld` are the one remaining user of the
+legacy `Sound` object. They are positional, so moving them needs the emitter and
+listener graph above and a client-side listener that does not exist yet; they
+are left as they are rather than half-migrated, and they are silent today for
+the same reason everything else was -- no ids.

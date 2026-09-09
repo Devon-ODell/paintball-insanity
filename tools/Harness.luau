@@ -267,7 +267,16 @@ function Harness.build(repoRoot: string?): Env
 			headlessly -- Atmosphere.apply threw on `created.Parent = Lighting`
 			and took the whole build with it.
 		]]
-		if serviceName == "Lighting" or serviceName == "MaterialService" then
+		--[[
+			SoundService joins them for the same reason: the audio graph is
+			built out of real AudioPlayer, Wire and AudioDeviceOutput instances
+			and parented into the service, and `realInstance.Parent = <table>`
+			throws. Lune's API dump knows all of those classes, so the gate can
+			assert the actual wiring rather than a stub of it -- which matters,
+			because an AudioPlayer with no Wire is silent and reports nothing.
+		]]
+		if serviceName == "Lighting" or serviceName == "MaterialService"
+			or serviceName == "SoundService" then
 			local lighting = roblox.Instance.new(serviceName)
 			services[serviceName] = lighting :: any
 			return lighting :: any

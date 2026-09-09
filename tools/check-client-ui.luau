@@ -55,6 +55,15 @@ wrap = function(raw)
 				events[key] = events[key] or signal()
 				return events[key]
 			end
+			--[[
+				Transport the engine has and Lune's dump does not. Lune knows the
+				AudioPlayer class and its properties but carries no methods, so
+				Play and Stop are no-ops here. That is the right trade: what this
+				gate needs to assert is the GRAPH -- an AudioPlayer with no Wire
+				to an output is silent and reports nothing, and that is the
+				failure worth catching -- not whether Lune can make a noise.
+			]]
+			if key == "Play" or key == "Stop" then return function() end end
 			return raw[key]
 		end,
 		--[[
@@ -486,7 +495,9 @@ print("Reload, sprint, slide, swing and animation reset checks passed")
     and a call naming a cue that does not exist is permanent silence.
 ]]
 do
+    local SoundService = env.game:GetService("SoundService")
     local Audio = loaded(client.Audio)
+    local Music = loaded(client.Music)
     local cues = Config.get("audio").cues
 
     local sources = ""
@@ -518,7 +529,56 @@ do
     end
     Audio.play("notACue")
     Audio.clear()
-    print(`Audio cues checked: {(function() local n = 0 for _ in pairs(cues) do n += 1 end return n end)()} named, all played, none silent by typo`)
+
+    --[[
+        And the graph itself.
+
+        Nothing routes implicitly in the current audio API: an AudioPlayer with
+        no Wire to an AudioDeviceOutput is silent and reports nothing. That is
+        the failure this project would not otherwise notice for a whole
+        playtest, so the wiring is asserted rather than assumed -- with a real
+        id, since a null one is skipped before a voice is ever built.
+    ]]
+    local probeCues = Config.get("audio").cues
+    probeCues.fire.soundId = "rbxassetid://1"
+    Audio.play("fire")
+    local built = SoundService:FindFirstChild("LiveRoundAudio")
+    assert(built, "playing a supplied cue built no audio folder")
+    local voice = built:FindFirstChildOfClass("AudioPlayer")
+    local device = built:FindFirstChildOfClass("AudioDeviceOutput")
+    assert(voice and device, "a cue produced no AudioPlayer/AudioDeviceOutput pair")
+    local wire = voice:FindFirstChildOfClass("Wire")
+    assert(wire, "the AudioPlayer has no Wire -- it would play silently forever")
+    assert(wire.SourceInstance == voice and wire.TargetInstance == device,
+        "the Wire does not connect the player to the output")
+    probeCues.fire.soundId = nil
+    Audio.clear()
+    assert(not SoundService:FindFirstChild("LiveRoundAudio"), "audio teardown left its folder behind")
+
+    -- Music: same graph, two decks so a crossfade has something to fade into.
+    local contexts = Config.get("audio").music
+    contexts.playlists.hub = { "rbxassetid://2" }
+    Music.setContext(contexts.context.hub)
+    local musicFolder = SoundService:FindFirstChild("LiveRoundMusic")
+    assert(musicFolder, "setting a music context built no music folder")
+    local decks = 0
+    for _, child in ipairs(musicFolder:GetChildren()) do
+        if child:IsA("AudioPlayer") then
+            decks += 1
+            assert(child:FindFirstChildOfClass("Wire"), `music deck {child.Name} has no Wire`)
+            assert(child.Looping, `music deck {child.Name} does not loop`)
+        end
+    end
+    assert(decks == 2, `expected two music decks for crossfading, found {decks}`)
+    -- The fade has to actually move, or the crossfade is a cut with extra code.
+    Music.step(0.5)
+    Music.duck(0.1)
+    Music.step(0.5)
+    Music.setContext(contexts.context.results)
+    Music.clear()
+    assert(not SoundService:FindFirstChild("LiveRoundMusic"), "music teardown left its folder behind")
+    contexts.playlists.hub = {}
+    print(`Audio checked: {(function() local n = 0 for _ in pairs(cues) do n += 1 end return n end)()} cues all played and none named by typo; graph wired player -> wire -> output; two music decks crossfade and tear down`)
 end
 
 for _, id in ipairs(Config.get("markers").order) do

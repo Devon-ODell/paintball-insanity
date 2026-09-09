@@ -2,6 +2,38 @@
 
 Updated 2026-09-09. This is the single current update list and AI handoff. It supersedes the previous world-pass, publish-prep, Shoothouse, agent, progress and debug handoffs, including the historical paintball-insanity review. Older narratives and their superseded numbers remain in Git history; they are not current instructions.
 
+## Sixth pass, 2026-09-09 — sound, on the API that actually exists now
+
+**There has never been sound in this project.** Checking the history rather than
+guessing: every mention of audio in every commit is a note saying the ids are
+deliberately absent. What exists, and what is easy to remember as "there were
+some sfx", is the hub's four *ambience emitters* — forest, creek, pond, barn hum
+— placed, positioned and configured since the world pass, with `soundId: null`
+on each. They are real objects in the world that have never made a noise.
+
+A correction to something said earlier in this project's notes: this repository
+is **not** free of uploaded assets. The environment art `.rbxmx` files carry
+`rbxassetid://` references for meshes and textures. The constraint on audio was
+never a project rule about uploads — it is Roblox's **audio privacy** rule, and
+that rule has a documented way around it.
+
+| Area | Before | Current behavior | Verification |
+| --- | --- | --- | --- |
+| The audio API | `Client/Audio` was written on `Sound`, and so is the hub ambience. | Checked the docs before building, per CLAUDE.md: **`Sound`, `SoundGroup` and `SoundEffect` are discouraged.** The current objects are `AudioPlayer` → `Wire` → `AudioDeviceOutput` for 2D, plus `AudioEmitter`/`AudioListener` for 3D. Nothing routes implicitly — an `AudioPlayer` with no `Wire` is silent and reports no error, which is the easiest way there is to lose an afternoon. Both new modules are on the current API. Findings recorded in `docs/PLATFORM_NOTES.md`. | `check-client-ui` builds the real graph and asserts the wire connects player to output, because that is the failure that would otherwise survive a whole playtest. |
+| Sound effects | Eleven cues wired, on the discouraged API, reclaiming voices via `Ended`. | Rebuilt on `AudioPlayer`. Voices are reclaimed by a per-cue `lengthSeconds` hint rather than by `Ended` or `IsPlaying` — an asset that fails to load may never fire `Ended`, and anything waiting on it would leak voices until the concurrency cap was hit and the game went permanently silent with no error to explain it. | `check-client-ui`, `check-audio`. |
+| Music | None. | `Client/Music`: two decks so a crossfade has something to fade into, one track picked per context, ducking, and a fade that is frame-rate independent. It is driven from the client's existing presentation loop rather than opening a render connection of its own. **Music ducks on purpose** — this game is an audio-information game, and a track competing with the report of a marker or the direction of a hit is a handicap, not atmosphere. The match playlist sits at 0.55 against the hub's 1.0. | `check-client-ui` asserts two looping decks, the wiring, that the fade moves, and that teardown leaves nothing behind. |
+| Phase → track mapping | — | In `audio.json`, not in a branch in the client. This was not the first design: the gate scraped `Music.setContext(...)` call sites and immediately reported three playlists that do not exist, because the one call site chose its context with an inline conditional and the scrape read the *phase* names. Moving the mapping into data fixed the gate and the client at once. | `check-audio`. |
+| Silent-failure gate | Nothing checked the audio data. | `tools/check-audio`, gate 4 of 21. Every id is null or a well-formed `rbxassetid://<digits>`; volumes and lengths are in range; every situation maps to a playlist that exists and every playlist is used. **The one it will actually catch:** a bare number pasted instead of the full string — the most likely mistake anybody will make with this file, whose symptom is silence indistinguishable from not having filled it in. Verified by planting one. How much is still silent is *reported and never failed*, because silence is the shipped state and a gate that cries every run is a gate everyone ignores. | Gate passes; reports 11/11 cues and 3 playlists still empty. |
+| Where to put music | Nowhere. | `assets/audio/` with `music/` and `sfx/`, a README carrying the verified upload limits (mp3/ogg/wav/flac, under 20 MB, under 7 minutes, ≤48 kHz; 2,000 free uploads per 30 days ID-verified, 100 unverified), the licence warning that "free to download" and "free to publish inside a product that earns Robux" are different permissions, and the audio-privacy trap: someone else's private id plays in Studio and is silent once published. Media files are gitignored — the structure is tracked, the binaries are not. | — |
+
+**The game is still silent, and now that is a two-minute job rather than a
+project.** Roblox's Creator Store carries over 100,000 free-to-use sound effects
+and music tracks that need no upload at all: Studio → View → Toolbox →
+Marketplace → Audio, right-click → Copy Asset ID, paste into `Data/audio.json`.
+Every cue is already called from the right moment.
+
+**Debug rerun: 19 of 21 gates pass, 504 specs pass, 2 fail.** The two gate failures are the known pair: `ship-check` fails because dev mode is on by request, and the same two balance specs fail. No new failure introduced.
+
 ## Fifth pass, 2026-09-09 — dev mode on, and the things a playtest would have hit
 
 **`Data/dev.json` `enabled` is now `true`.** That is deliberate and it is the

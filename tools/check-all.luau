@@ -30,6 +30,7 @@ local GATES: { Gate } = {
 	{ id = "check-source", why = "Luau syntax across every module" },
 	{ id = "check-static", why = "Power of 10 rules that translate, plus reachability" },
 	{ id = "check-config-read", why = "every tunable in Data is reached by something" },
+	{ id = "check-audio", why = "sound ids are well-formed and every context has a playlist" },
 	{ id = "check-map-casts", why = "optimized map queries match exhaustive collision checks" },
 	{ id = "ship-check", why = "release configuration: dev flags, modes, monetization" },
 	{ id = "check-budget", why = "part, shadow and alpha budgets per scene" },
