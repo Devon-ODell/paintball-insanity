@@ -231,8 +231,23 @@ Creator Store's free-to-use library, which Roblox documents as more than 100,000
 professionally produced sound effects and music tracks available through the
 Toolbox.
 
-The hub's ambience beds in `World/Overworld` are the one remaining user of the
-legacy `Sound` object. They are positional, so moving them needs the emitter and
-listener graph above and a client-side listener that does not exist yet; they
-are left as they are rather than half-migrated, and they are silent today for
-the same reason everything else was -- no ids.
+**Nothing uses the legacy `Sound` object any more.** The hub's ambience beds
+were migrated once the listener existed: each bed is an `AudioPlayer` wired into
+an `AudioEmitter` riding its own part, heard by the client's listener. Its
+attenuation is the bed's own radius rather than the shared combat curve, because
+a creek should be something you walk into and out of.
+
+`AudioEmitter:SetDistanceAttenuation` takes a dictionary of distance (studs) to
+volume. Lune carries the class and its properties but **none of its methods**,
+so a bare call takes the whole hub build down; it is guarded exactly the way
+`Atmosphere` guards `Clouds`, and logs when the curve could not be shaped rather
+than swallowing it. `check-client-ui`'s instance proxy stubs `Play`, `Stop` and
+`SetDistanceAttenuation` for the same reason, which is what lets that gate
+assert the real graph.
+
+**The listener is the ear, and it lives on the camera** -- so a player hears 3D
+audio from where they are looking, which is the whole point in a game about
+working out where a shot came from. Roblox replaces the camera on respawn, so
+`AudioMix.follow` re-parents it every frame and does nothing on the frames where
+nothing changed. Without that, the game would quietly lose its hearing after the
+first death.

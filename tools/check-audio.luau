@@ -83,11 +83,66 @@ for name, cue in pairs(audio.cues) do
 	checkRange(`cues.{name}.pitchVariance`, cue.pitchVariance, 0, 0.5)
 	--- The pooling hint. Zero would hand a voice back on the frame it started.
 	checkRange(`cues.{name}.lengthSeconds`, cue.lengthSeconds, 0.05, 30)
+	if type(cue.spatial) ~= "boolean" then
+		fail(`cues.{name}.spatial must be true or false -- a cue has to say whether it happens somewhere`)
+	elseif cue.spatial then
+		--- How far this particular sound carries, as a multiple of the shared
+		--- curve. A cue that happens somewhere has to say how far away it can
+		--- still be heard, or every world sound carries exactly as far as
+		--- gunfire and chatter becomes a map of the squad.
+		checkRange(`cues.{name}.rangeScale`, cue.rangeScale, 0.05, 2)
+	elseif cue.rangeScale ~= nil then
+		fail(`cues.{name} is not spatial, so rangeScale does nothing -- remove it or set spatial`)
+	end
 	if cue.soundId == nil then
 		cueSilent += 1
 	end
 end
-checkRange("sfxVolume", audio.sfxVolume, 0, 2)
+checkRange("mix.sfx", audio.mix.sfx, 0, 1)
+checkRange("mix.music", audio.mix.music, 0, 1)
+
+--[[
+	The distance curve, which is a gameplay decision rather than a polish one.
+
+	It decides whether a marker forty metres away is information the player can
+	act on or noise they learn to tune out. Three things have to hold or it
+	stops being either: it must start audible at zero, it must never rise as
+	distance grows, and it must reach silence -- a curve that bottoms out above
+	zero means every shot on the field is permanently in your ears.
+]]
+do
+	local distances: { number } = {}
+	for key in pairs(audio.spatial.attenuation) do
+		local metres = tonumber(key)
+		if metres == nil then
+			fail(`spatial.attenuation has a non-numeric distance '{key}'`)
+		else
+			table.insert(distances, metres)
+		end
+	end
+	table.sort(distances)
+	if #distances < 2 then
+		fail("spatial.attenuation needs at least a near and a far point")
+	else
+		if distances[1] ~= 0 then
+			fail(`spatial.attenuation starts at {distances[1]} m, not 0 -- nothing defines the volume up close`)
+		end
+		local previous = math.huge
+		for _, metres in ipairs(distances) do
+			local volume = audio.spatial.attenuation[tostring(metres)]
+			checkRange(`spatial.attenuation[{metres}]`, volume, 0, 1)
+			if type(volume) == "number" then
+				if volume > previous then
+					fail(`spatial.attenuation gets LOUDER with distance at {metres} m`)
+				end
+				previous = volume
+			end
+		end
+		if previous ~= 0 then
+			fail(`spatial.attenuation never reaches silence -- it bottoms out at {previous}, so every shot on the field stays audible forever`)
+		end
+	end
+end
 if type(audio.maxConcurrent) ~= "number" or audio.maxConcurrent < 1 then
 	fail("maxConcurrent must be at least 1")
 end
@@ -97,7 +152,6 @@ end
 --------------------------------------------------------------------------------
 
 local music = audio.music
-checkRange("music.volume", music.volume, 0, 1)
 checkRange("music.duckMultiplier", music.duckMultiplier, 0, 1)
 checkRange("music.duckSeconds", music.duckSeconds, 0, 30)
 if type(music.fadeSpeed) ~= "number" or music.fadeSpeed <= 0 then
@@ -165,7 +219,13 @@ if #problems > 0 then
 	process.exit(1)
 end
 
-print(`\n\27[32maudio configuration is sound.\27[0m  {cueCount} cues, {trackCount} track(s).`)
+local spatialCount = 0
+for _, cue in pairs(audio.cues) do
+	if cue.spatial == true then
+		spatialCount += 1
+	end
+end
+print(`\n\27[32maudio configuration is sound.\27[0m  {cueCount} cues ({spatialCount} positional), {trackCount} track(s).`)
 if cueSilent > 0 or emptyLists > 0 then
 	--[[
 		Reported, never failed. This project supplies no ids on purpose --

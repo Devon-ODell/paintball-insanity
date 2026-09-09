@@ -164,6 +164,28 @@ assert(finished.hits > 0, `a solved shot at a stationary popup target must hit (
 assert(finished.score > 0, `a hitting run must score above zero (got {finished.score})`)
 assert(finished.rating >= 0 and finished.rating <= 100, "rating stays on the 0-100 curve")
 
+--[[
+    Every wire in this project speaks metres, and this one did not.
+
+    RangeService sent MarkerFired with `Units.vectorToStuds(muzzle)` while
+    Tracers.fire takes metres and converts them itself, so every tracer on the
+    range began three and a half times further from the player than the muzzle
+    it claimed to come from. Nothing failed and nothing logged -- it just looked
+    a bit wrong, which is the easiest kind of bug to blame on the effect.
+
+    Asserted against the shot's own height: a muzzle is about chest high in
+    metres and about four in studs, and those are not confusable.
+]]
+do
+    local fired = event("MarkerFired").sent[1]
+    assert(fired, "the range must tell the client about its own shot")
+    local chest = env.require(env.Data.ballistics).hitbox.chestHeightMetres
+    assert(math.abs(fired.origin.Y - chest) < 0.5,
+        `MarkerFired origin Y is {fired.origin.Y}, expected about {chest} -- this wire is in metres, not studs`)
+    assert(fired.source == "self",
+        "the range's own shots must be marked, or the client plays enemy fire at the player")
+end
+
 local scored = event("DrillScore").sent[1]
 assert(scored, "the client must be sent its score")
 assert(scored.hits == finished.hits and scored.shots == finished.shots, "the client's score must match the server's")

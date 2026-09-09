@@ -570,22 +570,57 @@ function Overworld.build(parent: Instance?): Hub
 		emitter.Transparency = 1
 		emitter.Parent = soundFolder
 
-		local sound = Instance.new("Sound")
-		sound.Name = bed.id
-		sound.Looped = bed.looped
-		sound.Volume = bed.volume
-		sound.RollOffMaxDistance = Units.metresToStuds(bed.radiusMetres)
-		sound.RollOffMode = Enum.RollOffMode.InverseTapered
 		--[[
-			Sound ids are deliberately left empty in the data. Audio assets are
-			uploaded per experience and hardcoding someone else's id ships a
-			broken build. Put an id in Data/overworld.json and this plays.
+			On the current audio API, like everything else that makes a noise
+			here now. `Sound` is discouraged; a bed is an AudioPlayer wired into
+			an AudioEmitter that rides this part, and the client's own
+			AudioListener -- see Client/AudioMix -- is what hears it. Nothing
+			routes implicitly: without that wire, or without a listener in the
+			world, this is silent and reports nothing.
+
+			The attenuation curve is the bed's own radius rather than the shared
+			combat one. A creek should be a thing you walk into and out of, and
+			it has no business being audible across the whole landing the way a
+			marker is.
+		]]
+		local voice = Instance.new("AudioPlayer")
+		voice.Name = bed.id
+		voice.Looping = bed.looped
+		voice.Volume = bed.volume
+		voice.Parent = emitter
+
+		local speaker = Instance.new("AudioEmitter")
+		speaker.Name = "Emitter"
+		speaker.Parent = emitter
+		local radius = Units.metresToStuds(bed.radiusMetres)
+		--[[
+			Guarded the way Atmosphere guards Clouds, and for the same reason:
+			the headless harness carries the AudioEmitter class but none of its
+			methods, so this would take the whole hub build down with it. A real
+			API change surfaces in the log rather than being swallowed.
+		]]
+		local shaped = pcall(function()
+			speaker:SetDistanceAttenuation({ [0] = 1, [radius * 0.35] = 0.6, [radius] = 0 })
+		end)
+		if not shaped then
+			log.info(`ambience '{bed.id}' kept the default attenuation curve in this context`)
+		end
+
+		local link = Instance.new("Wire")
+		link.SourceInstance = voice
+		link.TargetInstance = speaker
+		link.Parent = voice
+
+		--[[
+			Ids are deliberately empty in the data. Audio privacy means somebody
+			else's asset plays in Studio and is silent once published, so drop an
+			id into Data/overworld.json -- from the Creator Store's free library
+			or your own upload -- and this plays. See assets/audio/README.md.
 		]]
 		if bed.soundId then
-			sound.SoundId = bed.soundId
-			sound:Play()
+			voice.Asset = bed.soundId
+			voice:Play()
 		end
-		sound.Parent = emitter
 	end
 
 	----------------------------------------------------------------------------

@@ -42,6 +42,10 @@ wrap = function(raw)
 			if key == "FindFirstChild" or key == "WaitForChild" then return function(_, name)
 				local found = raw:FindFirstChild(name); return if found then wrap(found) else nil
 			end end
+			--- The audio checks look for a listener by class on a proxied camera.
+			if key == "FindFirstChildOfClass" then return function(_, class)
+				local found = raw:FindFirstChildOfClass(class); return if found then wrap(found) else nil
+			end end
 			if key == "IsA" then return function(_, class) return raw:IsA(class) end end
 			if key == "Destroy" or key == "ClearAllChildren" then return function() raw[key](raw) end end
 			if key == "Parent" then return if raw.Parent then wrap(raw.Parent) else nil end
@@ -64,6 +68,8 @@ wrap = function(raw)
 				failure worth catching -- not whether Lune can make a noise.
 			]]
 			if key == "Play" or key == "Stop" then return function() end end
+			--- Same again: Lune carries AudioEmitter but none of its methods.
+			if key == "SetDistanceAttenuation" then return function() end end
 			return raw[key]
 		end,
 		--[[
@@ -498,6 +504,7 @@ do
     local SoundService = env.game:GetService("SoundService")
     local Audio = loaded(client.Audio)
     local Music = loaded(client.Music)
+    local AudioMix = loaded(client.AudioMix)
     local cues = Config.get("audio").cues
 
     local sources = ""
@@ -512,7 +519,9 @@ do
     -- pattern that only matched Audio.play("x") reported the branch it could
     -- not read as an unplayed cue.
     local played: { [string]: boolean } = {}
-    for call in string.gmatch(sources, "Audio%.play%b()") do
+    -- play() and playAt() both. The first version matched only `Audio.play(`
+    -- and reported every positional cue as unplayed.
+    for call in string.gmatch(sources, "Audio%.play%a*%b()") do
         for name in string.gmatch(call, '"([%w_]+)"') do
             played[name] = true
             assert(cues[name] ~= nil, `Audio.play names '{name}', which is no cue in Data/audio.json`)
@@ -543,15 +552,61 @@ do
     probeCues.fire.soundId = "rbxassetid://1"
     Audio.play("fire")
     local built = SoundService:FindFirstChild("LiveRoundAudio")
-    assert(built, "playing a supplied cue built no audio folder")
+    local mix = SoundService:FindFirstChild("LiveRoundMix")
+    assert(built and mix, "playing a supplied cue built no audio folder and mix")
     local voice = built:FindFirstChildOfClass("AudioPlayer")
-    local device = built:FindFirstChildOfClass("AudioDeviceOutput")
-    assert(voice and device, "a cue produced no AudioPlayer/AudioDeviceOutput pair")
+    local device = mix:FindFirstChildOfClass("AudioDeviceOutput")
+    local sfxBus = mix:FindFirstChild("SfxBus")
+    local musicBus = mix:FindFirstChild("MusicBus")
+    assert(voice and device and sfxBus and musicBus, "the mix did not build an output and two buses")
     local wire = voice:FindFirstChildOfClass("Wire")
     assert(wire, "the AudioPlayer has no Wire -- it would play silently forever")
-    assert(wire.SourceInstance == voice and wire.TargetInstance == device,
-        "the Wire does not connect the player to the output")
-    probeCues.fire.soundId = nil
+    assert(wire.SourceInstance == voice and wire.TargetInstance == sfxBus,
+        "a 2D cue does not reach the effects bus")
+    for _, bus in ipairs({ sfxBus, musicBus }) do
+        local busWire = bus:FindFirstChildOfClass("Wire")
+        assert(busWire and busWire.TargetInstance == device, `{bus.Name} does not reach the output`)
+    end
+
+    --[[
+        The positional path, which is the one that carries gameplay information.
+
+        Three separate silent-by-default links have to hold or a squad becomes
+        inaudible: the player must reach an emitter, the emitter must ride a
+        part that is actually moved to where the shot happened, and a listener
+        must exist to hear it. None of the three reports an error when missing.
+    ]]
+    probeCues.enemyFire.soundId = "rbxassetid://3"
+    Audio.playAt("enemyFire", roblox.Vector3.new(10, 2, -30))
+    local anchor = built:FindFirstChild("AudioAnchor")
+    assert(anchor, "a positional cue built no anchor part")
+    assert(not anchor.CanCollide and not anchor.CanQuery and not anchor.CastShadow,
+        "an audio anchor is a speaker, not an object a paintball can hit")
+    local Units = env.require(shared.Units)
+    local expected = Units.vectorToStuds(roblox.Vector3.new(10, 2, -30))
+    assert((anchor.Position - expected).Magnitude < 1e-3,
+        "the audio anchor is not where the cue happened -- the sound comes from the wrong direction")
+    local emitter = anchor:FindFirstChildOfClass("AudioEmitter")
+    local spatialVoice = anchor:FindFirstChildOfClass("AudioPlayer")
+    assert(emitter and spatialVoice, "a positional cue produced no emitter/player pair")
+    local spatialWire = spatialVoice:FindFirstChildOfClass("Wire")
+    assert(spatialWire and spatialWire.TargetInstance == emitter,
+        "the positional AudioPlayer does not reach its emitter")
+
+    -- ...and the ear, which has to survive the camera being replaced.
+    AudioMix.follow(camera)
+    local ear = camera:FindFirstChildOfClass("AudioListener")
+    assert(ear, "no AudioListener on the camera: emitters would play to nobody")
+    local earWire = ear:FindFirstChildOfClass("Wire")
+    assert(earWire and earWire.TargetInstance == sfxBus, "the listener does not reach the effects bus")
+    local replacement = Instance.new("Camera")
+    AudioMix.follow(replacement)
+    assert(replacement:FindFirstChildOfClass("AudioListener"),
+        "the ear did not follow a replaced camera -- the game would lose its hearing on respawn")
+    assert(not camera:FindFirstChildOfClass("AudioListener"), "the old camera kept a listener")
+    AudioMix.follow(camera)
+
+    probeCues.fire.soundId, probeCues.enemyFire.soundId = nil, nil
     Audio.clear()
     assert(not SoundService:FindFirstChild("LiveRoundAudio"), "audio teardown left its folder behind")
 
@@ -578,7 +633,9 @@ do
     Music.clear()
     assert(not SoundService:FindFirstChild("LiveRoundMusic"), "music teardown left its folder behind")
     contexts.playlists.hub = {}
-    print(`Audio checked: {(function() local n = 0 for _ in pairs(cues) do n += 1 end return n end)()} cues all played and none named by typo; graph wired player -> wire -> output; two music decks crossfade and tear down`)
+    AudioMix.clear()
+    assert(not SoundService:FindFirstChild("LiveRoundMix"), "the mix left its folder behind")
+    print(`Audio checked: {(function() local n = 0 for _ in pairs(cues) do n += 1 end return n end)()} cues all played and none named by typo; 2D and positional paths both reach the output; the ear follows a replaced camera; two music decks crossfade and tear down`)
 end
 
 for _, id in ipairs(Config.get("markers").order) do

@@ -2,6 +2,52 @@
 
 Updated 2026-09-09. This is the single current update list and AI handoff. It supersedes the previous world-pass, publish-prep, Shoothouse, agent, progress and debug handoffs, including the historical paintball-insanity review. Older narratives and their superseded numbers remain in Git history; they are not current instructions.
 
+## Seventh pass, 2026-09-09 — sound design: the squad becomes audible
+
+The sixth pass built the plumbing. This one makes it a design rather than a set
+of noises: a mixing desk, a listener, and — the part that changes how the game
+plays — **positional enemy fire**.
+
+| Area | Before | Current behavior | Verification |
+| --- | --- | --- | --- |
+| Enemy fire | Silent. Every cue was flat 2D, so the squad made no sound at all and could only be found by looking. | `MarkerFired` has carried the origin of every enemy shot since the tracers were built — the client was rendering from it and not listening to it. Enemy fire, paint landing and a bot going down now play at their point in the world. **This is the gameplay change in this pass:** "which direction did that come from" is the question this entire game is built around asking, and until now it had no answer that was not visual. | `check-client-ui` asserts the anchor part is moved to where the cue happened, since a sound in the wrong place is worse than no sound. |
+| The mixing desk | Each module built its own output. | `Client/AudioMix`: one `AudioDeviceOutput`, an `AudioFader` for effects and one for music, and the listener. Everything audible passes through it, so "music down, effects up" is two numbers in `audio.json` rather than an edit in every module that makes a noise. | `check-client-ui` asserts both buses reach the output and that 2D cues reach the effects bus. |
+| The listener | None existed, so an emitter would have played to nobody. | An `AudioListener` on the **camera** — 3D audio is heard from where the player is looking, not where their feet are. Roblox replaces the camera on respawn, so it is re-parented every frame and does nothing on the frames where nothing changed. Without that the game would quietly lose its hearing after the first death, which is the kind of bug that gets blamed on the map. | `check-client-ui` replaces the camera and asserts the ear follows and the old camera keeps nothing. |
+| Ducking | Applied per-deck, against the crossfade. | Moved to the music bus. A duck per deck is three ramps arguing about one volume while two decks head for different levels; on the bus it is one gain over whatever the decks are doing, which is what a mixing desk does and what the ear expects. | `check-client-ui`. |
+| Distance curve | — | `spatial.attenuation` in `audio.json`, in metres like every other distance a designer reads here. This is a **gameplay** decision, not a polish one: it decides whether a marker forty metres away is information the player can act on or noise they learn to tune out. It reaches silence at 140 m so nothing audible outlives its own paintball. | `check-audio` asserts it starts at 0 m, never gets *louder* with distance, and actually reaches zero — a curve bottoming out above zero leaves every shot on the field permanently in your ears. Verified by planting a rising curve. |
+| Hub ambience | The last user of the legacy `Sound` object. | Migrated: each bed is an `AudioPlayer` → `Wire` → `AudioEmitter`, with its own radius-based curve — a creek should be something you walk into and out of, not a thing audible across the whole landing. **Nothing in the project uses `Sound` any more.** | `check-budget` caught the migration breaking the hub build outright: Lune carries `AudioEmitter` but none of its methods. Guarded the way `Atmosphere` guards `Clouds`, and it logs rather than swallowing. |
+
+**A pre-existing bug this pass surfaced.** `MarkerFired` is sent by two
+services and they disagreed about units and about meaning. `RangeService` sent
+`Units.vectorToStuds(muzzle)` while `Tracers.fire` takes metres and converts them
+itself, so every tracer on the range began three and a half times further from
+the player than the muzzle it claimed to come from — nothing failed, nothing
+logged, it just looked slightly wrong in the way that gets blamed on the tracer
+effect. Worse for this pass: `MatchService` sends that remote only for shots the
+*squad* took, and the range sends it for the player's *own*, so wiring enemy-fire
+audio to it would have played a threat sound at the player every time they fired
+on the range. Both fixed — metres, and an explicit `source` field. `check-range`
+now asserts the origin's height is chest-high in metres rather than four in
+studs, which are not confusable; verified by reintroducing the bug.
+
+**Squad chatter has a direction now.** `ChatterLine` carries where the voice came
+from — looked up by speaker name in the one place that has the roster, rather
+than threaded through every `ctx.chatter` call site. People shouting on a
+paintball field give their position away, which is both realistic and a skill
+signal. It is deliberately not a free map of the squad: `rangeScale` shrinks the
+shared curve per cue, and chatter is scaled to about a third of a marker's
+report, so it is a close-quarters tell and nothing more. How far a sound carries
+is a property of the sound, not of the speaker, so the curve is applied per play
+rather than baked into the pooled emitter.
+
+Three cues added, all positional: `enemyFire`, `paintImpact` and `chatter`.
+Fourteen cues now, four of them world-positioned; every cue declares whether it
+happens *somewhere* or in the player's own hands, because your own marker is not
+a place — and `check-audio` rejects a `rangeScale` on a cue that is not
+positional, since it would do nothing.
+
+**Debug rerun: 19 of 21 gates pass, 504 specs pass, 2 fail.** The known pair: `ship-check` (dev mode on by request) and the two balance specs. No new failure.
+
 ## Sixth pass, 2026-09-09 — sound, on the API that actually exists now
 
 **There has never been sound in this project.** Checking the history rather than

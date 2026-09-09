@@ -300,6 +300,9 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				origin = projectile.origin,
 				direction = projectile.velocity.Unit,
 				spec = projectile.spec,
+				--- Who fired. The range sends this same remote for the player's
+				--- own shots, and only the squad's should sound like a threat.
+				source = "squad",
 			})
 		end
 	end
@@ -353,6 +356,23 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		context.aliveCount = aliveBots()
 		local line = chatter:say(kind, context)
 		if line then
+			--[[
+				Where the voice is coming from, so a callout is a direction and
+				not just a subtitle.
+
+				Looked up here by name rather than threaded through every
+				ctx.chatter call site -- the bots already say who is speaking,
+				and this is the one place that has the roster. People shouting
+				on a paintball field give their position away, and the audio
+				scales that down hard (audio.json rangeScale) so it stays a
+				close-quarters tell rather than a map of the whole squad.
+			]]
+			for _, bot in ipairs(bots) do
+				if bot.alive and bot.name == line.speaker then
+					line.at = bot.position + Vector3.new(0, hitbox.chestHeightMetres, 0)
+					break
+				end
+			end
 			Remotes.event("ChatterLine"):FireClient(player, line)
 		end
 	end
@@ -604,6 +624,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			remaining = aliveBots(),
 			headshot = false,
 			melee = true,
+			at = bot.position + Vector3.new(0, hitbox.chestHeightMetres, 0),
 		})
 		say("botEliminated", {})
 	end
@@ -856,6 +877,9 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 						distance = event.distance,
 						remaining = aliveBots(),
 						headshot = headshot,
+						-- Where it happened, so the client can put the sound
+						-- there. Metres, like everything else on this wire.
+						at = event.position,
 					})
 					say("botEliminated", {})
 				end

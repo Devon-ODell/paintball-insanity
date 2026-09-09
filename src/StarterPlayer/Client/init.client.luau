@@ -30,6 +30,7 @@ local Theme = require(script.UiTheme)
 local ViewMarker = require(script.ViewMarker)
 local Audio = require(script.Audio)
 local Music = require(script.Music)
+local AudioMix = require(script.AudioMix)
 local FoliageWind = require(script.FoliageWind)
 
 local player = Players.LocalPlayer
@@ -227,12 +228,28 @@ end
 
 Remotes.event("MarkerFired").OnClientEvent:Connect(function(payload)
 	Tracers.fire(payload.origin, payload.direction, payload.spec)
+	--[[
+		The squad, made audible.
+
+		This payload has carried the origin of every enemy shot since the
+		tracers were built; it just was not being listened to. A squad you
+		cannot hear is a squad you can only find by looking, and "which
+		direction did that come from" is the question this whole game is built
+		around asking.
+	]]
+	if payload.source == "squad" then
+		Audio.playAt("enemyFire", payload.origin)
+	end
 end)
 
 Remotes.event("ShotResolved").OnClientEvent:Connect(function(result)
 	if result.hit then
 		Hud.flashHit(result.headshot == true)
 		Audio.play(if result.headshot == true then "headshot" else "hit")
+		-- The confirmation is in your ears; the paint landed over there.
+		if result.impact then
+			Audio.playAt("paintImpact", Units.vectorToMetres(result.impact))
+		end
 		if result.headshot then
 			if result.camoProgress then
 				Hud.setCamoProgress(result.camoProgress)
@@ -255,7 +272,11 @@ Remotes.event("BotEliminated").OnClientEvent:Connect(function(payload)
 		happens at arm's length was the only one with no confirmation on screen
 		-- the counter simply dropped and the player had to infer it.
 	]]
-	Audio.play("botEliminated")
+	if payload.at then
+		Audio.playAt("botEliminated", payload.at)
+	else
+		Audio.play("botEliminated")
+	end
 	if payload.melee == true then
 		Hud.flashHit(false)
 	end
@@ -277,6 +298,12 @@ end)
 
 Remotes.event("ChatterLine").OnClientEvent:Connect(function(line)
 	Hud.showChatter(line)
+	-- A voice with a direction. Lines from a bot the server could not place --
+	-- a squad-wide announcement, or a speaker already out -- stay silent rather
+	-- than being flattened into the middle of the player's head.
+	if line.at then
+		Audio.playAt("chatter", line.at)
+	end
 end)
 
 Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
@@ -488,6 +515,10 @@ RunService:BindToRenderStep("LR_Presentation", Enum.RenderPriority.Camera.Value 
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local velocity = if root and root:IsA("BasePart") then root.AssemblyLinearVelocity else Vector3.zero
 	local speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
+	--- The ear rides the camera, so 3D audio is heard from where the player is
+	--- looking. Roblox replaces the camera on respawn; this is what stops the
+	--- game quietly losing its hearing after the first death.
+	AudioMix.follow(camera)
 	Music.step(dt)
 	local wasReloading = markerState.reloadUntil ~= nil
 	ViewMarker.step(camera, not respawning and (phase == "live" or phase == "warmup"), dt,

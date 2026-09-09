@@ -2,7 +2,22 @@
   "_comment": "Every sound the game makes, in one place. The ids are EMPTY and the game is silent until they are filled in; everything else is already built and called from the right moment. Paste an asset id into a cue and it plays -- there is nothing else to wire.",
   "_whereToGetIds": "Two sources are safe, and only two. (1) The Creator Store's free-to-use library: in Studio, View -> Toolbox -> Marketplace -> Audio, audition, right-click -> Copy Asset ID. Roblox documents over 100,000 professionally produced free sound effects and music tracks there. (2) Audio you uploaded yourself -- drop files into assets/audio/ and follow the README there. An id from anywhere else is a trap: Roblox's audio privacy rules mean private audio will not play in an experience whose owner did not upload it, so it works in Studio and then is silent in a published place. Always confirm sound in a published test place, never only in Studio.",
   "_format": "Ids are the full string, 'rbxassetid://1234567890'. null means this cue is not supplied yet and is skipped silently.",
-  "sfxVolume": 1.0,
+  "_mix": "The two buses everything passes through. Every one-shot lands on the sfx bus and every track on the music bus, so 'music down, effects up' is two numbers here rather than an edit in every module that makes a noise. Ducking moves the music bus, not the individual decks.",
+  "mix": {
+    "sfx": 1.0,
+    "music": 0.55
+  },
+  "_spatial": "How a world sound fades with distance. Keys are METRES, like every other distance a designer reads in this project; the engine wants studs and the client converts once. The shape of this curve is a gameplay decision, not a polish one: it is what decides whether a marker forty metres away is information you can act on or noise you learn to ignore. It deliberately does not reach zero until past the 140 m the projectile sim itself gives up at, so nothing audible outlives its own paintball.",
+  "spatial": {
+    "attenuation": {
+      "0": 1.0,
+      "8": 0.85,
+      "20": 0.55,
+      "45": 0.28,
+      "80": 0.1,
+      "140": 0.0
+    }
+  },
   "maxConcurrent": 12,
   "_maxConcurrent": "Ceiling on one-shots playing at once. A full-auto marker against twelve bots can ask for a lot in a second, and the cheapest way for audio to ruin a build is to become the thing that costs the frame.",
   "cues": {
@@ -10,73 +25,108 @@
       "soundId": null,
       "volume": 0.45,
       "pitchVariance": 0.07,
-      "lengthSeconds": 0.6
+      "lengthSeconds": 0.6,
+      "spatial": false
     },
     "dryFire": {
       "soundId": null,
       "volume": 0.35,
       "pitchVariance": 0.03,
-      "lengthSeconds": 0.5
+      "lengthSeconds": 0.5,
+      "spatial": false
     },
     "reloadStart": {
       "soundId": null,
       "volume": 0.4,
       "pitchVariance": 0.02,
-      "lengthSeconds": 1.2
+      "lengthSeconds": 1.2,
+      "spatial": false
     },
     "reloadEnd": {
       "soundId": null,
       "volume": 0.4,
       "pitchVariance": 0.02,
-      "lengthSeconds": 0.8
+      "lengthSeconds": 0.8,
+      "spatial": false
     },
     "hit": {
       "soundId": null,
       "volume": 0.5,
       "pitchVariance": 0.05,
-      "lengthSeconds": 0.7
+      "lengthSeconds": 0.7,
+      "spatial": false
     },
     "headshot": {
       "soundId": null,
       "volume": 0.6,
       "pitchVariance": 0.02,
-      "lengthSeconds": 1.0
+      "lengthSeconds": 1.0,
+      "spatial": false
     },
     "botEliminated": {
       "soundId": null,
       "volume": 0.5,
       "pitchVariance": 0.04,
-      "lengthSeconds": 1.2
+      "lengthSeconds": 1.2,
+      "spatial": true,
+      "rangeScale": 0.8
     },
     "playerEliminated": {
       "soundId": null,
       "volume": 0.6,
       "pitchVariance": 0.0,
-      "lengthSeconds": 2.0
+      "lengthSeconds": 2.0,
+      "spatial": false
     },
     "swing": {
       "soundId": null,
       "volume": 0.45,
       "pitchVariance": 0.06,
-      "lengthSeconds": 0.8
+      "lengthSeconds": 0.8,
+      "spatial": false
     },
     "roundStart": {
       "soundId": null,
       "volume": 0.5,
       "pitchVariance": 0.0,
-      "lengthSeconds": 3.0
+      "lengthSeconds": 3.0,
+      "spatial": false
     },
     "matchCleared": {
       "soundId": null,
       "volume": 0.6,
       "pitchVariance": 0.0,
-      "lengthSeconds": 4.0
+      "lengthSeconds": 4.0,
+      "spatial": false
+    },
+    "enemyFire": {
+      "soundId": null,
+      "volume": 0.5,
+      "pitchVariance": 0.09,
+      "lengthSeconds": 0.7,
+      "spatial": true,
+      "rangeScale": 1.0
+    },
+    "paintImpact": {
+      "soundId": null,
+      "volume": 0.4,
+      "pitchVariance": 0.12,
+      "lengthSeconds": 0.5,
+      "spatial": true,
+      "rangeScale": 0.6
+    },
+    "chatter": {
+      "soundId": null,
+      "volume": 0.35,
+      "pitchVariance": 0.05,
+      "lengthSeconds": 0.5,
+      "spatial": true,
+      "rangeScale": 0.35
     }
   },
-  "_cues": "volume is the cue's own level, multiplied by sfxVolume. pitchVariance is how far PlaybackSpeed may wander either side of 1.0 -- the difference between a marker that sounds like a marker and one that sounds like a loop, and the reason fire varies more than a round-start sting does. lengthSeconds is a pooling hint, not a fade: it is how long before the voice is handed back for reuse. It exists because a cue whose asset fails to load never fires Ended, and anything waiting on that event would leak voices until the game went permanently silent. Set it at or a little above the real length of the clip.",
+  "_cues": "volume is the cue's own level, multiplied by sfxVolume. pitchVariance is how far PlaybackSpeed may wander either side of 1.0 -- the difference between a marker that sounds like a marker and one that sounds like a loop, and the reason fire varies more than a round-start sting does. lengthSeconds is a pooling hint, not a fade: it is how long before the voice is handed back for reuse. It exists because a cue whose asset fails to load never fires Ended, and anything waiting on that event would leak voices until the game went permanently silent. Set it at or a little above the real length of the clip. spatial says whether the cue is played at a point in the world or flat in the player's ears. Your own marker is flat -- it is in your hands, not somewhere. Everything the SQUAD does is positional, because working out where a shot came from is the skill this game exists to teach. rangeScale stretches or shrinks the shared distance curve for one cue, because how far something carries is a property of the SOUND, not of the speaker. A voice does not travel as far as a marker's report: squad chatter is scaled to about a third, which is what lets it be a directional tell at close quarters without becoming a permanent map of where the whole squad is standing.",
   "music": {
-    "_comment": "Music DUCKS, deliberately. This game is an audio-information game: the report of a marker, the squad's chatter and the direction a hit came from are all things the player is being asked to read. A track that competes with those is not atmosphere, it is a handicap. So the match playlist sits well under the hub's, and combat pulls it down further still.",
-    "volume": 0.55,
+    "_comment": "Music DUCKS, deliberately. This game is an audio-information game: the report of a marker, the squad's chatter and the direction a hit came from are all things the player is being asked to read. A track that competes with those is not atmosphere, it is a handicap. Its level lives on the music bus in `mix`; ducking moves that bus rather than the decks, so a crossfade and a duck cannot fight each other.",
     "fadeSpeed": 1.4,
     "_fadeSpeed": "Exponential approach per second. Rounds change every couple of minutes and a hard cut on each one would be the most irritating thing in the build.",
     "duckMultiplier": 0.35,

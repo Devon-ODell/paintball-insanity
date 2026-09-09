@@ -437,10 +437,25 @@ function RangeService.start(player: Player, drillId: string, seed: number?): boo
 		})
 		previousAim = request.direction
 
+		--[[
+			Metres, not studs.
+
+			This sent `Units.vectorToStuds(muzzle)` while `Tracers.fire` takes
+			metres and converts them itself, so every tracer on the range span
+			from a point three and a half times further out than the muzzle it
+			claimed to come from. Nothing failed, nothing logged; it just looked
+			slightly wrong in a way that is easy to blame on the tracer effect.
+
+			`source` is the other half of the fix. MatchService sends this remote
+			only for shots the SQUAD took, and the range sends it for the
+			player's own -- one remote meaning two opposite things, which is
+			exactly how a client ends up playing enemy fire at itself.
+		]]
 		Remotes.event("MarkerFired"):FireClient(player, {
-			origin = Units.vectorToStuds(muzzle),
+			origin = muzzle,
 			direction = shotDirection,
 			ammo = markerState.ammo,
+			source = "self",
 		})
 	end
 

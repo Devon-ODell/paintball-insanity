@@ -24,6 +24,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Rng = require(ReplicatedStorage.Shared.Rng)
+local AudioMix = require(script.Parent.AudioMix)
 
 local Music = {}
 
@@ -37,7 +38,6 @@ type Deck = {
 }
 
 local folder: Folder? = nil
-local output: AudioDeviceOutput? = nil
 local decks: { Deck } = {}
 local playing = 1
 local context: string? = nil
@@ -57,11 +57,6 @@ local function build()
 	created.Parent = SoundService
 	folder = created
 
-	local device = Instance.new("AudioDeviceOutput")
-	device.Name = "Output"
-	device.Parent = created
-	output = device
-
 	--[[
 		Two decks, so a crossfade is a crossfade.
 
@@ -78,7 +73,7 @@ local function build()
 		voice.Parent = created
 		local wire = Instance.new("Wire")
 		wire.SourceInstance = voice
-		wire.TargetInstance = device
+		wire.TargetInstance = AudioMix.musicBus()
 		wire.Parent = voice
 		table.insert(decks, { player = voice, wire = wire, target = 0, current = 0, track = nil })
 	end
@@ -110,10 +105,19 @@ end
 function Music.step(dt: number)
 	local cfg = settings()
 	local now = os.clock()
-	--- Ducked while combat is louder than the music has any business being.
-	local duck = if now < duckUntil then cfg.duckMultiplier else 1
+	--[[
+		Ducking moves the BUS, not the decks.
+
+		A duck applied per-deck would fight the crossfade: two decks each
+		heading for a different level while a third multiplier moves underneath
+		them is three ramps arguing about one volume. On the bus it is one
+		gain over whatever the decks are doing, which is what a mixing desk
+		does and what the ear expects.
+	]]
+	local ducked = if now < duckUntil then cfg.duckMultiplier else 1
+	AudioMix.setVolume("music", Config.get("audio").mix.music * ducked)
 	for _, deck in ipairs(decks) do
-		local target = deck.target * duck * cfg.volume
+		local target = deck.target
 		if math.abs(deck.current - target) > 1e-4 then
 			--- Frame-rate independent, so a 30 Hz machine fades in the same
 			--- wall time as a 144 Hz one.
@@ -176,7 +180,6 @@ function Music.clear()
 		(folder :: Folder):Destroy()
 		folder = nil
 	end
-	output = nil
 	table.clear(decks)
 	duckUntil = -math.huge
 end
