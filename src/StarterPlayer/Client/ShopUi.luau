@@ -83,6 +83,10 @@ function ShopUi.open(initialSnapshot: any, onClose: () -> ())
 	local title = Theme.text(panel, "Title", snapshot.bayName or "FIELD SUPPLY", UDim2.new(1, -120, 0, 32), UDim2.fromOffset(18, 14), Theme.config.titleTextPixels)
 	title.Font = Theme.font("bold")
 	local balance = Theme.text(panel, "Balance", "", UDim2.new(1, -36, 0, 22), UDim2.fromOffset(18, 48), Theme.config.smallTextPixels)
+	-- Sits under the balance: what you have, then what you are earning toward.
+	local season = Theme.text(panel, "Season", "", UDim2.new(1, -36, 0, 20), UDim2.fromOffset(18, 70), Theme.config.smallTextPixels)
+	season.TextColor3 = Theme.colors.accent
+	season.Visible = false
 	balance.TextColor3 = Theme.colors.gold
 	local close = Theme.button(panel, "Close", UDim2.fromOffset(78, 34), UDim2.new(1, -96, 0, 16))
 	close.Modal = true
@@ -127,6 +131,20 @@ function ShopUi.open(initialSnapshot: any, onClose: () -> ())
 		list:ClearAllChildren()
 		Theme.list(list, 10)
 		balance.Text = Theme.number(snapshot.balance or 0) .. " FF  ·  " .. (if snapshot.freeMode then "All supply is free while we build" else "Field funds earned by playing")
+		--[[
+			The season line. Marks are earned by eliminating bots and clearing
+			rounds, never by time on the field, so it says what it counts --
+			a track that shows a bar and not what fills it teaches nothing.
+		]]
+		local track = snapshot.season
+		if track then
+			local toNext = if track.toNext then `{Theme.number(track.toNext)} marks to tier {track.tier + 1}` else "track complete"
+			season.Text = `{string.upper(track.displayName or "SEASON")}  ·  TIER {track.tier}/{track.tierCount}  ·  {toNext}`
+				.. (if track.ownsPass then "" else "  ·  free track")
+			season.Visible = true
+		else
+			season.Visible = false
+		end
 		for category, tab in pairs(tabButtons) do
 			tab.BackgroundColor3 = if selected == category then Theme.colors.accent else Theme.colors.card
 			tab.TextColor3 = if selected == category then Theme.colors.panel else Theme.colors.ink

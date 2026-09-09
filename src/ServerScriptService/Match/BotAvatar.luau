@@ -26,7 +26,7 @@ export type Avatar = {
 	head: BasePart,
 	marker: BasePart,
 	nameplate: BillboardGui,
-	setPosition: (Avatar, Vector3, Vector3) -> (),
+	setPosition: (Avatar, Vector3, Vector3, number?) -> (),
 	splatter: (Avatar, Vector3, Color3?) -> (),
 	destroy: (Avatar) -> (),
 }
@@ -170,7 +170,7 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 	model.Parent = parent
 
 	local lastPosition: Vector3? = nil
-	local lastAt = os.clock()
+	local defaultStep = Config.get("ballistics").simulation.fixedStep
 
 	local avatar: Avatar
 	avatar = {
@@ -180,7 +180,7 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 		marker = marker,
 		nameplate = nameplate,
 
-		setPosition = function(_: Avatar, position: Vector3, facing: Vector3)
+		setPosition = function(_: Avatar, position: Vector3, facing: Vector3, dt: number?)
 			--[[
 				Drive the walk cycle off distance actually covered.
 
@@ -190,11 +190,11 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 				cycle to it means the feet never slide. A bot that stops
 				mid-step stops mid-step.
 			]]
-			local now = os.clock()
 			local moved = if lastPosition then (position - lastPosition).Magnitude else 0
-			local elapsed = math.max(now - lastAt, 1e-3)
+			-- Catch-up ticks can run back-to-back: CPU time is not movement time.
+			local elapsed = math.max(dt or defaultStep, 1e-6)
 			body.step(moved, moved / elapsed)
-			lastPosition, lastAt = position, now
+			lastPosition = position
 
 			local studs = Units.vectorToStuds(position)
 			local flat = Vector3.new(facing.X, 0, facing.Z)

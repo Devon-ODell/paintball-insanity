@@ -30,6 +30,8 @@ export type Volume = {
 	walkable: boolean,
 	--- Bounding-sphere radius, precomputed for broad-phase rejection.
 	boundRadius: number,
+	cosNegativeYaw: number?,
+	sinNegativeYaw: number?,
 }
 
 export type Hit = {
@@ -90,6 +92,8 @@ local function addVolume(out: { Volume }, piece: any, mirrorX: boolean, mirrorZ:
 		halfSize = half,
 		rotationY = rotY,
 		boundRadius = half.Magnitude,
+		cosNegativeYaw = math.cos(-rotY),
+		sinNegativeYaw = math.sin(-rotY),
 		cover = piece.cover == true,
 		concealment = piece.concealment == true,
 		walkable = piece.walkable == true,
@@ -130,52 +134,39 @@ end
 
 local function toLocal(volume: Volume, point: Vector3): Vector3
 	local d = point - volume.center
-	local c, s = math.cos(-volume.rotationY), math.sin(-volume.rotationY)
+	local c = volume.cosNegativeYaw or math.cos(-volume.rotationY)
+	local s = volume.sinNegativeYaw or math.sin(-volume.rotationY)
 	return Vector3.new(d.X * c - d.Z * s, d.Y, d.X * s + d.Z * c)
 end
 
 local function rotateDirection(volume: Volume, dir: Vector3): Vector3
-	local c, s = math.cos(-volume.rotationY), math.sin(-volume.rotationY)
+	local c = volume.cosNegativeYaw or math.cos(-volume.rotationY)
+	local s = volume.sinNegativeYaw or math.sin(-volume.rotationY)
 	return Vector3.new(dir.X * c - dir.Z * s, dir.Y, dir.X * s + dir.Z * c)
 end
 
---- Slab test in the volume's local frame. Returns the entry parameter along the
---- segment in [0,1], or nil.
-local function segmentVolume(volume: Volume, from: Vector3, to: Vector3): number?
-	local origin = toLocal(volume, from)
-	local dir = rotateDirection(volume, to - from)
-	local h = volume.halfSize
-
-	local tMin, tMax = 0, 1
-	local components = {
-		{ origin.X, dir.X, h.X },
-		{ origin.Y, dir.Y, h.Y },
-		{ origin.Z, dir.Z, h.Z },
-	}
-	for _, c in ipairs(components) do
-		local o, d, half = c[1], c[2], c[3]
-		if math.abs(d) < 1e-9 then
-			if o < -half or o > half then
-				return nil
-			end
-		else
-			local t1 = (-half - o) / d
-			local t2 = (half - o) / d
-			if t1 > t2 then
-				t1, t2 = t2, t1
-			end
-			if t1 > tMin then
-				tMin = t1
-			end
-			if t2 < tMax then
-				tMax = t2
-			end
-			if tMin > tMax then
-				return nil
-			end
-		end
+-- Clip one axis without constructing a table for every axis of every query.
+local function clipAxis(origin: number, direction: number, half: number, low: number, high: number): (number, number)
+	if math.abs(direction) < 1e-9 then
+		if origin < -half or origin > half then return 1, 0 end
+		return low, high
 	end
-	return tMin
+	local a, b = (-half - origin) / direction, (half - origin) / direction
+	if a > b then a, b = b, a end
+	return math.max(low, a), math.min(high, b)
+end
+
+--- Slab test in the volume's local frame; nearest entry in [0,1].
+local function segmentVolume(volume: Volume, from: Vector3, delta: Vector3): number?
+	local origin = toLocal(volume, from)
+	local dir = rotateDirection(volume, delta)
+	local h = volume.halfSize
+	local low, high = clipAxis(origin.X, dir.X, h.X, 0, 1)
+	if low > high then return nil end
+	low, high = clipAxis(origin.Y, dir.Y, h.Y, low, high)
+	if low > high then return nil end
+	low, high = clipAxis(origin.Z, dir.Z, h.Z, low, high)
+	return if low <= high then low else nil
 end
 
 export type CastOptions = {
@@ -233,8 +224,9 @@ function MapGeometry.groundPoint(world: World, point: Vector3, tolerance: number
 end
 
 --- Nearest blocking volume along a segment, or nil if the segment is clear.
-function MapGeometry.cast(world: World, from: Vector3, to: Vector3, options: CastOptions?): Hit?
-	local opts = options or {}
+local EMPTY_OPTIONS: CastOptions = {}
+local function cast(world: World, from: Vector3, to: Vector3, options: CastOptions?, anyHit: boolean): Hit?
+	local opts = options or EMPTY_OPTIONS
 	local best: Hit? = nil
 	local bestT = math.huge
 	local delta = to - from
@@ -245,6 +237,15 @@ function MapGeometry.cast(world: World, from: Vector3, to: Vector3, options: Cas
 	local invLenSq = 1 / (length * length)
 
 	for _, volume in ipairs(world.volumes) do
+		if not volume.cover and not volume.concealment then
+			continue
+		end
+		if volume.concealment and not volume.cover and opts.ignoreConcealment then
+			continue
+		end
+		if opts.ignore and opts.ignore[volume.id] then
+			continue
+		end
 		-- Broad phase: reject anything whose bounding sphere cannot reach the
 		-- segment. The narrow OBB test is ~20x the cost, and a match fires tens
 		-- of thousands of these, so this is the difference between a sim run
@@ -257,32 +258,29 @@ function MapGeometry.cast(world: World, from: Vector3, to: Vector3, options: Cas
 				continue
 			end
 		end
-		if not volume.cover and not volume.concealment then
-			continue
-		end
-		if volume.concealment and not volume.cover and opts.ignoreConcealment then
-			continue
-		end
-		if opts.ignore and opts.ignore[volume.id] then
-			continue
-		end
-		local t = segmentVolume(volume, from, to)
+		local t = segmentVolume(volume, from, delta)
 		if t and t < bestT then
 			bestT = t
 			best = { position = from + delta * t, volumeId = volume.id, distance = length * t }
+			if anyHit then return best end
 		end
 	end
 	return best
 end
 
+function MapGeometry.cast(world: World, from: Vector3, to: Vector3, options: CastOptions?): Hit?
+	return cast(world, from, to, options, false)
+end
+
+--- Visibility needs ANY blocker; projectile impacts still need the nearest.
 --- Can `from` see `to`? Concealment counts here; it does not count for paint.
 function MapGeometry.hasLineOfSight(world: World, from: Vector3, to: Vector3, ignore: { [string]: boolean }?): boolean
-	return MapGeometry.cast(world, from, to, { ignoreConcealment = false, ignore = ignore }) == nil
+	return cast(world, from, to, { ignoreConcealment = false, ignore = ignore }, true) == nil
 end
 
 --- Would a paintball fired along this segment reach? Brush does not stop paint.
 function MapGeometry.paintCanReach(world: World, from: Vector3, to: Vector3): boolean
-	return MapGeometry.cast(world, from, to, { ignoreConcealment = true }) == nil
+	return cast(world, from, to, { ignoreConcealment = true }, true) == nil
 end
 
 --------------------------------------------------------------------------------

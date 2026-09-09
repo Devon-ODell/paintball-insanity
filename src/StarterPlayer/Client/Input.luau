@@ -24,6 +24,7 @@ local Input = {}
 
 local player = Players.LocalPlayer
 local pointerFree = false
+local leanLeft, leanRight = false, false
 
 export type State = {
 	sprinting: boolean,
@@ -64,7 +65,8 @@ end
 function Input.stance(): Types.Stance
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
-	local speed = if root then (root :: BasePart).AssemblyLinearVelocity.Magnitude else 0
+	local velocity = if root then (root :: BasePart).AssemblyLinearVelocity else Vector3.zero
+	local speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
 	if state.sprinting and speed > 1 then
 		return "sprinting"
 	elseif speed > 1 then
@@ -107,17 +109,33 @@ local function applySpeed()
 	h.WalkSpeed = Units.metresToStuds(metres)
 end
 
+local function setSprint(active: boolean)
+	if state.sprinting and not active then state.lastSprintAt = os.clock() end
+	state.sprinting = active
+end
+
+local function released(inputState: Enum.UserInputState): boolean
+	return inputState == Enum.UserInputState.End or inputState == Enum.UserInputState.Cancel
+end
+
+local function reset()
+	setSprint(false)
+	state.firing, state.sliding, state.crouching = false, false, false
+	state.lean, state.reloadRequested = 0, false
+	leanLeft, leanRight = false, false
+	applySpeed()
+end
+
 function Input.bind()
 	local cfg = Config.require("match", "player")
 
 	ContextActionService:BindAction("LR_Sprint", function(_, inputState)
 		if pointerFree then return Enum.ContextActionResult.Pass end
 		if inputState == Enum.UserInputState.Begin then
-			state.sprinting = true
+			setSprint(true)
 			state.crouching = false
-		elseif inputState == Enum.UserInputState.End then
-			state.sprinting = false
-			state.lastSprintAt = os.clock()
+		elseif released(inputState) then
+			setSprint(false)
 		end
 		applySpeed()
 		return Enum.ContextActionResult.Pass
@@ -127,8 +145,8 @@ function Input.bind()
 		if pointerFree then return Enum.ContextActionResult.Pass end
 		if inputState == Enum.UserInputState.Begin then
 			state.crouching = true
-			state.sprinting = false
-		elseif inputState == Enum.UserInputState.End then
+			setSprint(false)
+		elseif released(inputState) then
 			state.crouching = false
 		end
 		applySpeed()
@@ -155,13 +173,15 @@ function Input.bind()
 
 	ContextActionService:BindAction("LR_LeanLeft", function(_, inputState)
 		if pointerFree then return Enum.ContextActionResult.Pass end
-		state.lean = if inputState == Enum.UserInputState.Begin then -1 else 0
+		if inputState == Enum.UserInputState.Begin then leanLeft = true elseif released(inputState) then leanLeft = false end
+		state.lean = (if leanRight then 1 else 0) - (if leanLeft then 1 else 0)
 		return Enum.ContextActionResult.Pass
 	end, false, Enum.KeyCode.Q, Enum.KeyCode.DPadLeft)
 
 	ContextActionService:BindAction("LR_LeanRight", function(_, inputState)
 		if pointerFree then return Enum.ContextActionResult.Pass end
-		state.lean = if inputState == Enum.UserInputState.Begin then 1 else 0
+		if inputState == Enum.UserInputState.Begin then leanRight = true elseif released(inputState) then leanRight = false end
+		state.lean = (if leanRight then 1 else 0) - (if leanLeft then 1 else 0)
 		return Enum.ContextActionResult.Pass
 	end, false, Enum.KeyCode.E, Enum.KeyCode.DPadRight)
 
@@ -186,28 +206,14 @@ function Input.bind()
 			state.firing = false
 		end
 	end)
-	UserInputService.WindowFocusReleased:Connect(function()
-		state.firing = false
-		state.sprinting = false
-		state.sliding = false
-		state.crouching = false
-		state.lean = 0
-		state.reloadRequested = false
-		state.lastSprintAt = os.clock()
-		applySpeed()
-	end)
+	UserInputService.WindowFocusReleased:Connect(reset)
 
-	player.CharacterAdded:Connect(function()
-		state.sprinting = false
-		state.crouching = false
-		state.sliding = false
-		state.slideEndsAt = 0
-		state.slideReadyAt = 0
-		state.lean = 0
-		state.firing = false
-		state.reloadRequested = false
-		task.wait(0.1)
-		applySpeed()
+	player.CharacterAdded:Connect(function(character)
+		reset()
+		state.slideEndsAt, state.slideReadyAt = 0, 0
+		state.lastSprintAt = -math.huge
+		character:WaitForChild("Humanoid")
+		if player.Character == character then applySpeed() end
 	end)
 	applySpeed()
 end
@@ -224,16 +230,7 @@ end
 
 function Input.setPointerFree(free: boolean)
 	pointerFree = free
-	if free then
-		state.firing = false
-		state.sprinting = false
-		state.crouching = false
-		state.sliding = false
-		state.lean = 0
-		state.reloadRequested = false
-		state.lastSprintAt = os.clock()
-		applySpeed()
-	end
+	if free then reset() end
 	UserInputService.MouseIconEnabled = free
 	UserInputService.MouseBehavior = if free then Enum.MouseBehavior.Default else Enum.MouseBehavior.LockCenter
 end
@@ -255,7 +252,7 @@ function Input.tick(dt: number)
 	local cfg = Config.require("match", "player")
 	local targetX = state.lean * Units.metresToStuds(cfg.leanOffsetMetres)
 	local current = h.CameraOffset
-	local alpha = math.clamp(dt * cfg.leanSpeed, 0, 1)
+	local alpha = 1 - math.exp(-dt * cfg.leanSpeed)
 	local targetY = if state.sliding then -Units.metresToStuds(Config.get("combatAnimations").slideEyeDropMetres) elseif state.crouching then Units.metresToStuds(cfg.crouchEyeHeightMetres - cfg.eyeHeightMetres) else 0
 	h.CameraOffset = Vector3.new(current.X + (targetX - current.X) * alpha, current.Y + (targetY - current.Y) * alpha, current.Z)
 end

@@ -15,6 +15,8 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local Units = require(ReplicatedStorage.Shared.Units)
+local Config = require(ReplicatedStorage.Shared.Config)
+local tuning = Config.get("clientEffects")
 
 local Tracers = {}
 
@@ -52,12 +54,13 @@ local paintColour = Color3.fromRGB(246, 190, 62)
 type Assembly = { part: BasePart, trail: Trail }
 local freeTracers: { Assembly } = {}
 local freeSplats: { BasePart } = {}
-local liveSplats: { BasePart } = {}
-local SPLAT_CAP = 120
-local SPLAT_SECONDS = 14
+local liveSplats: { { part: BasePart, expiresAt: number } } = {}
+local effectsTime = 0
+local SPLAT_CAP = tuning.splatCap
+local SPLAT_SECONDS = tuning.splatSeconds
 --- How long a tracer stays in the air before it is recycled. Long enough to
 --- cover the longest sightline in the game at the slowest muzzle velocity.
-local TRACER_SECONDS = 3
+local TRACER_SECONDS = tuning.tracerSeconds
 
 local function container(): Folder
 	if folder and folder.Parent then
@@ -65,7 +68,7 @@ local function container(): Folder
 	end
 	local created = Instance.new("Folder")
 	created.Name = "LiveRoundTracers"
-	created.Parent = workspace.CurrentCamera
+	created.Parent = workspace
 	folder = created
 	return created
 end
@@ -87,6 +90,7 @@ local function acquireTracer(): Assembly
 	ball.Anchored = true
 	ball.CanCollide = false
 	ball.CanQuery = false
+	ball.CanTouch = false
 	ball.CastShadow = false
 
 	local a0 = Instance.new("Attachment")
@@ -108,16 +112,19 @@ local function acquireTracer(): Assembly
 	return { part = ball, trail = trail }
 end
 
---- Parks a tracer for reuse. Disabling the trail first is what clears its
---- history, so a recycled ball does not appear with the last shot's streak
---- still attached to it.
+--- Disable emission AND clear its recorded history before reuse. Enabled=false
+--- alone leaves previous trail segments alive until their lifetime expires.
 local function releaseTracer(tracer: Tracer)
 	tracer.trail.Enabled = false
+	tracer.trail:Clear()
 	tracer.part.Parent = nil
 	table.insert(freeTracers, { part = tracer.part, trail = tracer.trail })
 end
 
 function Tracers.fire(origin: Vector3, direction: Vector3, spec: Ballistics.Spec)
+	if #live >= tuning.tracerCap then
+		releaseTracer(table.remove(live, 1))
+	end
 	local assembly = acquireTracer()
 	assembly.part.Color = paintColour
 	assembly.part.CFrame = CFrame.new(Units.vectorToStuds(origin))
@@ -141,7 +148,7 @@ function Tracers.splat(at: Vector3, colour: Color3?)
 	-- lose and the one furthest from whatever the player is looking at now.
 	local splat: BasePart
 	if #liveSplats >= SPLAT_CAP then
-		splat = table.remove(liveSplats, 1) :: BasePart
+		splat = table.remove(liveSplats, 1).part
 	else
 		splat = table.remove(freeSplats) or (function()
 			local created = Instance.new("Part")
@@ -151,6 +158,7 @@ function Tracers.splat(at: Vector3, colour: Color3?)
 			created.Anchored = true
 			created.CanCollide = false
 			created.CanQuery = false
+			created.CanTouch = false
 			created.CastShadow = false
 			return created
 		end)()
@@ -158,21 +166,21 @@ function Tracers.splat(at: Vector3, colour: Color3?)
 	splat.Color = colour or paintColour
 	splat.CFrame = CFrame.new(at)
 	splat.Parent = container()
-	table.insert(liveSplats, splat)
-
-	task.delay(SPLAT_SECONDS, function()
-		local index = table.find(liveSplats, splat)
-		-- Absent means it was already recycled by the cap, and is somebody
-		-- else's paint now.
-		if index then
-			table.remove(liveSplats, index)
-			splat.Parent = nil
-			table.insert(freeSplats, splat)
-		end
-	end)
+	-- One expiry clock replaces a delayed callback per splat. Reusing a part
+	-- cannot let its previous owner's timer remove the new paint early.
+	table.insert(liveSplats, { part = splat, expiresAt = effectsTime + SPLAT_SECONDS })
 end
 
 function Tracers.step(dt: number)
+	effectsTime += dt
+	for i = #liveSplats, 1, -1 do
+		local splat = liveSplats[i]
+		if effectsTime >= splat.expiresAt then
+			splat.part.Parent = nil
+			table.insert(freeSplats, splat.part)
+			table.remove(liveSplats, i)
+		end
+	end
 	for i = #live, 1, -1 do
 		local tracer = live[i]
 		local newPos, newVel = Ballistics.step(tracer.position, tracer.velocity, dt, tracer.spec)
@@ -200,7 +208,7 @@ end
 	live one nearest the impact, and only if it is near enough to plausibly be
 	the same ball. A miss leaves every tracer flying, which is correct.
 ]]
-local RESOLVE_RADIUS_STUDS = 12
+local RESOLVE_RADIUS_STUDS = tuning.resolveRadiusStuds
 
 function Tracers.resolve(impactStuds: Vector3)
 	Tracers.splat(impactStuds)
@@ -232,6 +240,16 @@ function Tracers.stats(): { live: number, pooledTracers: number, liveSplats: num
 		liveSplats = #liveSplats,
 		pooledSplats = #freeSplats,
 	}
+end
+
+function Tracers.clear()
+	for _, tracer in ipairs(live) do releaseTracer(tracer) end
+	table.clear(live)
+	for _, splat in ipairs(liveSplats) do
+		splat.part.Parent = nil
+		table.insert(freeSplats, splat.part)
+	end
+	table.clear(liveSplats)
 end
 
 function Tracers.bind()

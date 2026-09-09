@@ -629,7 +629,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			})
 			local avatar = avatars[bot.id]
 			if avatar and bot.alive then
-				avatar:setPosition(bot.position, bot.facing)
+				avatar:setPosition(bot.position, bot.facing, dt)
 			end
 			table.insert(targets, BotController.asTarget(bot))
 		end

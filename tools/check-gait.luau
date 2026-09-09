@@ -91,3 +91,29 @@ if problems > 0 then
 	process.exit(1)
 end
 print("\27[32mthe legs move with the ground, and against each other\27[0m")
+
+-- Two identical simulation walks scheduled at very different wall-clock
+-- intervals must produce the same pose during Heartbeat catch-up.
+local now = 0
+env.globals.os = table.clone(os)
+env.globals.os.clock = function() return now end
+local clockEnv = Harness.build()
+clockEnv.globals.os = env.globals.os
+local TimedAvatar = clockEnv.require(clockEnv.Server.Match.BotAvatar)
+local parent = roblox.Instance.new("Folder")
+local regular = TimedAvatar.new("regular", "Regular", parent, "pro")
+local catchup = TimedAvatar.new("catchup", "Catchup", parent, "pro")
+for i = 0, 40 do
+    local at = roblox.Vector3.new(0, 0, -i * 0.01)
+    now = i / 60
+    regular:setPosition(at, roblox.Vector3.new(0, 0, -1), 1 / 60)
+    now = 200 + i * 0.00001
+    catchup:setPosition(at, roblox.Vector3.new(0, 0, -1), 1 / 60)
+    for _, name in ipairs({ "ThighL", "ThighR", "Torso", "Marker" }) do
+        assert((regular.model[name].CFrame.Position - catchup.model[name].CFrame.Position).Magnitude < 0.0001,
+            name .. ": animation used CPU elapsed time instead of simulation time")
+    end
+end
+regular:destroy()
+catchup:destroy()
+print("Gait stays identical when fixed ticks run back-to-back")

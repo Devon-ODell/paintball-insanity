@@ -27,7 +27,7 @@
     "min": 3.5,
     "max": 9.0
   },
-  "maxLinesPerMinute": 9,
+  "maxLinesPerMinute": 11,
   "banks": {
     "matchStart": [
       "Alright, six on one. Try to make it last, would you?",
@@ -229,5 +229,6 @@
       "calloutWeight": 1.0,
       "linesPerMinute": 5
     }
-  }
+  },
+  "_maxLinesPerMinute": "A ceiling for the tier table below, not a second opinion about pacing. It sat at 9 while rec declared 11, and Chatter takes math.min of the two -- so rec was silently clamped to amateur's rate and the two tiers sounded identical. The whole point of the table is that a rec squad will not shut up and a pro squad barely speaks; keep this at or above the largest tier value or it quietly erases that."
 }

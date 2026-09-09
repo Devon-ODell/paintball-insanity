@@ -1,0 +1,8 @@
+{
+  "_comment": "Local paint-effect lifetime and instance budgets. Cosmetic only; server projectile simulation is unchanged.",
+  "splatCap": 120,
+  "splatSeconds": 14,
+  "tracerCap": 96,
+  "tracerSeconds": 3,
+  "resolveRadiusStuds": 12
+}

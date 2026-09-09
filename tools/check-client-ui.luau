@@ -20,6 +20,7 @@ end
 local wrappers = {}
 --- raw instance -> how many property writes it has taken.
 local writeCount = {}
+local trailClears = 0
 --- proxy -> raw, so any Ref property can be unwrapped on assignment.
 local raws = {}
 local wrap
@@ -29,6 +30,7 @@ wrap = function(raw)
 	local proxy = setmetatable({}, {
 		__index = function(_, key)
 			if key == "_raw" then return raw end
+			if key == "Clear" and raw:IsA("Trail") then return function() trailClears += 1 end end
 			if key == "GetPropertyChangedSignal" then return function() return signal() end end
 			if key == "Activated" or key == "MouseEnter" or key == "MouseLeave" then
 				if not events[key] then events[key] = signal() end
@@ -93,6 +95,7 @@ local contextActions = {
 	BindActionAtPriority = function(_, name, callback) actions[name] = callback end,
 	UnbindAction = function(_, name) actions[name] = nil end,
 }
+local clientWorld = Instance.new("Workspace")
 local shared = env.ReplicatedStorage.Shared
 local client = {}
 -- Every client module, not a hand-listed subset. Hud started requiring
@@ -127,7 +130,7 @@ loaded = function(target)
 		-- dies on its first shot with "attempt to index nil with 'new'".
 		NumberSequence = roblox.NumberSequence, ColorSequence = roblox.ColorSequence,
 		NumberRange = roblox.NumberRange,
-		task = { delay = function() end }, workspace = {} }
+		task = { delay = function() end }, workspace = clientWorld }
 	local result = luau.load(fs.readFile(root .. "/src/StarterPlayer/Client/" .. target.name .. ".luau"), { environment = globals, injectGlobals = true })()
 	cache[target.name] = result
 	return result
@@ -300,11 +303,43 @@ do
     assert(h.CameraOffset.Y < 0, "slide did not lower eye height")
     Input.state().slideEndsAt = -1
     Input.tick(1)
-    assert(not Input.state().sliding and h.CameraOffset.Y == 0, "slide expiry did not restore eye height")
+    assert(not Input.state().sliding and math.abs(h.CameraOffset.Y) < 0.02, "slide expiry did not restore eye height")
     input.WindowFocusReleased:fire()
     players.LocalPlayer.Character = nil
 end
 print("Input modal and focus-loss checks passed")
+
+do
+    local begin, cancel, finish = roblox.Enum.UserInputState.Begin, roblox.Enum.UserInputState.Cancel, roblox.Enum.UserInputState.End
+    actions.LR_Sprint(nil, begin)
+    actions.LR_Sprint(nil, cancel)
+    assert(not Input.state().sprinting and Input.sprintRecovery(os.clock()) > 0.9, "cancelled sprint stuck or lost recovery")
+    actions.LR_Sprint(nil, begin)
+    actions.LR_Crouch(nil, begin)
+    assert(not Input.state().sprinting and Input.sprintRecovery(os.clock()) > 0.9, "crouch bypassed sprint recovery")
+    actions.LR_Crouch(nil, cancel)
+    assert(not Input.state().crouching, "cancelled crouch stayed held")
+    actions.LR_LeanLeft(nil, begin)
+    actions.LR_LeanRight(nil, begin)
+    assert(Input.state().lean == 0, "opposed lean inputs should cancel")
+    actions.LR_LeanRight(nil, finish)
+    assert(Input.state().lean == -1, "releasing right lost the still-held left lean")
+    actions.LR_LeanLeft(nil, cancel)
+    assert(Input.state().lean == 0)
+    local h = { CameraOffset = roblox.Vector3.zero, WalkSpeed = 0 }
+    local rootPart = { AssemblyLinearVelocity = roblox.Vector3.new(0, 50, 0) }
+    players.LocalPlayer.Character = { FindFirstChild = function() return rootPart end, FindFirstChildOfClass = function() return h end }
+    assert(Input.stance() == "standing", "vertical velocity inflated the horizontal movement spread")
+    actions.LR_LeanLeft(nil, begin)
+    for _ = 1, 30 do Input.tick(1 / 30) end
+    local at30 = h.CameraOffset
+    h.CameraOffset = roblox.Vector3.zero
+    for _ = 1, 120 do Input.tick(1 / 120) end
+    assert((at30 - h.CameraOffset).Magnitude < 0.0001, "lean response depends on frame rate")
+    input.WindowFocusReleased:fire()
+    players.LocalPlayer.Character = nil
+end
+print("Input cancellation, overlapping lean keys, sprint recovery and 30/120 Hz smoothing passed")
 
 --[[
     A ceiling, not a target. The viewmodel is rebuilt on every equip and on
@@ -490,3 +525,22 @@ end
 local splats = Tracers.stats().liveSplats
 assert(splats <= 120, `splats should be capped at 120, found {splats}`)
 print(`Tracer checks passed: pooling, expiry, resolve-retires-its-own, and splats capped at {splats}.`)
+
+Tracers.clear()
+local effectCfg = env.require(env.Data.clientEffects)
+for _ = 1, effectCfg.splatCap do Tracers.splat(roblox.Vector3.zero) end
+Tracers.step(effectCfg.splatSeconds - 1)
+Tracers.splat(roblox.Vector3.zero) -- Recycles the oldest still-live part.
+Tracers.step(2)
+assert(Tracers.stats().liveSplats == 1, "old expiry reclaimed a recycled splat before its new lifetime elapsed")
+Tracers.step(effectCfg.splatSeconds)
+assert(Tracers.stats().liveSplats == 0, "paint did not expire")
+shoot(effectCfg.tracerCap + 10)
+assert(Tracers.stats().live == effectCfg.tracerCap, "tracer storm exceeded the hard budget")
+assert(trailClears > 0, "recycled trails kept previous flight history")
+Tracers.clear()
+local pooled = Tracers.stats().pooledTracers
+Tracers.clear()
+assert(Tracers.stats().pooledTracers == pooled and Tracers.stats().live == 0, "clear duplicated pooled effects")
+assert(#clientWorld:FindFirstChild("LiveRoundTracers"):GetChildren() == 0, "cleared effects remained in the scene")
+print("Paint recycling lifetime, trail clearing, burst cap and round cleanup passed")

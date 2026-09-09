@@ -1878,7 +1878,7 @@
       {
         "id": "mossPatches",
         "kind": "moss",
-        "_note": "Domed, never flat. A flat patch on the floor is coplanar with it and shimmers; see tools/check-zfight.",
+        "_note": "Authored leaf litter follows the ground, with a small surface offset controlled by environmentArt.groundOffsetMetres.",
         "count": 190,
         "innerRadiusMetres": 12,
         "outerRadiusMetres": 94,

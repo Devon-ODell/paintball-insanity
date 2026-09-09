@@ -414,6 +414,14 @@ function bayCatalogue(player: Player, bayId: string?, categories: { string }?): 
 		freeMode = require(ReplicatedStorage.Shared.CommerceCatalog).isFree(),
 		balance = handle.data.currency,
 		catalogue = Shop.catalogueFor(handle),
+		--[[
+			The season track goes with the shop payload, not only with session
+			state. The barn is where a player stands when they think about
+			spending anything, and a pass whose progress is invisible at the
+			counter is a pass nobody buys -- the whole track shipped with no way
+			for a client to see it at all.
+		]]
+		season = SeasonPass.summary(handle),
 	}
 end
 

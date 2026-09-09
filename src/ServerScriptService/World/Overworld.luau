@@ -169,23 +169,17 @@ function Overworld.build(parent: Instance?): Hub
 		whatever came before, so the paint order in the data is the paint order
 		on the ground.
 	]]
-	--[[
-		A sunken zone -- the creek, the pond -- is a slab whose TOP is the water
-		surface, and it was landing exactly on the ground plane: 238 studs of
-		creek sharing a plane with the forest floor, which is as bad as z-fighting
-		gets in this game. `waterLiftMetres` was written into the data for this and
-		then never read by anything. It is read now.
-	]]
+	-- Water and solid zones use the same visible-height plan as trails. Water
+	-- clears its bank surface instead of disappearing beneath a later layer.
 	local groundPlan = GroundLayers.plan(cfg.zones, cfg.trails, cfg.surfaceLayerMetres.alternateMetres, cfg.barn)
 	for index, zone in ipairs(cfg.zones) do
 		local height = groundPlan.zones[index]
-		local waterLift = height
 		local depth = zone.depthMetres
 		local part: Part
 		if zone.shape == "circle" then
 			part = slab(
 				zone.id,
-				Vector3.new(zone.position[1], (if depth then waterLift - depth / 2 else height / 2), zone.position[3]),
+				Vector3.new(zone.position[1], (if depth then height - depth / 2 else height / 2), zone.position[3]),
 				Vector3.new(zone.radiusMetres * 2, depth or height, zone.radiusMetres * 2),
 				zone.colorKey,
 				terrainFolder,
@@ -197,7 +191,7 @@ function Overworld.build(parent: Instance?): Hub
 		else
 			part = slab(
 				zone.id,
-				Vector3.new(zone.position[1], (if depth then waterLift - depth / 2 else height / 2), zone.position[3]),
+				Vector3.new(zone.position[1], (if depth then height - depth / 2 else height / 2), zone.position[3]),
 				Vector3.new(zone.size[1], depth or height, zone.size[2]),
 				zone.colorKey,
 				terrainFolder,

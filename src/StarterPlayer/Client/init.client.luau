@@ -203,7 +203,7 @@ Remotes.event("ShotResolved").OnClientEvent:Connect(function(result)
 			ViewMarker.reactHeadshot()
 		end
 	end
-	if result.impact then
+	if result.impact and phase == "live" and not respawning then
 		Tracers.resolve(result.impact)
 	end
 end)
@@ -215,6 +215,7 @@ end)
 
 Remotes.event("PlayerEliminated").OnClientEvent:Connect(function(payload)
 	respawning = true
+	Tracers.clear()
 	deaths = payload.deaths
 	-- Mirror of the server's curve, for display only. The server computes the
 	-- real payout and this number never leaves the client.
@@ -228,6 +229,7 @@ Remotes.event("ChatterLine").OnClientEvent:Connect(function(line)
 end)
 
 Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
+	Tracers.clear()
 	Input.setPointerFree(true)
 	--[[
 		The run is over, so the clock stops and is replaced by the server's own
@@ -294,6 +296,7 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 	local previousPhase = phase
 	phaseRevision += 1
 	phase = payload.phase
+	if phase ~= previousPhase then Tracers.clear() end
 	Hud.setPhase(phase)
 
 	--[[
@@ -396,13 +399,15 @@ player.CharacterAdded:Connect(function()
 	respawning = false
 end)
 
-RunService.RenderStepped:Connect(function(dt)
+-- CameraOffset is consumed by Roblox's camera; marker/HUD placement consumes
+-- the resulting camera. Explicit priorities prevent a one-frame lag/jitter.
+RunService:BindToRenderStep("LR_Input", Enum.RenderPriority.Camera.Value - 1, Input.tick)
+RunService:BindToRenderStep("LR_Presentation", Enum.RenderPriority.Camera.Value + 1, function(dt)
 	local activeCamera = workspace.CurrentCamera
 	if activeCamera and activeCamera ~= camera then
 		camera = activeCamera
 		camera.FieldOfView = playerCfg.fieldOfViewDeg
 	end
-	Input.tick(dt)
 	-- The Shoothouse clock advances only while a stage is actually live, which
 	-- is what "the clock does not stop between stages" means in practice: there
 	-- is no intermission for it to stop for.

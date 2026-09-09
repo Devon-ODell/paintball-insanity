@@ -179,3 +179,11 @@ skybox needs uploaded assets, which this project does not use.
 Per-instance colour variation (`Shared/Tint`) is a positional hash, not a random
 draw, so it needed no new engine API and moved nothing: the hub's foliage report
 is identical part-for-part before and after.
+
+## 2026-09-09 — five-fix follow-up
+
+Checked [RunService render priorities](https://create.roblox.com/docs/reference/engine/classes/RunService): default camera updates at priority 200; BindToRenderStep uses a numeric priority and `.Value` on RenderPriority. Input offsets bind at Camera.Value−1 and camera-dependent presentation at Camera.Value+1.
+
+Checked [Trail.Clear](https://create.roblox.com/docs/reference/engine/classes/Trail) for explicit history clearing during reuse, and [ContextActionService](https://create.roblox.com/docs/reference/engine/classes/ContextActionService) for action-state handling. Input now treats End/Cancel as release. The headless checks stub engine events and Trail.Clear; they validate lifecycle calls, not rendered trail pixels.
+
+Current build status and handoffs live in [CHANGE_REPORT.md](CHANGE_REPORT.md). Earlier platform notes describe the dependencies available on their original dates; they are not current release status.
