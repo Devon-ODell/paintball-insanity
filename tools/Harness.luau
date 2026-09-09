@@ -157,6 +157,8 @@ local function classForFile(fileName: string): (string?, string?)
 	if base then
 		return base, "JsonModule"
 	end
+	base = fileName:match("^(.*)%.rbxmx$")
+	if base then return base, "ArtModel" end
 	return nil, nil
 end
 
@@ -184,6 +186,15 @@ function buildDir(diskPath: string, name: string): Node
 			addChild(node, buildDir(full, entry))
 		else
 			local base, class = classForFile(entry)
+			if base and class == "ArtModel" then
+				local roots = roblox.deserializeModel(fs.readFile(full))
+				assert(#roots == 1, "Art files must contain one root: " .. full)
+				roots[1].Name = base
+				-- Actual Instances retain mesh content and SurfaceAppearance data.
+				node._children[base] = roots[1]
+				table.insert(node._order, roots[1])
+				continue
+			end
 			if base and class then
 				local child = newNode(base, if class == "JsonModule" then "ModuleScript" else class)
 				child._diskPath = full
@@ -256,8 +267,8 @@ function Harness.build(repoRoot: string?): Env
 			headlessly -- Atmosphere.apply threw on `created.Parent = Lighting`
 			and took the whole build with it.
 		]]
-		if serviceName == "Lighting" then
-			local lighting = roblox.Instance.new("Lighting")
+		if serviceName == "Lighting" or serviceName == "MaterialService" then
+			local lighting = roblox.Instance.new(serviceName)
 			services[serviceName] = lighting :: any
 			return lighting :: any
 		end

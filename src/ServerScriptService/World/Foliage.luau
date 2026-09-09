@@ -18,6 +18,7 @@ local Units = require(ReplicatedStorage.Shared.Units)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Tint = require(ReplicatedStorage.Shared.Tint)
 
+local EnvironmentArt = require(script.Parent.EnvironmentArt)
 local Foliage = {}
 
 export type Palette = { [string]: Color3 }
@@ -620,7 +621,10 @@ function Foliage.scatterLayer(layer: any, ctx: ScatterContext, rng: Rng.Generato
 
 		local model = Instance.new("Model")
 		model.Name = layer.id
-		builder(model, rng, layer, tinted(ctx.palette, point :: Vector3))
+		local near = Foliage.nearPlayerPaths(point :: Vector3, ctx, Config.get("environmentArt").nearTreeMetres)
+		if not EnvironmentArt.plant(layer.kind, model, rng, layer, footprint, near) then
+			builder(model, rng, layer, tinted(ctx.palette, point :: Vector3))
+		end
 
 		--[[
 			Shadows are decided per INSTANCE, after the builder has decided them

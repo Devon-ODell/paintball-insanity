@@ -8,8 +8,8 @@
 	with (Parts, in studs) are guaranteed to be the same shapes -- they are built
 	from one source.
 
-	Look: low-poly, flat-shaded, saturated. SmoothPlastic with zero reflectance
-	on everything, no textures, no decals. Silhouette does the work.
+	Gameplay cover keeps its authored geometry. Mesh dressing, PBR materials
+	and map lighting supply detail without changing the simulation bounds.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,8 +20,11 @@ local Tint = require(ReplicatedStorage.Shared.Tint)
 local Log = require(ReplicatedStorage.Shared.Log)
 local Inflatables = require(script.Parent.Inflatables)
 local VehicleProps = require(script.Parent.Parent.World.VehicleProps)
+local EnvironmentArt = require(script.Parent.Parent.World.EnvironmentArt)
+local EnvironmentMaterials = require(script.Parent.Parent.World.EnvironmentMaterials)
 local Atmosphere = require(script.Parent.Atmosphere)
 local Surfaces = require(game:GetService("ReplicatedStorage").Shared.Surfaces)
+local GroundLayers = require(ReplicatedStorage.Shared.GroundLayers)
 
 local log = Log.scope("LiveRound.World")
 
@@ -154,6 +157,7 @@ local function style(part: BasePart, colorKey: string, transparency: number?)
 	part.CanTouch = false
 	part.TopSurface = Enum.SurfaceType.Smooth
 	part.BottomSurface = Enum.SurfaceType.Smooth
+	EnvironmentMaterials.apply(part, colorKey)
 end
 
 local function buildPiece(piece: any, mirrorX: boolean, mirrorZ: boolean, parent: Instance)
@@ -307,7 +311,7 @@ local function buildPresentation(mapData: any, root: Folder, geometry: Folder)
 			local midpoint = (start + finish) / 2
 				- Vector3.new(0, cfg.groundMarking.thicknessMetres / 2, 0)
 			scenery(trail.id, Vector3.new(trail.widthMetres, cfg.groundMarking.thicknessMetres, (finish - start).Magnitude),
-				CFrame.lookAt(Units.vectorToStuds(midpoint), Units.vectorToStuds(finish)),
+				GroundLayers.frame(Units.vectorToStuds(midpoint), finish - start),
 				trail.color, materialFor(trail.color, Enum.Material.Ground))
 		end
 	end
@@ -347,31 +351,12 @@ local function buildPresentation(mapData: any, root: Folder, geometry: Folder)
 		local function tree(x: number, z: number)
 			serial += 1
 			local height = profile.heightMetres + treeCfg.heightVariationMetres[(serial - 1) % #treeCfg.heightVariationMetres + 1]
-			local key = if serial % 2 == 0 then "pine" else "pineLight"
-			local trunk = scenery("TreeLineTrunk", Vector3.new(height, treeCfg.trunkDiameterMetres, treeCfg.trunkDiameterMetres),
-				CFrame.new(Units.vectorToStuds(Vector3.new(x, height / 2, z))) * CFrame.Angles(0, 0, math.pi / 2), "bark", Enum.Material.Wood)
-			trunk.Shape = Enum.PartType.Cylinder
-			--[[
-				A stepped spire, the same shape the hub's conifers use.
-
-				This was two spheres on a stick, which is the "trees are blobs"
-				read the hub was already rebuilt once to fix -- the fix just never
-				reached the field borders. Tiers are stacked cylinder discs
-				tapering to a tip, authored in presentation.treeLine so the
-				silhouette is data rather than two hardcoded fractions.
-
-				It costs parts and no shadows: scenery() never casts, and a
-				border treeline sits outside the bounds where its shadow would
-				fall off the field anyway.
-			]]
-			for index, tier in ipairs(treeCfg.crownTiers) do
-				local width = treeCfg.crownWidthMetres * tier.widthFraction
-				local crown = scenery("TreeLineCrown", Vector3.new(height * tier.thicknessFraction, width, width),
-					CFrame.new(Units.vectorToStuds(Vector3.new(x, height * tier.positionFraction, z)))
-						* CFrame.Angles(0, 0, math.pi / 2),
-					if index % 2 == 0 then "pineLight" else key, Enum.Material.Grass)
-				crown.Shape = Enum.PartType.Cylinder
-			end
+			local model = Instance.new("Model")
+			model.Name = "TreeLine"
+			local art = EnvironmentArt.append("RedwoodDistant", model, height, treeCfg.crownWidthMetres, false)
+			local at = CFrame.new(Units.vectorToStuds(Vector3.new(x, 0, z)))
+			for _, part in ipairs(art) do part.CFrame = at * part.CFrame end
+			model.Parent = folder
 		end
 		for _, side in ipairs({ -1, 1 }) do
 			for i = 1, profile.perLongSide do
@@ -388,6 +373,7 @@ end
 
 --- Builds the whole map under a fresh folder in Workspace and returns it.
 function WorldBuilder.build(mapName: string, parent: Instance): Folder
+	EnvironmentMaterials.install()
 	local mapData = Config.map(mapName)
 
 	local root = Instance.new("Folder")

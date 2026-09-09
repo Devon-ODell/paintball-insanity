@@ -1,0 +1,63 @@
+{
+  "_source": "Roblox Forest Pack 6432306802 and Environment Art Library 14447738661. Sanitized, versioned templates in World/ArtAssets; no runtime InsertService or imported scripts.",
+  "nearTreeMetres": 18,
+  "materialTileStuds": {
+    "LR_Moss": 14,
+    "LR_Stones": 12,
+    "LR_Concrete_Board_Formed_A": 18,
+    "LR_MetalPanels": 14
+  },
+  "materials": {
+    "forestFloor": "LR_Moss",
+    "concrete": "LR_Concrete_Board_Formed_A",
+    "stone": "LR_Stones",
+    "sheetMetal": "LR_MetalPanels"
+  },
+  "variants": {
+    "tree": [
+      "Redwood"
+    ],
+    "broadleaf": [
+      "Beech"
+    ],
+    "sapling": [
+      "Sapling"
+    ],
+    "fern": [
+      "Fern",
+      "FernTall"
+    ],
+    "rock": [
+      "Rock",
+      "MossRock"
+    ],
+    "fallenLog": [
+      "FallenLog"
+    ],
+    "moss": [
+      "LeafLitter"
+    ]
+  },
+  "groundOffsetMetres": 0.016,
+  "colliderHeightFraction": 0.46,
+  "wind": {
+    "intervalSeconds": 0.05,
+    "radiusMetres": 28,
+    "maxParts": 48,
+    "amplitudeDegrees": 1.1,
+    "frequencyHz": 0.35,
+    "refreshSeconds": 1.5
+  },
+  "sky": {
+    "starCount": 1200,
+    "sunAngularSize": 11,
+    "moonAngularSize": 10,
+    "back": "rbxasset://textures/sky/sky512_bk.tex",
+    "down": "rbxasset://textures/sky/sky512_dn.tex",
+    "front": "rbxasset://textures/sky/sky512_ft.tex",
+    "left": "rbxasset://textures/sky/sky512_lf.tex",
+    "right": "rbxasset://textures/sky/sky512_rt.tex",
+    "up": "rbxasset://textures/sky/sky512_up.tex"
+  },
+  "materialTintLift": 0.55
+}

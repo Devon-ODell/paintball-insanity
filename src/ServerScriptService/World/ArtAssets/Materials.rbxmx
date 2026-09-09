@@ -1,0 +1,132 @@
+<roblox version="4">
+  <Item class="Folder" referent="0">
+    <Properties>
+      <string name="Name">Materials</string>
+    </Properties>
+    <Item class="MaterialVariant" referent="1">
+      <Properties>
+        <string name="Name">LR_Concrete_Board_Formed_A</string>
+        <BinaryString name="AttributesSerialize"></BinaryString>
+        <token name="BaseMaterial">816</token>
+        <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+        <Content name="ColorMapContent">
+          <uri>rbxassetid://9942998923</uri>
+        </Content>
+        <PhysicalProperties name="CustomPhysicalProperties">
+          <CustomPhysics>false</CustomPhysics>
+        </PhysicalProperties>
+        <token name="MaterialPattern">0</token>
+        <Content name="MetalnessMapContent">
+          <null>
+          </null>
+        </Content>
+        <Content name="NormalMapContent">
+          <uri>rbxassetid://9942998998</uri>
+        </Content>
+        <Content name="RoughnessMapContent">
+          <uri>rbxassetid://9942998661</uri>
+        </Content>
+        <bool name="DefinesCapabilities">false</bool>
+        <int64 name="SourceAssetId">-1</int64>
+        <float name="StudsPerTile">20</float>
+        <BinaryString name="Tags"></BinaryString>
+        <ContentId name="TexturePack">
+          <url>rbxassetid://9942999057</url>
+        </ContentId>
+      </Properties>
+    </Item>
+    <Item class="MaterialVariant" referent="2">
+      <Properties>
+        <string name="Name">LR_Stones</string>
+        <BinaryString name="AttributesSerialize"></BinaryString>
+        <token name="BaseMaterial">1296</token>
+        <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+        <Content name="ColorMapContent">
+          <uri>rbxassetid://13326348142</uri>
+        </Content>
+        <PhysicalProperties name="CustomPhysicalProperties">
+          <CustomPhysics>false</CustomPhysics>
+        </PhysicalProperties>
+        <token name="MaterialPattern">0</token>
+        <Content name="MetalnessMapContent">
+          <uri>rbxassetid://13326226958</uri>
+        </Content>
+        <Content name="NormalMapContent">
+          <uri>rbxassetid://13326227645</uri>
+        </Content>
+        <Content name="RoughnessMapContent">
+          <uri>rbxassetid://13326227505</uri>
+        </Content>
+        <bool name="DefinesCapabilities">false</bool>
+        <int64 name="SourceAssetId">-1</int64>
+        <float name="StudsPerTile">10</float>
+        <BinaryString name="Tags"></BinaryString>
+        <ContentId name="TexturePack">
+          <url>rbxassetid://13326348236</url>
+        </ContentId>
+      </Properties>
+    </Item>
+    <Item class="MaterialVariant" referent="3">
+      <Properties>
+        <string name="Name">LR_Moss</string>
+        <BinaryString name="AttributesSerialize"></BinaryString>
+        <token name="BaseMaterial">1360</token>
+        <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+        <Content name="ColorMapContent">
+          <uri>rbxassetid://13703366674</uri>
+        </Content>
+        <PhysicalProperties name="CustomPhysicalProperties">
+          <CustomPhysics>false</CustomPhysics>
+        </PhysicalProperties>
+        <token name="MaterialPattern">1</token>
+        <Content name="MetalnessMapContent">
+          <uri>rbxassetid://13280829022</uri>
+        </Content>
+        <Content name="NormalMapContent">
+          <uri>rbxassetid://13316888753</uri>
+        </Content>
+        <Content name="RoughnessMapContent">
+          <uri>rbxassetid://13316888800</uri>
+        </Content>
+        <bool name="DefinesCapabilities">false</bool>
+        <int64 name="SourceAssetId">-1</int64>
+        <float name="StudsPerTile">10</float>
+        <BinaryString name="Tags"></BinaryString>
+        <ContentId name="TexturePack">
+          <url>rbxassetid://13703366771</url>
+        </ContentId>
+      </Properties>
+    </Item>
+    <Item class="MaterialVariant" referent="4">
+      <Properties>
+        <string name="Name">LR_MetalPanels</string>
+        <BinaryString name="AttributesSerialize"></BinaryString>
+        <token name="BaseMaterial">256</token>
+        <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+        <Content name="ColorMapContent">
+          <uri>rbxassetid://13455038451</uri>
+        </Content>
+        <PhysicalProperties name="CustomPhysicalProperties">
+          <CustomPhysics>false</CustomPhysics>
+        </PhysicalProperties>
+        <token name="MaterialPattern">0</token>
+        <Content name="MetalnessMapContent">
+          <uri>rbxassetid://13455044763</uri>
+        </Content>
+        <Content name="NormalMapContent">
+          <uri>rbxassetid://13454983213</uri>
+        </Content>
+        <Content name="RoughnessMapContent">
+          <uri>rbxassetid://13455040077</uri>
+        </Content>
+        <bool name="DefinesCapabilities">false</bool>
+        <int64 name="SourceAssetId">-1</int64>
+        <float name="StudsPerTile">10</float>
+        <BinaryString name="Tags"></BinaryString>
+        <ContentId name="TexturePack">
+          <url>rbxassetid://13455044851</url>
+        </ContentId>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

@@ -52,7 +52,8 @@ for _, name in ipairs(Config.mapNames()) do
         end
     end
     assert(displays == #Config.get("markers").order, name .. ": missing catalogue display")
-    assert(#lighting:GetChildren() == 5, "map changes stacked lighting effects")
+    assert(#lighting:GetChildren() == 6, "map changes stacked lighting effects")
+    assert(lighting.LiveRoundSky:IsA("Sky"), "missing sky and reflection environment")
     assert(not lighting.LiveRoundDof.Enabled, "combat depth of field blurred distant targets")
     local avatar = BotAvatar.new("bot1", "Demo Bot", world)
     avatar:setPosition(roblox.Vector3.zero, roblox.Vector3.zAxis)

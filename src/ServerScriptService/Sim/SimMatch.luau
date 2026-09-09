@@ -215,6 +215,33 @@ local function runRound(ctx: RoundContext): RoundReport
 	local visibleSince: { [string]: number? } = {}
 	local deaths, eliminations, hits, shots = 0, 0, 0, 0
 
+	--[[
+		Can a body stand here?
+
+		A containment test rather than a ray, and that distinction is the whole
+		fix. The movement check used to cast from the player's chest to the
+		proposed point, which returns a hit the instant the START of the ray is
+		inside a volume -- so the moment the player stepped onto a walkable
+		ridge or knoll, every direction reported blocked and they froze in place
+		for the rest of the round. Watched: the benchmark reached (0, -64) on
+		Holdfast at t=20 and had not moved by t=180.
+
+		Only `cover` that is not `walkable` stops anybody. Hills, ridges and
+		ramps are surfaces you stand on; brush is concealment you walk through.
+	]]
+	local function blocked(point: Vector3): boolean
+		for _, volume in ipairs(world.volumes) do
+			if volume.cover and not volume.walkable then
+				for _, height in ipairs({ 0.4, 1.0, 1.6 }) do
+					if MapGeometry.containsPoint(volume, Vector3.new(point.X, height, point.Z)) then
+						return true
+					end
+				end
+			end
+		end
+		return false
+	end
+
 	local dt = 1 / matchData.server.tickRateHz
 	local t = 0
 	local cleared = false
@@ -303,12 +330,53 @@ local function runRound(ctx: RoundContext): RoundReport
 					then playerCfg.sprintSpeedMps
 					elseif intent.crouch then playerCfg.crouchSpeedMps
 					else playerCfg.walkSpeedMps
-				local proposed = player.position + direction * speed * dt
-				local probe = Vector3.new(0, 1.0, 0)
-				if MapGeometry.cast(world, player.position + probe, proposed + probe, { ignoreConcealment = true }) == nil then
-					player.position = proposed
-					player.velocity = direction * speed
-				else
+				--[[
+					Walk, and go AROUND things.
+
+					This used to take the straight step or nothing, and nothing
+					was what it took. A player walking into cover stopped dead
+					and pushed into it for the rest of the round: measured, the
+					benchmark got 4.4 m off spawn on Holdfast and 5.5 m on
+					Speedball before jamming permanently, on every map in the
+					game.
+
+					Speedball hid it completely. Bots move with no collision
+					check at all -- BotController does `self.position += ...` --
+					so on a 34 by 55 m field they simply walked to the jammed
+					player and the fights happened anyway. On Holdfast, 132 by
+					176, nobody ever crossed the distance and six seeded
+					gauntlets reported 0 shots, 0 deaths and 0 clears. The
+					largest field in the game looked broken; the walk was broken.
+
+					Deflecting is what a person does at a wall: try straight,
+					then progressively wider either way, and take the first
+					opening. Symmetric angles so it does not develop a
+					handedness that would bias which side of cover gets used,
+					and wide enough to turn back out of a dead end -- stopping
+					at 75 degrees left the player able to walk into a corner of
+					Urban it could not reverse out of, which broke that field
+					the moment the freeze on every other one was fixed.
+				]]
+				local moved = false
+				for _, degrees in ipairs({ 0, 25, -25, 50, -50, 75, -75, 100, -100, 125, -125, 150, -150 }) do
+					local radians = math.rad(degrees)
+					local cosine, sine = math.cos(radians), math.sin(radians)
+					local steer = Vector3.new(
+						direction.X * cosine - direction.Z * sine,
+						0,
+						direction.X * sine + direction.Z * cosine
+					)
+					local proposed = player.position + steer * speed * dt
+					if not blocked(proposed) then
+						player.position = proposed
+						-- Velocity is the direction actually travelled, so spread
+						-- and stance follow the real movement, not the intent.
+						player.velocity = steer * speed
+						moved = true
+						break
+					end
+				end
+				if not moved then
 					player.velocity = Vector3.new(0, 0, 0)
 				end
 				player.stance = if intent.sprint then "sprinting" else "moving"

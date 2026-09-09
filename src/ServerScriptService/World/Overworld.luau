@@ -27,9 +27,11 @@ local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
 
 local Foliage = require(script.Parent.Foliage)
+local EnvironmentMaterials = require(script.Parent.EnvironmentMaterials)
 local VehicleProps = require(script.Parent.VehicleProps)
 local YardProps = require(script.Parent.YardProps)
 local Surfaces = require(ReplicatedStorage.Shared.Surfaces)
+local GroundLayers = require(ReplicatedStorage.Shared.GroundLayers)
 local PoleBarn = require(script.Parent.PoleBarn)
 local NoticeBoard = require(script.Parent.NoticeBoard)
 local Npc = require(script.Parent.Npc)
@@ -106,6 +108,7 @@ end
 --------------------------------------------------------------------------------
 
 function Overworld.build(parent: Instance?): Hub
+	EnvironmentMaterials.install()
 	local cfg = Config.get("overworld")
 	local root = Instance.new("Model")
 	root.Name = "TheLanding"
@@ -133,6 +136,7 @@ function Overworld.build(parent: Instance?): Hub
 		part.CFrame = CFrame.new(Units.vectorToStuds(at))
 		part.Color = palette[key] or Color3.fromRGB(150, 150, 150)
 		part.Material = MATERIAL[key] or Enum.Material.SmoothPlastic
+		EnvironmentMaterials.apply(part, key)
 		part.Anchored = true
 		part.CanCollide = collide ~= false
 		part.CanQuery = collide ~= false
@@ -172,9 +176,10 @@ function Overworld.build(parent: Instance?): Hub
 		gets in this game. `waterLiftMetres` was written into the data for this and
 		then never read by anything. It is read now.
 	]]
-	local waterLift = cfg.surfaceLayerMetres.waterLiftMetres or 0.03
+	local groundPlan = GroundLayers.plan(cfg.zones, cfg.trails, cfg.surfaceLayerMetres.alternateMetres, cfg.barn)
 	for index, zone in ipairs(cfg.zones) do
-		local height = 0.06 + index * 0.012
+		local height = groundPlan.zones[index]
+		local waterLift = height
 		local depth = zone.depthMetres
 		local part: Part
 		if zone.shape == "circle" then
@@ -222,43 +227,14 @@ function Overworld.build(parent: Instance?): Hub
 	trailFolder.Name = "Trails"
 	trailFolder.Parent = root
 
-	--[[
-		Surface layering, and why every one of these numbers matters.
-
-		Trail segments deliberately overlap so a bend does not show a notch, and
-		trails cross each other at junctions. Every segment used to be built at
-		exactly y = 0.14, which put dozens of pairs of faces on identical planes.
-		Two coplanar faces have no stable depth winner, so the renderer picks a
-		different one per pixel per frame and the ground shimmers as you walk --
-		"one texture inside another". It is invisible in a screenshot.
-
-		Each trail gets its own layer and adjacent segments alternate within it,
-		so no two overlapping slabs ever share a plane. The step is a few
-		millimetres: enough for the depth buffer, far too small to see or trip on.
-		tools/check-zfight is what found this and what proves it stays fixed.
-	]]
+	-- Zones, path segments and rounded joins share an overlap plan. Reuse low
+	-- levels wherever surfaces are disjoint, and reserve the barn floor planes.
 	local layer = cfg.surfaceLayerMetres
-
-	--[[
-		Only trails that touch need different levels; see Shared/Surfaces for why
-		the obvious "one level per trail" fails in both directions. Three levels
-		covers The Landing.
-	]]
-	local trailLevels = Surfaces.assignLevels(cfg.trails)
-
 	for trailIndex, trail in ipairs(cfg.trails) do
-		--[[
-			Each trail sinks a little further than the last rather than stacking
-			on top of it. Stacking would leave the ninth trail standing 11cm
-			proud of the first and put a kerb across every junction; sinking
-			hides the difference in the floor slab, which is two metres thick,
-			and every trail's visible surface still sits above ground level.
-		]]
 		for i = 1, #trail.points - 1 do
-			local base = trail.baseMetres or layer.trailBaseMetres
 			local depth = layer.trailDepthMetres
-			local segmentY = Surfaces.segmentHeight(base, trailLevels[trailIndex], i, layer.alternateMetres)
-			local joinY = Surfaces.segmentHeight(base, trailLevels[trailIndex], i + 2, layer.alternateMetres)
+			local segmentY = groundPlan.trails[trailIndex].segments[i]
+			local joinY = groundPlan.trails[trailIndex].joins[i]
 			local a = vec(trail.points[i])
 			local b = vec(trail.points[i + 1])
 			local delta = b - a
@@ -283,9 +259,8 @@ function Overworld.build(parent: Instance?): Hub
 				trailFolder,
 				false
 			)
-			segment.CFrame = CFrame.lookAt(
-				Units.vectorToStuds((a + b) / 2 + Vector3.new(0, segmentCentre, 0)),
-				Units.vectorToStuds(b + Vector3.new(0, segmentCentre, 0))
+			segment.CFrame = GroundLayers.frame(
+				Units.vectorToStuds((a + b) / 2 + Vector3.new(0, segmentCentre, 0)), delta
 			)
 			-- Rounded joins, so a bend does not show a notch.
 			local join = slab(

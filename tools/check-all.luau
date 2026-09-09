@@ -36,6 +36,8 @@ local GATES: { Gate } = {
 	{ id = "check-characters", why = "every bot and civilian builds" },
 	{ id = "check-gait", why = "the walk cycle moves with the ground" },
 	{ id = "check-inflatables", why = "speedball bunker geometry and budgets" },
+	{ id = "check-environment-art", why = "sanitized mesh templates, footprint bounds and materials" },
+	{ id = "check-foliage-wind", why = "local wind budget, distance culling and teardown" },
 	{ id = "check-client-ui", why = "HUD, shop, dialogue, tracers, input" },
 	{ id = "check-range", why = "drives a full aim drill end to end" },
 	{ id = "check-demo-world", why = "all five maps, lighting and decoration" },

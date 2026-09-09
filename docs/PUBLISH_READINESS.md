@@ -253,30 +253,58 @@ open the current source in Studio. Double-click `Check Release.command` to run
 all automated gates before building (allow several minutes). Both launchers use
 the installed tools in `~/.local/bin`; neither publishes to Roblox.
 
-### BLOCKING: Holdfast produces no fights at all (2026-09-08)
+### Holdfast: fixed, and it invalidated the balance data (2026-09-08)
 
-Six seeded gauntlets on Holdfast return **0 shots, 0 eliminations, 0 deaths, 0%
-clear** — identically at every tier and every seed, and identically for a single
-round as for a full gauntlet. The largest field in the game, and the campaign's
-final one at 720 base payout, has never been measured by anything.
+**Root cause: the simulated player could not walk.**
 
-Three real faults were found and fixed while chasing it, and **none of them was
-the cause**:
+`SimMatch` committed a movement step only if a ray cast from the player's chest
+to the proposed point was clear. A ray returns a hit the instant its START is
+inside a volume, so the moment the player stepped onto a walkable ridge, knoll
+or ramp, every direction reported blocked and they froze in place for the rest
+of the round. Watched directly: the benchmark reached (0, -64) on Holdfast at
+t=20 s and had not moved by t=180 s.
 
-- Round one takes the FIRST FOUR bot spawns in declared order, and Holdfast
-  declared its four most distant first — 130 to 139 m out, against a semi-pro's
-  78 m vision. Reordering nearest-first fixed **Woods** measurably (mean deaths
-  65.3 → 51.5, engagement median onto its own declared 38.7 m target). It did
-  not move Holdfast.
-- The benchmark policy advanced to a fixed point and idled. On Speedball that
-  point sees 6 of 6 spawns; on Holdfast it sees **0 of 12** — inside the fort's
-  own cover. It now sweeps the spawns instead. It did not move Holdfast.
-- `tools/check-spawns` was written to catch a spawn inside a wall. It found
-  none on Holdfast: the player spawn is on `knoll_south`, which is a walkable
-  volume, and standing on it is correct.
+Speedball hid it for the entire life of the project. `BotController` moves with
+`self.position += direction * step` and performs **no collision check at all**,
+so on a 34 by 55 m field the bots simply walked to the frozen player and the
+fights happened anyway. On Holdfast, 132 by 176 m, nobody ever crossed the
+distance: 0 shots, 0 deaths, 0 clears, every seed, every tier.
 
-**The cause is still unknown.** Do not ship Holdfast. It is reachable in the
-campaign, so either the field is fixed or it comes out of the rotation before
-release. The next thing to try is instrumenting a single Holdfast round for
-player position and bot state over time — everything above was inferred from
-geometry rather than watched.
+The movement rule is now a containment test against `cover` that is not
+`walkable`, with symmetric deflection out to 150 degrees so the player can
+round cover and reverse out of a dead end. Holdfast went from **0% to 83%
+clear**, 49 mean deaths and 949 payout, which is the shape its 720 base payout
+always implied.
+
+**Two specs now fail, and they should.** They are not weakened here on purpose.
+
+| | before (frozen player) | now (player walks) |
+| --- | --- | --- |
+| Speedball median engagement | ~16 m | 26.7 m |
+| Woods median engagement | 47.5 m | 40.9 m (target 38.7) |
+| `woods > speedball * 1.6` | passed | 40.9 vs 42.7 — **fails** |
+
+And `tools/probe-trading`, which is the premise of the whole design -- straight
+fights are unwinnable, the player must win angles and never trades:
+
+| Field | Holding | Trading | |
+| --- | ---: | ---: | --- |
+| Speedball | 6.83 | 4.67 | rushing is better |
+| Dustline | 12.33 | 10.00 | rushing is better |
+| Urban | 14.17 | 10.50 | rushing is better |
+| Woods | 21.33 | 13.83 | rushing is better |
+| Holdfast | 10.50 | 16.33 | ok |
+
+**Four of five fields now reward trading.** Before the fix, three of five passed.
+The difference is not that the maps changed -- it is that they were tuned,
+measured and accepted against a benchmark that stood still five metres from
+spawn. Every engagement band, every posture bias and every difficulty figure in
+this document describes a stationary player.
+
+This is a **release blocker and a re-tuning pass**, not a one-line fix. The
+specs are left failing so that it cannot be forgotten: making them green by
+moving the thresholds would rubber-stamp tuning derived from a bug.
+
+Suggested order: re-derive the engagement bands from the moving benchmark, then
+adjust cover and spawn geometry field by field with `probe-trading` open, then
+restore the two assertions.

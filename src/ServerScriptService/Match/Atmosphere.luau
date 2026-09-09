@@ -79,6 +79,22 @@ local function ensure(className: string, name: string): Instance
 	return created
 end
 
+local function applySky()
+	local cfg = Config.get("environmentArt").sky
+	local sky = ensure("Sky", "LiveRoundSky") :: Sky
+	-- Bundled engine textures need no asset upload or third-party availability.
+	sky.SkyboxBk = cfg.back
+	sky.SkyboxDn = cfg.down
+	sky.SkyboxFt = cfg.front
+	sky.SkyboxLf = cfg.left
+	sky.SkyboxRt = cfg.right
+	sky.SkyboxUp = cfg.up
+	sky.StarCount = cfg.starCount
+	sky.SunAngularSize = cfg.sunAngularSize
+	sky.MoonAngularSize = cfg.moonAngularSize
+	sky.CelestialBodiesShown = true
+end
+
 --[[
 	Volumetric clouds.
 
@@ -229,6 +245,7 @@ function Atmosphere.applyProfile(cfg: any, label: string)
 	dof.NearIntensity = cfg.depthOfField.nearIntensity or 0
 	dof.Enabled = dof.FarIntensity > 0 or dof.NearIntensity > 0
 
+	applySky()
 	applyClouds(cfg.clouds)
 	useCurrentMaterials()
 

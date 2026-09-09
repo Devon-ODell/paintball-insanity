@@ -48,7 +48,7 @@ type Face = {
 local function collect(root: any): { Face }
 	local faces: { Face } = {}
 	for _, d in ipairs(root:GetDescendants()) do
-		if d:IsA("BasePart") and d.Transparency < 1 then
+		if d:IsA("BasePart") and not d:IsA("MeshPart") and d.Transparency < 1 then
 			local size, cf = d.Size, d.CFrame
 			local pos = cf.Position
 			--[[
@@ -67,7 +67,7 @@ local function collect(root: any): { Face }
 					sees on the ground is the set of upward-facing surfaces.
 				]]
 				table.insert(faces, {
-					name = d.Name,
+					name = d:GetFullName(),
 					y = pos.Y + size.Y / 2,
 					cx = pos.X, cz = pos.Z,
 					hx = size.X / 2, hz = size.Z / 2,
@@ -277,15 +277,14 @@ end
 
 local total = 0
 local hub = roblox.Instance.new("Folder")
--- Atmosphere touches Lighting, which the harness only mocks. The geometry is
--- parented before that point, so build as far as it gets and measure that.
-pcall(function() Overworld.build(hub) end)
+-- A failed build must fail the gate; measuring a partial/empty scene can pass.
+Overworld.build(hub)
 total += report("the landing", hub)
 total += reportVertical("the landing", hub)
 
 for _, name in ipairs(Config.get("maps_index").order) do
 	local holder = roblox.Instance.new("Folder")
-	pcall(function() WorldBuilder.build(name, holder) end)
+	WorldBuilder.build(name, holder)
 	total += report(name, holder)
 	total += reportVertical(name, holder)
 end

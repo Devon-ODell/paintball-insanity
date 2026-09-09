@@ -24,6 +24,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Log = require(ReplicatedStorage.Shared.Log)
+local EnvironmentMaterials = require(script.Parent.EnvironmentMaterials)
 
 local log = Log.scope("LiveRound.World")
 
@@ -157,6 +158,7 @@ end
 --- Builds the barn. `palette` is the overworld palette; `origin` is the barn's
 --- world CFrame, so everything below is authored in barn-local metres.
 function PoleBarn.build(cfg: any, palette: { [string]: Color3 }, parent: Instance): Barn
+	EnvironmentMaterials.install()
 	local model = Instance.new("Model")
 	model.Name = "PoleBarn"
 
@@ -207,6 +209,7 @@ function PoleBarn.build(cfg: any, palette: { [string]: Color3 }, parent: Instanc
 		p.CFrame = origin * CFrame.new(Units.vectorToStuds(at))
 		p.Color = colour(key)
 		p.Material = MATERIAL[key] or Enum.Material.SmoothPlastic
+		EnvironmentMaterials.apply(p, key)
 		p.Anchored = true
 		p.CanCollide = collide ~= false
 		p.CanQuery = collide ~= false
@@ -227,8 +230,11 @@ function PoleBarn.build(cfg: any, palette: { [string]: Color3 }, parent: Instanc
 
 	-- Top at +0.04 rather than flush. A concrete apron stands a little proud of
 	-- the dirt, and flush meant 217 studs of it sharing the ground's plane.
-	slab("Slab", Vector3.new(0, -0.04, 0), Vector3.new(cfg.widthMetres + 1.6, 0.16, cfg.depthMetres + 1.6), "gravel")
-	slab("Floor", Vector3.new(0, 0.02, 0), Vector3.new(cfg.widthMetres, 0.1, cfg.depthMetres), "barnWoodDark")
+	for _, name in ipairs({ "Slab", "Floor" }) do
+		local surface = cfg.groundSurfaces[name]
+		slab(name, Vector3.new(0, surface.centerY, 0),
+			Vector3.new(cfg.widthMetres + surface.overhang, surface.thickness, cfg.depthMetres + surface.overhang), surface.colorKey)
+	end
 
 	--[[
 		The posts are the building. Everything else hangs off them, and leaving

@@ -27,6 +27,7 @@ local ShopUi = require(script.ShopUi)
 local DialogueUi = require(script.DialogueUi)
 local Theme = require(script.UiTheme)
 local ViewMarker = require(script.ViewMarker)
+local FoliageWind = require(script.FoliageWind)
 
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
@@ -78,6 +79,7 @@ Hud.build()
 Input.bind()
 Tracers.bind()
 ViewMarker.equip(loadout.marker)
+FoliageWind.start()
 Hud.setMarker(loadout.marker)
 Hud.setPhase(phase)
 
