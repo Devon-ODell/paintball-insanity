@@ -296,12 +296,25 @@ function Shop.catalogueFor(handle: Profile.Handle): any
 		end
 		out[category] = list
 	end
-	out.consumables = Consumables.catalogue(handle.data.consumables or {})
-	for _, row in ipairs(out.consumables) do
-		row.comingSoon = Config.get("consumables").liveEnabled ~= true
-		if row.comingSoon then row.purchasable = false end
-		row.cost = if row.purchasable then Pricing.shopCost(row.cost) else nil
-		row.free = row.cost == 0
+	--[[
+		Field kit is omitted entirely until it works, rather than listed as
+		eight rows of "PREVIEW / Coming later".
+
+		This is the screen where somebody decides to spend money, and a whole
+		tab of things they cannot have reads as an unfinished game -- which is
+		the worst possible thing for it to read as at exactly that moment. The
+		`offers` tab already hides itself when it has nothing in it; this is the
+		same rule. Flipping consumables.liveEnabled brings the tab back with no
+		other change.
+	]]
+	if Config.get("consumables").liveEnabled == true then
+		out.consumables = Consumables.catalogue(handle.data.consumables or {})
+		for _, row in ipairs(out.consumables) do
+			row.cost = if row.purchasable then Pricing.shopCost(row.cost) else nil
+			row.free = row.cost == 0
+		end
+	else
+		out.consumables = {}
 	end
 	out.camos = CamoCatalog.catalogue(handle.data)
 	out.offers = Commerce.catalogueFor(handle)

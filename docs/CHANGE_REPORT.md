@@ -2,6 +2,38 @@
 
 Updated 2026-09-09. This is the single current update list and AI handoff. It supersedes the previous world-pass, publish-prep, Shoothouse, agent, progress and debug handoffs, including the historical paintball-insanity review. Older narratives and their superseded numbers remain in Git history; they are not current instructions.
 
+## Eighth pass, 2026-09-09 — a gate that was measuring nothing
+
+Nothing was left over from the merge and push: every branch was already
+contained in `main`, so no merge commits existed to clean up.
+
+| Area | Before | Current behavior | Verification |
+| --- | --- | --- | --- |
+| **Every callout said "front"** | `Chatter.bearingWord` — a written, carefully commented function mapping an angle to "left / front right / behind" — **was never called from anywhere.** `context.bearing` fell through to its `"front"` default every time, and five authored callouts interpolate it. Every contact in the game was reported as "Contact! front!" regardless of where the player was, and "I'm rotating front." is not even English. | Wired, measured from the **speaker's** facing: a bot saying "left" means you are on its left, which tells you where it is pointed. Pairs with the positional chatter from the seventh pass — the bot says which way and you hear which way. | New `tests/Chatter.spec.luau`: boundary words, wrapping past a full turn, exactly six words (a squad calling exact degrees is a wallhack), and a bank scan asserting no line interpolates a placeholder nothing fills. Arithmetic verified in seven orientations including a rotated speaker. |
+| **Rule 4 measured nothing** | `check-static`'s function-length rule had two bugs and reported "every rule holds" through both. It split lines with `gmatch("[^\n]*")`, which yields an empty match after every line — 2,666 lines counted in a 1,352-line file, so it reported a function at **line 2280 of a file that ends at 1352**. And it popped its function stack on *any* line that looked like an `end`, so the first `if` inside a function closed it. **It measured `MatchService.start` — 1,171 lines — as 82.** | Extent taken from indentation, which is what this codebase actually guarantees and which is immune to the `if x then a else b` expressions a keyword counter cannot distinguish from a block. Block comments are blanked with their newlines preserved so line numbers stay true. | 22 advisories now appear with correct line numbers. The 15 functions already over the hard limit are **frozen at their measured length** — a ratchet, so debt can shrink but not grow. Both halves verified by sabotage: growing a frozen function fails, and a new 163-line function fails. |
+| Match settlement | `finish` was 228 lines inside that 1,136-line closure, carrying both payout rules inline. | `Match/Settlement` owns the one piece with a single responsibility and no engine surface: what the match was worth, and by which of the two rules — per round for a gauntlet, per medal for a course whose clock already charges deaths at ten seconds each. `finish` 228 → 193; `MatchService.start` 1,171 → 1,136, and both frozen numbers came down with them. | `run-live-checks` payouts are **identical to the digit** before and after (0 / 110 / 1142), which is what makes this behaviour-preserving rather than hopeful. |
+| Shop bloat | Eight field-kit rows rendered as "PREVIEW / Coming later" — a whole tab of things the player cannot have, on the screen where they decide to spend money. That reads as an unfinished game at exactly the wrong moment. | The server omits the category until `consumables.liveEnabled` is true, and the client drops any category that arrives empty, the way the `offers` tab always has. **The first version of this was wrong and the suite caught it:** hiding the rows left the barn's physical counter still advertising field kit, which `Overworld.spec` names exactly — "a bay listing a category the shop cannot price is a counter the player walks up to and finds empty". The bay listing came out too, and `ship-check` now requires the flag and the counter to agree **in both directions**, so turning field kit on without restocking the counter fails as loudly as turning it off without unlisting it. | `check-client-ui`, `ship-check` (both directions verified by sabotage), `Overworld.spec`. |
+| Dead remote | `FlagEvent` was declared, created on the server at boot, and had no sender or handler anywhere. | Removed. An unused `RemoteEvent` in a server-authoritative game is a wire a client can fire into that nothing validates — harmless today, and not worth keeping for a mode nothing starts. | `check-static` reachability, `run-live-checks`. |
+
+**A stale assertion, found on the way.** `Overworld.spec`'s "puts every sellable
+category behind exactly one counter" checked a hand-written list of eight
+category names. It went stale the moment field kit stopped being sold — it
+asserted `consumables` sat behind a counter while the shop deliberately stocks
+none — and it had quietly omitted barrels, hoppers, tanks, masks and marker
+finishes all along. It derives from the real catalogue now, like its sibling
+check already did: self-maintaining, and stricter than the list it replaced.
+
+**Deferred modes: reported, not deleted.** Horde, Capture the Flag and the boss
+rules are 707 lines of Luau, 201 of JSON and a spec file for modes nothing can
+start. That is real bloat and it is the obvious thing to cut — but Capture the
+Flag's data includes **authored flag positions inside `Data/maps/holdfast.json`**,
+which is hand-made level design, and `Campaign.spec`'s horde-gating assertions
+are what currently guarantee Horde *stays* unreachable. Deleting the modes would
+also delete that guarantee. They cost nothing at runtime. This is a call for the
+owner rather than one to make unilaterally, so it is flagged here instead.
+
+**Debug rerun: 19 of 21 gates pass, 510 specs pass, 2 fail.** The known pair only: `ship-check` (dev mode on by request) and the two balance specs. The two regressions this pass introduced were both caught by the suite and fixed at the source. Spec count 504 -> 510.
+
 ## Seventh pass, 2026-09-09 — sound design: the squad becomes audible
 
 The sixth pass built the plumbing. This one makes it a design rather than a set

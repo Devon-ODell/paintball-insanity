@@ -44,6 +44,7 @@ local SquadCoordinator = require(Server.Bots.SquadCoordinator)
 local Chatter = require(Server.Bots.Chatter)
 local Course = require(Server.Match.Course)
 local CourseProgress = require(Server.Progression.CourseProgress)
+local Settlement = require(Server.Match.Settlement)
 local ShotLog = require(Server.Telemetry.ShotLog)
 local ShotMeasure = require(Server.Telemetry.ShotMeasure)
 local Prescription = require(Server.Telemetry.Prescription)
@@ -350,28 +351,71 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		return n
 	end
 
+	--- The bot behind a spoken line, or nil for a squad-wide announcement.
+	local function speakerNamed(name: any): any
+		if type(name) ~= "string" then
+			return nil
+		end
+		for _, bot in ipairs(bots) do
+			if bot.alive and bot.name == name then
+				return bot
+			end
+		end
+		return nil
+	end
+
 	local function say(kind: string, context: any)
 		context = context or {}
 		context.t = t
 		context.aliveCount = aliveBots()
+
+		--[[
+			Which way the caller is looking at you.
+
+			`Chatter.bearingWord` was written, commented and never called from
+			anywhere, so `context.bearing` fell through to its "front" default
+			every single time -- and five authored callouts interpolate it.
+			Every contact in this game was reported as "Contact! front!"
+			regardless of where the player actually was, and "I'm rotating
+			front." is not even English.
+
+			Measured from the SPEAKER's facing, because that is how a callout
+			works: a bot saying "left" means you are on its left, which tells
+			you something about where it is pointed. Coarse on purpose -- a
+			squad calling exact degrees is a wallhack, as that function's own
+			comment says.
+		]]
+		local speaker = speakerNamed(context.speaker)
+		if speaker and context.bearing == nil then
+			local ground = playerGroundPosition(player)
+			local toPlayer = if ground then (ground :: Vector3) - speaker.position else nil
+			local flat = if toPlayer then Vector3.new(toPlayer.X, 0, toPlayer.Z) else nil
+			local facing = Vector3.new(speaker.facing.X, 0, speaker.facing.Z)
+			if flat and flat.Magnitude > 1e-3 and facing.Magnitude > 1e-3 then
+				local forward, target = facing.Unit, flat.Unit
+				--- Signed angle about Y, negated so positive reads as the
+				--- speaker's right, which is what bearingWord expects.
+				local cross = forward.Z * target.X - forward.X * target.Z
+				context.bearing = Chatter.bearingWord(math.deg(math.atan2(-cross, forward:Dot(target))))
+			end
+		end
+
 		local line = chatter:say(kind, context)
 		if line then
 			--[[
 				Where the voice is coming from, so a callout is a direction and
 				not just a subtitle.
 
-				Looked up here by name rather than threaded through every
-				ctx.chatter call site -- the bots already say who is speaking,
-				and this is the one place that has the roster. People shouting
-				on a paintball field give their position away, and the audio
-				scales that down hard (audio.json rangeScale) so it stays a
+				Looked up by name rather than threaded through every ctx.chatter
+				call site -- the bots already say who is speaking, and this is
+				the one place that has the roster. People shouting on a
+				paintball field give their position away, and the audio scales
+				that down hard (audio.json rangeScale) so it stays a
 				close-quarters tell rather than a map of the whole squad.
 			]]
-			for _, bot in ipairs(bots) do
-				if bot.alive and bot.name == line.speaker then
-					line.at = bot.position + Vector3.new(0, hitbox.chestHeightMetres, 0)
-					break
-				end
+			local voice = speaker or speakerNamed(line.speaker)
+			if voice then
+				line.at = voice.position + Vector3.new(0, hitbox.chestHeightMetres, 0)
 			end
 			Remotes.event("ChatterLine"):FireClient(player, line)
 		end
@@ -951,60 +995,25 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			whole match and being charged at the end is what stops the escalating
 			early rounds becoming free practice.
 		]]
-		local roundResults: { Payout.RoundResult } = {}
-		for i, report in ipairs(reports) do
-			roundResults[i] = {
-				index = report.index,
-				tier = report.tier,
-				payoutMultiplier = report.payoutMultiplier,
-				cleared = report.cleared,
-			}
-		end
-
 		--[[
-			Two ways to be paid.
-
-			A gauntlet is paid per round, then charged once for the whole match's
-			deaths. A course is paid per MEDAL: the clock already carries the
-			deaths at ten seconds each, and charging the economy's exponential
-			penalty on top would price one mistake twice. CourseProgress writes
-			the record and hands back what the run was worth.
+			Two ways to be paid, and the choice between them lives in Settlement
+			now -- it is the one part of this function with a single
+			responsibility and no engine surface, and this closure did not need a
+			second copy of the payout rules inside it.
 		]]
-		local breakdown: any
-		local courseOutcome: any = nil
-		if isCourse then
-			courseOutcome = CourseProgress.record(handle, {
-				mapName = mapName,
-				liveSeconds = totalLiveElapsed,
-				deaths = deaths,
-				cleared = cleared,
-				playerCount = 1,
-			})
-			local roundsCleared = 0
-			for _, report in ipairs(reports) do
-				if report.cleared then
-					roundsCleared += 1
-				end
-			end
-			breakdown = {
-				total = if courseOutcome then courseOutcome.payout else 0,
-				cleared = cleared,
-				roundsCleared = roundsCleared,
-				roundsPlayed = #reports,
-				course = courseOutcome,
-			}
-		else
-			breakdown = Payout.computeMatch({
-				expectedRounds = #schedule,
-				map = mapName,
-				marker = markerName,
-				rounds = roundResults,
-				deaths = deaths,
-				shots = shots,
-				hits = hits,
-				longestStreak = outcome.longestStreak,
-			})
-		end
+		local breakdown, courseOutcome = Settlement.payout(handle, {
+			isCourse = isCourse,
+			mapName = mapName,
+			markerName = markerName,
+			reports = reports,
+			schedule = schedule,
+			deaths = deaths,
+			shots = shots,
+			hits = hits,
+			longestStreak = outcome.longestStreak,
+			liveSeconds = totalLiveElapsed,
+			cleared = cleared,
+		})
 
 		local summary = Prescription.summarise(shotLog, outcome, tier, breakdown.total)
 		summary.headshots = headshots

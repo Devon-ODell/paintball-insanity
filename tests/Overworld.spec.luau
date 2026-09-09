@@ -530,8 +530,25 @@ return function()
 		end)
 
 		it("puts every sellable category behind exactly one counter", function()
-			-- Nothing should be buyable from two bays, and nothing the shop can
-			-- sell should be unreachable.
+			--[[
+				Nothing buyable from two bays, and nothing the shop can sell left
+				unreachable.
+
+				The second half used to be a hand-written list of eight category
+				names, which went stale the moment field kit stopped being sold:
+				it asserted `consumables` was behind a counter while the shop
+				deliberately stocks none. Derived from the real catalogue now,
+				the way the sibling check above already does it -- which is both
+				self-maintaining and stricter, because the hand-written list had
+				quietly omitted barrels, hoppers, tanks, masks and marker
+				finishes.
+
+				`camos` and `offers` are excluded: they are earned and Robux
+				tabs the client adds itself, not counters in the barn.
+			]]
+			Dev._setOverrideForTesting({ enabled = false })
+			Profile._resetFallback()
+			local catalogue = Shop.catalogueFor(Profile.load(4321) :: any)
 			local counted: { [string]: number } = {}
 			for _, bay in ipairs(hub().barn.bays) do
 				for _, category in ipairs(bay.categories) do
@@ -541,9 +558,13 @@ return function()
 			for category, times in pairs(counted) do
 				expect(times).to.equal(1)
 			end
-			for _, category in ipairs({ "markers", "jerseys", "pads", "helmets", "shoulders", "pods", "paintColors", "consumables" }) do
-				expect(counted[category]).to.equal(1)
+			local notACounter = { camos = true, offers = true }
+			for category, rows in pairs(catalogue) do
+				if type(rows) == "table" and #rows > 0 and not notACounter[category] then
+					expect(counted[category]).to.equal(1)
+				end
 			end
+			Dev._setOverrideForTesting(nil)
 		end)
 	end)
 

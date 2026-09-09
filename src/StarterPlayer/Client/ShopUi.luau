@@ -64,6 +64,21 @@ function ShopUi.open(initialSnapshot: any, onClose: () -> ())
 	if snapshot.catalogue.offers and #snapshot.catalogue.offers > 0 and not table.find(categories, "offers") then
 		table.insert(categories, "offers")
 	end
+	--[[
+		A counter with nothing on it is not a counter.
+
+		Field kit is withheld by the server until it actually works, and an
+		empty tab labelled "Field kit" tells the player the shop is broken
+		rather than that the feature is not ready. `offers` above has always
+		hidden itself this way; this applies the same rule to whatever else
+		arrives empty.
+	]]
+	for index = #categories, 1, -1 do
+		local rows = snapshot.catalogue[categories[index]]
+		if type(rows) == "table" and #rows == 0 then
+			table.remove(categories, index)
+		end
+	end
 	if not table.find(categories, selected) then selected = categories[1] or "markers" end
 	closed = onClose
 	local screen = Instance.new("ScreenGui")

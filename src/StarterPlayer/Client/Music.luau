@@ -42,6 +42,9 @@ local decks: { Deck } = {}
 local playing = 1
 local context: string? = nil
 local duckUntil = -math.huge
+--- Last value written to the music bus, so an unchanged level is not rewritten
+--- sixty times a second.
+local busLevel = -1
 local rng = Rng.new(4402)
 
 local function settings(): any
@@ -115,7 +118,19 @@ function Music.step(dt: number)
 		does and what the ear expects.
 	]]
 	local ducked = if now < duckUntil then cfg.duckMultiplier else 1
-	AudioMix.setVolume("music", Config.get("audio").mix.music * ducked)
+	--[[
+		Written only when it changes.
+
+		This ran every frame unconditionally, which is the exact pattern this
+		project has already had to remove from the HUD -- a property write sixty
+		times a second to set the value it already had. The duck is off for most
+		of a match, so this is nearly always the same number.
+	]]
+	local level = Config.get("audio").mix.music * ducked
+	if math.abs(level - busLevel) > 1e-4 then
+		busLevel = level
+		AudioMix.setVolume("music", level)
+	end
 	for _, deck in ipairs(decks) do
 		local target = deck.target
 		if math.abs(deck.current - target) > 1e-4 then
@@ -182,6 +197,7 @@ function Music.clear()
 	end
 	table.clear(decks)
 	duckUntil = -math.huge
+	busLevel = -1
 end
 
 return Music

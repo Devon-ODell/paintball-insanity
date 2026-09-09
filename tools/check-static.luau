@@ -92,6 +92,47 @@ local ADVISORY_FUNCTION_LINES = 60
 local MAX_FUNCTION_LINES = 150
 
 --[[
+	The long-function backlog, frozen at its measured length.
+
+	Rule 4's detector never worked (see the rule below), so nothing here was
+	ever reported. These are the real measurements taken the day it started
+	working, 2026-09-09. Each may SHRINK freely; growing past its frozen number
+	fails the gate. New functions still face the 150-line hard limit.
+
+	Tightened as they shrink: MatchService.start and finish came down by 35 the
+	day the payout rules moved into Match/Settlement, and their frozen numbers
+	came down with them. A stale-high number would quietly re-authorise the
+	growth that was just removed.
+
+	This is a ratchet rather than a pardon. Two of these -- MatchService.start
+	at 1,136 lines and the two world builders -- are genuine architectural debt
+	and are recorded as such in the change report. The rest are linear
+	assemblies where splitting into helpers called once each would trade a
+	readable sequence for a scatter, which is the case the 60-line advisory was
+	already relaxed for.
+]]
+local KNOWN_LONG: { [string]: number } = {
+	["MatchService.start"] = 1136,
+	["PoleBarn.build"] = 742,
+	["Overworld.build"] = 546,
+	["runRound"] = 413,
+	["RangeService.start"] = 407,
+	["bayProp"] = 270,
+	["Wardrobe.body"] = 242,
+	["finish"] = 193,
+	["ViewMarker.equip"] = 188,
+	["step"] = 179,
+	["Commerce.new"] = 167,
+	["SimMatch.run"] = 166,
+	["BotAvatar.new"] = 162,
+	["ShopUi.open"] = 158,
+	["NoticeBoard.build"] = 157,
+}
+
+local ADVISORY_FUNCTION_LINES = 60
+local MAX_FUNCTION_LINES = 150
+
+--[[
 	Builders allowed past the hard limit, with a reason each.
 
 	BotAvatar.new was 214 lines and is now 168 after its marker rig and
@@ -206,30 +247,97 @@ end
 --------------------------------------------------------------------------------
 -- Rule 4: function length
 --------------------------------------------------------------------------------
+--[[
+	This rule measured nothing for the life of the project.
+
+	Two bugs, and it reported "every rule holds" through both. It split lines
+	with `gmatch("[^\n]*")`, which yields an empty match after every line and
+	counted 2,666 lines in a 1,352-line file -- so every line number it printed
+	was roughly doubled, and it happily reported a function at line 2280 of a
+	file that ends at 1352. And it popped its function stack on ANY line that
+	looked like an `end`, so the first `if` or `for` inside a function closed
+	the function as far as this rule was concerned. It measured
+	MatchService.start -- 1,171 lines -- as 82.
+
+	Extent is taken from indentation now, which is what this codebase actually
+	guarantees: a function's matching `end` sits at exactly the indent of its
+	`function` keyword. That is immune to the `if x then a else b` expressions
+	this project uses everywhere, which a keyword counter cannot tell from a
+	block. Block comments are blanked first, preserving their newlines so line
+	numbers stay true.
+]]
+local function stripBlockComments(text: string): string
+	return (string.gsub(text, "%-%-%[%[.-%]%]", function(block: string): string
+		local _, newlines = string.gsub(block, "\n", "")
+		return string.rep("\n", newlines)
+	end))
+end
+
+local function splitLines(text: string): { string }
+	local out: { string } = {}
+	for line in string.gmatch(text .. "\n", "(.-)\n") do
+		table.insert(out, line)
+	end
+	return out
+end
+
+--- Where a function opens, and what it is called.
+local function opensFunction(line: string): (string?, string?)
+	local indent, label = string.match(line, "^(\t*)function%s+([%w_.:]+)")
+	if indent then
+		return indent, label
+	end
+	indent, label = string.match(line, "^(\t*)local function%s+([%w_]+)")
+	if indent then
+		return indent, label
+	end
+	indent = string.match(line, "^(\t*)[^%s].*=%s*function%s*%(")
+	if indent then
+		return indent, (string.match(line, "([%w_]+)%s*=%s*function") or "anonymous")
+	end
+	return nil, nil
+end
+
+local measured: { { length: number, label: string, file: string, at: number } } = {}
 for file, text in pairs(sources) do
 	if isOurs(file) then
-		local lines: { string } = {}
-		for line in string.gmatch(text, "[^\n]*") do
-			table.insert(lines, line)
-		end
-		local open: { { number: number, label: string } } = {}
+		local lines = splitLines(stripBlockComments(text))
 		for index, line in ipairs(lines) do
-			if string.match(line, "^%s*function%s") or string.match(line, "^%s*local function%s")
-				or string.match(line, "=%s*function%s*%(") then
-				table.insert(open, { number = index, label = (string.match(line, "function%s+([%w_.:]+)") or "anonymous") })
-			end
-			if string.match(line, "^%s*end%s*$") or string.match(line, "^%s*end[,)%s]") then
-				local entry = table.remove(open)
-				if entry then
-					local length = index - entry.number + 1
-					if length > MAX_FUNCTION_LINES and not LONG_BUILDER_ALLOWED[entry.label] then
-						fail("4", `{file}:{entry.number}`, `{entry.label} is {length} lines (hard limit {MAX_FUNCTION_LINES})`)
-					elseif length > ADVISORY_FUNCTION_LINES then
-						advise("4", `{file}:{entry.number}`, `{entry.label} is {length} lines`)
+			local indent, label = opensFunction(line)
+			if indent and label then
+				for j = index + 1, #lines do
+					if string.match(lines[j], "^" .. indent .. "end[,%)%s]*$") then
+						table.insert(measured, { length = j - index + 1, label = label, file = file, at = index })
+						break
 					end
 				end
 			end
 		end
+	end
+end
+
+table.sort(measured, function(a, b): boolean
+	return a.length > b.length
+end)
+
+for _, entry in ipairs(measured) do
+	local where = `{entry.file}:{entry.at}`
+	local frozen = KNOWN_LONG[entry.label]
+	if frozen then
+		--[[
+			The ratchet. These were already over the limit when the rule started
+			working, and each is frozen at the length it was measured at. They
+			may shrink; they may not grow. That is what stops a fourteen-item
+			backlog quietly becoming a fifteen-item one, without pretending the
+			backlog is not there.
+		]]
+		if entry.length > frozen then
+			fail("4", where, `{entry.label} grew to {entry.length} lines, over its frozen {frozen}`)
+		end
+	elseif entry.length > MAX_FUNCTION_LINES then
+		fail("4", where, `{entry.label} is {entry.length} lines (hard limit {MAX_FUNCTION_LINES})`)
+	elseif entry.length > ADVISORY_FUNCTION_LINES then
+		advise("4", where, `{entry.label} is {entry.length} lines`)
 	end
 end
 

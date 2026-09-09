@@ -235,6 +235,36 @@ check(#gearViolations == 0, "no gear item declares a disallowed stat")
 -- Single-use kit, audited by field name. This is where a damage term or a
 -- full-map reveal on the drone would be caught.
 check(Config.get("consumables").liveEnabled == false, "unintegrated field kit remains preview-only")
+
+--[[
+	The counter and the flag have to agree, in both directions.
+
+	Field kit used to be listed in the barn's paint-and-air bay AND rendered in
+	the shop as eight rows of "PREVIEW / Coming later" -- a whole tab of things
+	the player cannot have, on the screen where they decide to spend money.
+	Hiding the rows alone was not enough: the physical counter still advertised
+	the category, which is a bay the player walks up to and finds empty, and
+	Overworld.spec caught exactly that.
+
+	So the bay listing is the switch's other half. Turning the flag on without
+	restocking the counter would ship a purchasable item nobody can reach, and
+	turning it off without unlisting it empties a counter. Both fail here.
+]]
+do
+	local kitLive = Config.get("consumables").liveEnabled == true
+	local stocked = false
+	for _, bay in ipairs(Config.get("overworld").barn.bays) do
+		for _, category in ipairs(bay.categories) do
+			if category == "consumables" then
+				stocked = true
+			end
+		end
+	end
+	check(stocked == kitLive,
+		if kitLive
+			then "field kit is live and a barn counter stocks it"
+			else "field kit is off and no barn counter advertises it")
+end
 local kitViolations = Consumables.audit()
 for _, violation in ipairs(kitViolations) do
 	print(`          {violation}`)

@@ -979,8 +979,7 @@
           "hoppers",
           "tanks",
           "pods",
-          "paintColors",
-          "consumables"
+          "paintColors"
         ],
         "_stock": "Tarp wall: cases of paint stacked on the floor of the shelf, pods in a rack, tanks standing in a row, and a fill station with a gauge.",
         "shelfProps": [
@@ -1109,7 +1108,8 @@
               "NO FIELD"
             ]
           }
-        ]
+        ],
+        "_consumables": "Field kit is NOT listed here while consumables.liveEnabled is false. A bay that advertises a category the shop cannot stock is a counter the player walks up to and finds empty, which is worse than the counter not offering it yet -- and Overworld.spec asserts exactly that. Put \"consumables\" back in this list on the same day that flag is turned on; ship-check fails if the two disagree in either direction."
       },
       {
         "id": "protective",

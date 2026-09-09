@@ -86,7 +86,6 @@ local DEFINITIONS = {
 	DialogueChoice = "Event",
 	CampaignUpdated = "Event",
 	ConsumableUsed = "Event",
-	FlagEvent = "Event",
 }
 
 local folder: Folder? = nil
