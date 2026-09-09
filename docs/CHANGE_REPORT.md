@@ -2,6 +2,69 @@
 
 Updated 2026-09-09. This is the single current update list and AI handoff. It supersedes the previous world-pass, publish-prep, Shoothouse, agent, progress and debug handoffs, including the historical paintball-insanity review. Older narratives and their superseded numbers remain in Git history; they are not current instructions.
 
+## Ninth pass, 2026-09-09 — Horde runs
+
+Horde did not work. Its rules were complete and spec-covered from the start --
+wave scaling, tier ladder, breathers, bosses, veterancy, payout, drop tiers --
+and **nothing started them.** It runs now, and `run-live-checks` proves it by
+playing one: six waves appended and cleared through the ordinary `MatchService`
+loop, 52 bodies fielded including reinforcements.
+
+**The architecture already supported it, which is why this was tractable.** A
+mode here is a *schedule*, not a second match loop. The gauntlet lays out five
+rounds and the Shoothouse lays out its stages; horde lays out wave 1 and appends
+the next each time one is cleared. Firing, hit validation, lag compensation,
+telemetry and respawn are one engine serving all three.
+
+**Its failure condition already existed too.** In a game with free unlimited
+respawns and no health, what ends an endless run is the ordinary 200-second
+round limit: clear the wave inside it, or the run ends at the depth you reached.
+"It does not have an end, only a depth you stopped at" turns out to be the round
+clock said out loud. No new failure state was invented.
+
+| Area | Before | Current behavior | Verification |
+| --- | --- | --- | --- |
+| The wave loop | `Endless` was pure and nothing ran it. | `Endless.round(index)` expresses a wave as a round the ordinary loop executes, and the schedule appends the next wave on each clear. `integrated: true`, in `order`, still gated behind the pro circuit by `progression.modeUnlocks.horde` — integrated means it runs, not that everyone can reach it. | New Horde block in `run-live-checks`; 10 new specs in `tests/Endless.spec.luau`. |
+| Reinforcements | Rounds fielded their whole bot count at once. | A wave totals up to 28 but only 12 stand on the field at once; the rest arrive one-for-one as bots are taken out. Twelve is what every difficulty number in this project was measured against, so reinforcing keeps that true at wave 40. Fed by paint **and** the melee. | `run-live-checks` fields and clears 52 bodies across six waves. |
+| Veterancy | `applyVeterancy` existed and nothing called it. | Each bot gets a **copy** of its tier parameters, adjusted per wave and clamped at human floors (120 ms reaction, 0.45°). A copy because wave 30 must not permanently ruin wave 1 — the existing spec asserts exactly that. | `Campaign.spec` horde-wave assertions, unchanged and passing. |
+| Bosses | `Boss.luau` existed; nothing fielded one. | A boss wave fields a marshal as its first unit. `bosses.json` says a marshal is still one hit — *"paint on the body does not count, only the hopper"*, because a boss with three thousand health would be a bullet sponge in an aim trainer — and that needs **no new hit model at all**: a marshal simply presents a different target. Its capsule is a 0.18 m sphere at hopper height instead of a body, so body shots miss because there is nothing there. | `Endless.spec` asserts the marshal's target is the hopper, is less than half an ordinary bot's height, and still dies to one mark. |
+| Breathers and milestones | — | The per-wave pause: 22 seconds every fifth wave, none otherwise. Milestone lines ride the intermission notice. | `Endless.spec`, `run-live-checks`. |
+| Payout | — | Paid once, for depth, superlinearly — three runs to wave 10 must not beat one to wave 30, or farming the shallow end becomes optimal, which is the opposite of what an endless mode is for. The ordinary death penalty still applies. | `Endless.spec`; a live run paid 746. |
+| The one route in | The `startHorde` dialogue branch refused — and refused **silently** to anyone who had not unlocked it, because the message sat inside the unlock check. The one NPC whose job was to send you to Horde said nothing at all to exactly the players it was gated against. | Starts the run for anyone who has swept the pro circuit, and tells everyone else what they are missing. | `run-live-checks`. |
+
+**The length ratchet earned its keep immediately.** Integrating Horde pushed
+`MatchService.start` from 1,136 lines to **1,260**, and the gate built one pass
+earlier refused it — which is exactly the moment a God object usually gets a
+little worse and nobody notices. The frozen number was not raised. Placement,
+construction, the respawn point and the speaker lookup moved into a new
+`Match/Squad`, and the bearing arithmetic moved into `Chatter` where it belonged;
+`MatchService.start` came back to **1,133, below where it started**. `step` and
+`finish` are one line larger each — the one line each needed to know horde
+exists — and are re-frozen there rather than pretended away.
+
+**Two specs pinned the deferral rather than the rule**, and both were updated
+deliberately now the owner has asked for the mode. `Course.spec`'s "does not
+pretend Horde or Capture the Flag are playable" was split: CTF's half is
+unchanged, and Horde's was replaced by **"offers exactly the modes something can
+start"**, which checks the property in both directions instead of naming modes
+and so cannot go stale the next time this happens. `Campaign.spec`'s "keeps
+deferred Horde closed even after the pro sweep" became "opens once the pro
+circuit is swept, and not before"; the three assertions around it — locked at
+start, locked through the whole ladder, not open on a partial sweep — are
+untouched and passing.
+
+**Still open in Horde.** Kit drops on breathers and boss waves are wired in the
+data and do nothing, because `consumables.liveEnabled` is false — the field kit
+withheld from the shop in the eighth pass. Horde runs fine without them; the drop
+table is inert. And `bosses.json`'s `hopperRadiusMetres: 0.18` is *named* a
+radius while the prose beside it says "about eighteen centimetres across", which
+would make it a diameter; it is read as named — the more forgiving reading — and
+flagged here rather than silently halved.
+
+**Debug rerun: 19 of 21 gates pass, 521 specs pass, 2 fail.** The known pair
+only: `ship-check` (dev mode on by request) and the two balance specs. Spec count
+510 -> 521.
+
 ## Eighth pass, 2026-09-09 — a gate that was measuring nothing
 
 Nothing was left over from the merge and push: every branch was already

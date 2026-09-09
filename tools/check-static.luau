@@ -104,6 +104,15 @@ local MAX_FUNCTION_LINES = 150
 	came down with them. A stale-high number would quietly re-authorise the
 	growth that was just removed.
 
+	It has already earned its keep. Integrating Horde pushed MatchService.start
+	from 1,136 to 1,260 and this gate refused it, which is exactly the moment a
+	God object usually gets a little worse and nobody notices. Placement,
+	construction, the respawn point and the speaker lookup moved into
+	Match/Squad, and the bearing arithmetic into Chatter where it belonged, and
+	start came back down to 1,133 -- BELOW where it started. `step` and `finish`
+	are each one line larger, which is the one line each of them needed to know
+	horde exists; they are re-frozen there rather than pretended away.
+
 	This is a ratchet rather than a pardon. Two of these -- MatchService.start
 	at 1,136 lines and the two world builders -- are genuine architectural debt
 	and are recorded as such in the change report. The rest are linear
@@ -112,16 +121,16 @@ local MAX_FUNCTION_LINES = 150
 	already relaxed for.
 ]]
 local KNOWN_LONG: { [string]: number } = {
-	["MatchService.start"] = 1136,
+	["MatchService.start"] = 1133,
 	["PoleBarn.build"] = 742,
 	["Overworld.build"] = 546,
 	["runRound"] = 413,
 	["RangeService.start"] = 407,
 	["bayProp"] = 270,
 	["Wardrobe.body"] = 242,
-	["finish"] = 193,
+	["finish"] = 194,
 	["ViewMarker.equip"] = 188,
-	["step"] = 179,
+	["step"] = 180,
 	["Commerce.new"] = 167,
 	["SimMatch.run"] = 166,
 	["BotAvatar.new"] = 162,

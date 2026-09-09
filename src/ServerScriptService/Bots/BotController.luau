@@ -40,6 +40,8 @@ export type Bot = typeof(setmetatable(
 		velocity: Vector3,
 		facing: Vector3,
 		alive: boolean,
+		--- Marshal id when this bot is a horde boss; nil for everyone else.
+		boss: string?,
 		state: State,
 		hasLineOfSight: boolean,
 
@@ -84,10 +86,34 @@ export type Config = {
 	world: MapGeometry.World,
 	coordinator: any,
 	rng: Rng.Generator,
+	--[[
+		Tier parameters, when the caller has its own.
+
+		Horde hands a veterancy-adjusted copy so that a wave-30 rec bot reacts
+		faster than a wave-1 one without a second tier table existing anywhere.
+		Absent for every other mode, which reads the shared tier data as before
+		-- and Endless.applyVeterancy returns a COPY precisely so that wave 30
+		cannot permanently ruin wave 1.
+	]]
+	tierData: any?,
+	--[[
+		A field marshal, for horde's boss waves.
+
+		The whole boss rule is that paint on the body does not count and only
+		the hopper does -- `bosses.json` says so, and it says why: there is no
+		health anywhere in this game and giving a boss three thousand of it
+		would have made a bullet sponge out of an aim trainer. So a boss is
+		still one hit. It is a very small hit, at range, on someone better than
+		you, with an escort.
+
+		That needs no new hit model at all, which is the nice part: a boss
+		simply presents a different TARGET. The body stops being one.
+	]]
+	boss: string?,
 }
 
 function BotController.new(config: Config): Bot
-	local tierData = Config.require("bots", "tiers." .. config.tier)
+	local tierData = config.tierData or Config.require("bots", "tiers." .. config.tier)
 	local markerData = Config.require("markers", "markers." .. tierData.marker)
 	local ballisticsData = Config.get("ballistics")
 	local hitbox = ballisticsData.hitbox
@@ -117,6 +143,7 @@ function BotController.new(config: Config): Bot
 		_radius = hitbox.bodyWidthMetres * 0.5,
 		_height = hitbox.bodyHeightMetres,
 
+		boss = config.boss,
 		_acquiredAt = nil,
 		_fireAt = nil,
 		_lastShotAt = -math.huge,
@@ -180,6 +207,32 @@ function BotController.muzzle(self: Bot): Vector3
 end
 
 function BotController.asTarget(self: Bot): any
+	if self.boss then
+		--[[
+			The hopper, and nothing else.
+
+			A short capsule centred on the hopper's height instead of the
+			body-length one every other bot presents, so a body shot on a
+			marshal misses because there is nothing there to hit. `bodyAbsorbs`
+			in bosses.json is this, expressed as data.
+
+			`hopperRadiusMetres` is read as a radius, which is what it is
+			called; the prose beside it says "about eighteen centimetres
+			across", which would make it a diameter. Taken as named -- the more
+			forgiving reading -- and flagged rather than silently halved.
+		]]
+		local common = Config.require("bosses", "common")
+		local radius = common.hopperRadiusMetres
+		return {
+			id = self.id,
+			team = "bots",
+			position = self.position + Vector3.new(0, common.hopperHeightMetres - radius, 0),
+			velocity = self.velocity,
+			radius = radius,
+			height = radius * 2,
+			alive = self.alive,
+		}
+	end
 	return {
 		id = self.id,
 		team = "bots",
@@ -498,6 +551,7 @@ export type TickContext = {
 	aliveCount: number,
 	--- Contact-range rules, and what to call when the butt lands. Absent in any
 	--- caller that does not model a shovable player.
+	navigate: ((any, number) -> ())?,
 	meleeRules: Melee.Rules?,
 	meleePlayer: ((swinger: any) -> ())?,
 }
@@ -574,7 +628,7 @@ function BotController.tick(self: Bot, dt: number, ctx: TickContext)
 	end
 
 	local repositioning = self.state == "repositioning"
-	if not sees and not repositioning and t >= self._repositionReadyAt then
+	if not ctx.navigate and not sees and not repositioning and t >= self._repositionReadyAt then
 		local hasReason = contact ~= nil
 		if AimModel.willExpose(self.tierData, self.rng, hasReason) then
 			local destination, anchorId, reason = BotController.chooseDestination(self, contact, ctx, t)
@@ -591,7 +645,9 @@ function BotController.tick(self: Bot, dt: number, ctx: TickContext)
 	end
 
 	-- 4. Move.
-	if self.state == "repositioning" then
+	if ctx.navigate then
+		ctx.navigate(self, dt)
+	elseif self.state == "repositioning" then
 		local advancing = contact ~= nil
 		local speed = if advancing then movement.sprintSpeedMps else movement.walkSpeedMps
 		advanceAlongPath(self, dt, speed)

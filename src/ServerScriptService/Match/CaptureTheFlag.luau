@@ -47,6 +47,7 @@ export type Game = typeof(setmetatable(
 		captures: number,
 		returns: number,
 		_lastAssign: number,
+		_lastSquadSize: number,
 		_split: { defenders: number, attackers: number },
 	},
 	CaptureTheFlag
@@ -96,6 +97,7 @@ function CaptureTheFlag.new(mapData: any): Game
 		captures = 0,
 		returns = 0,
 		_lastAssign = -math.huge,
+		_lastSquadSize = -1,
 		_split = { defenders = cfg.squadSplit.defendersBase, attackers = cfg.squadSplit.attackersBase },
 	}, CaptureTheFlag) :: any
 end
@@ -162,6 +164,7 @@ function CaptureTheFlag.step(self: Game, dt: number, actors: { any }): { Event }
 			mode.
 		]]
 		if not carrier or not carrier.alive then
+			if carrier then flag.position = carrier.position end
 			flag.state = "dropped"
 			flag.carrier = nil
 			flag.droppedAt = self.elapsed
@@ -195,6 +198,7 @@ function CaptureTheFlag.step(self: Game, dt: number, actors: { any }): { Event }
 		if target.state ~= "carried" and (actor.position - target.position).Magnitude <= flagCfg.pickupRadiusMetres then
 			target.state = "carried"
 			target.carrier = actor.id
+			target.position = actor.position
 			target.droppedAt = nil
 			table.insert(events, { kind = "flagTaken", actor = actor.id, flag = targetFlagFor(actor.team) })
 		end
@@ -271,10 +275,11 @@ end
 ]]
 function CaptureTheFlag.squadSplit(self: Game, squadSize: number): { defenders: number, attackers: number }
 	local cfg = self.cfg.squadSplit
-	if self.elapsed - self._lastAssign < cfg.reassignEverySeconds then
+	if squadSize == self._lastSquadSize and self.elapsed - self._lastAssign < cfg.reassignEverySeconds then
 		return self._split
 	end
 	self._lastAssign = self.elapsed
+	self._lastSquadSize = squadSize
 
 	local shape
 	if self.score.bots < self.score.player then
@@ -288,7 +293,7 @@ function CaptureTheFlag.squadSplit(self: Game, squadSize: number): { defenders: 
 	-- Scale the declared shape to whatever squad size the round actually has,
 	-- and never leave the keep completely unattended.
 	local total = shape.defenders + shape.attackers
-	local defenders = math.max(1, math.floor(squadSize * (shape.defenders / total) + 0.5))
+	local defenders = math.min(squadSize, math.max(1, math.floor(squadSize * (shape.defenders / total) + 0.5)))
 	self._split = { defenders = defenders, attackers = math.max(0, squadSize - defenders) }
 	return self._split
 end

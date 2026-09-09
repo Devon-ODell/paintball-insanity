@@ -45,6 +45,10 @@ local Chatter = require(Server.Bots.Chatter)
 local Course = require(Server.Match.Course)
 local CourseProgress = require(Server.Progression.CourseProgress)
 local Settlement = require(Server.Match.Settlement)
+local Endless = require(Server.Match.Endless)
+local Squad = require(Server.Match.Squad)
+local FlagArena = require(Server.Match.FlagArena)
+local FlagMatch = require(Server.Match.FlagMatch)
 local ShotLog = require(Server.Telemetry.ShotLog)
 local ShotMeasure = require(Server.Telemetry.ShotMeasure)
 local Prescription = require(Server.Telemetry.Prescription)
@@ -148,9 +152,12 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	local paintRgb = paintPalette[handle.data.loadout.paintColor] or paintPalette.yellow
 	local paintColour = Color3.fromRGB(paintRgb[1], paintRgb[2], paintRgb[3])
 
-	local world = MapGeometry.build(Config.map(mapName), Config.get("maps_index"))
+	local isCTF = mode == "captureTheFlag"
+	if isCTF and (not Config.map(mapName).captureTheFlag or not Campaign.unlocks(Campaign.recordFromProfile(handle.data)).captureTheFlag) then return nil end
+	local mapData = if isCTF then FlagArena.prepare(Config.map(mapName)) else Config.map(mapName)
+	local world = MapGeometry.build(mapData, Config.get("maps_index"))
 	if mapWorlds[player] then mapWorlds[player]:Destroy() end
-	local mapRoot = WorldBuilder.build(mapName, Workspace)
+	local mapRoot = WorldBuilder.build(mapName, Workspace, mapData)
 	mapWorlds[player] = mapRoot
 	local venue = FieldDetails.build(mapName, mapRoot)
 	venues[player] = venue
@@ -189,11 +196,34 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		log.warn(`{mapName} has no Shoothouse course; running the gauntlet instead`)
 		isCourse = false
 	end
-	local schedule: { any } = if isCourse
-		then Course.schedule(mapName, tier, 1)
+	--[[
+		Horde is the third schedule, and the only one that is not finished when
+		the match starts.
+
+		The gauntlet lays out five rounds and the Shoothouse lays out its
+		stages; horde lays out the first wave and appends the next one every
+		time a wave is cleared. That is what "endless" means here, and it is the
+		only structural difference between this mode and the other two -- the
+		firing, hit validation, lag compensation, telemetry and respawn below
+		this line are the same engine serving all three.
+
+		What ends a run is the ordinary round time limit, which already exists:
+		clear the wave inside it or the match ends at the depth you reached.
+		There is no new failure state, no health and no respawn limit, because
+		the mode does not need one -- "it does not have an end, only a depth you
+		stopped at" is the round clock, said out loud.
+	]]
+	local isHorde = mode == "horde"
+	local ctf = if isCTF then FlagMatch.new(mapData, world, mapRoot) else nil
+	if ctf then ctf.schedule[1].tier = tier end
+	local schedule: { any } = if ctf then ctf.schedule elseif isHorde
+		then { Endless.round(1) }
+		elseif isCourse then Course.schedule(mapName, tier, 1)
 		else RoundSchedule.all(tier)
 	--- No pause between stages: the Shoothouse clock never stops, so the stage
 	--- announcement is the client's job and the field moves up immediately.
+	--- Horde carries its own per-wave value, because a breather is a pause and
+	--- every other wave runs straight into the next.
 	local intermissionSeconds = if isCourse then 0 else RoundSchedule.intermissionSeconds()
 	local roundIndex = 0
 	local currentRound: RoundSchedule.Round = schedule[1]
@@ -219,79 +249,76 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		anchorById[anchor.id] = anchor
 	end
 
+	--[[
+		Reinforcements.
+
+		A horde wave can total twenty-eight while only twelve stand on the field
+		at once: the rest arrive as replacements, one for each bot taken out, so
+		depth is felt as pressure that never lets up rather than as a crowd
+		standing in the open. Twelve is also what every difficulty number in
+		this project was measured against, and reinforcing keeps that true at
+		wave forty.
+
+		Zero for the gauntlet and the Shoothouse, which field their whole round
+		at once.
+	]]
+	local squadAssignments: { any } = {}
+	local reinforcementsLeft = 0
+	local fielded = 0
+
+	--- One bot onto the field. Placement and construction live in Match/Squad;
+	--- the roster stays here because the loop reads it from a dozen places.
+	local function spawnBot(round: any, ordinal: number)
+		local bot, avatar = Squad.spawn({
+			world = world,
+			root = root,
+			names = names,
+			botFolder = botFolder,
+			anchorById = anchorById,
+			coordinator = coordinator,
+			assignments = squadAssignments,
+			vecOf = vecOf,
+		}, round, ordinal)
+		table.insert(bots, bot)
+		botsById[bot.id] = bot
+		avatars[bot.id] = avatar
+	end
+
+	local function replaceFlagBot(slot: number)
+		local old = bots[slot]
+		if avatars[old.id] then avatars[old.id]:destroy() end
+		avatars[old.id], botsById[old.id] = nil, nil
+		fielded += 1
+		spawnBot(currentRound, fielded)
+		bots[slot] = table.remove(bots)
+	end
+
 	local function buildSquad(round: any)
 		clearSquad()
 		coordinator = SquadCoordinator.new(round.tier, world, root:fork(round.index * 7 + 1))
-		local assignments = coordinator:assign(round.botCount)
-
-		for i = 1, round.botCount do
-			--[[
-				Dropped onto whatever actually holds the point up. The map data
-				is authored to put everyone on the ground, but a Y typo used to
-				produce a bot standing in mid-air and nothing in the pipeline
-				could tell -- this makes the worst case "on the roof of the thing
-				underneath you" instead of "in the sky".
-			]]
-			local position: Vector3, facing: Vector3
-			if round.stage then
-				--[[
-					A course stage's defenders start ON the cover they hold --
-					that is what makes the stage a band of the map rather than a
-					wave that walks in from the back -- and they start looking
-					down the approach the player has to come up.
-				]]
-				local ids = round.stage.anchorIds
-				local anchor = anchorById[ids[((i - 1) % #ids) + 1]]
-				position = MapGeometry.groundPoint(world, vecOf(anchor.position))
-				facing = round.stage.checkpoint.position - position
-			else
-				--[[
-					The squad can outnumber the authored spawns -- Speedball has
-					six and fields twelve, because adding more measurably broke
-					the field (see its _botSpawns note). Reused spawns are fanned
-					onto a small ring instead of stacking bodies at one point:
-					deterministic, a metre and a half out, and settled onto
-					whatever holds the point up like every other spawn.
-				]]
-				local slot = ((i - 1) % #world.botSpawns) + 1
-				local reuse = math.floor((i - 1) / #world.botSpawns)
-				local spawn = world.botSpawns[slot]
-				local at = vecOf(spawn.position)
-				if reuse > 0 then
-					local angle = (i * 2.399963) + reuse
-					at += Vector3.new(math.cos(angle), 0, math.sin(angle)) * (1.5 * reuse)
-				end
-				position = MapGeometry.groundPoint(world, at)
-				facing = vecOf(spawn.lookAt) - position
-			end
-			facing = Vector3.new(facing.X, 0, facing.Z)
-			if facing.Magnitude < 1e-6 then
-				facing = Vector3.new(0, 0, -1)
-			end
-			local bot = BotController.new({
-				id = `r{round.index}_bot{i}`,
-				name = names[i],
-				tier = round.tier,
-				role = assignments[i].role,
-				anchorId = assignments[i].anchorId,
-				position = position,
-				facing = facing.Unit,
-				world = world,
-				coordinator = coordinator,
-				rng = root:fork(round.index * 1000 + i),
-			})
-			bots[i] = bot
-			botsById[bot.id] = bot
-			-- Kit tracks tier, so a squad's difficulty is readable on sight.
-			avatars[bot.id] = BotAvatar.new(bot.id, bot.name, botFolder, round.tier)
-			avatars[bot.id]:setPosition(bot.position, bot.facing)
-
-			local anchor = coordinator:anchorById(assignments[i].anchorId)
-			if anchor then
-				BotController.pathTo(bot, vecOf(anchor.position))
-				BotController.setState(bot, "repositioning", 0, "moving to opening anchor")
-			end
+		squadAssignments = coordinator:assign(round.botCount)
+		reinforcementsLeft = round.reinforcements or 0
+		fielded = 0
+		for _ = 1, round.botCount do
+			fielded += 1
+			spawnBot(round, fielded)
 		end
+	end
+
+	--[[
+		Sends the next replacement in, if this wave still has any.
+
+		Called wherever a bot stops being alive, so paint and a shove both feed
+		it -- a mode where the melee quietly stopped the wave advancing would be
+		a strange thing to debug.
+	]]
+	local function reinforce(round: any)
+		if reinforcementsLeft <= 0 then
+			return
+		end
+		reinforcementsLeft -= 1
+		fielded += 1
+		spawnBot(round, fielded)
 	end
 
 	local projectiles = ProjectileSim.new(world, ballisticsData)
@@ -351,19 +378,6 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		return n
 	end
 
-	--- The bot behind a spoken line, or nil for a squad-wide announcement.
-	local function speakerNamed(name: any): any
-		if type(name) ~= "string" then
-			return nil
-		end
-		for _, bot in ipairs(bots) do
-			if bot.alive and bot.name == name then
-				return bot
-			end
-		end
-		return nil
-	end
-
 	local function say(kind: string, context: any)
 		context = context or {}
 		context.t = t
@@ -385,18 +399,11 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			squad calling exact degrees is a wallhack, as that function's own
 			comment says.
 		]]
-		local speaker = speakerNamed(context.speaker)
+		local speaker = Squad.named(bots, context.speaker)
 		if speaker and context.bearing == nil then
 			local ground = playerGroundPosition(player)
-			local toPlayer = if ground then (ground :: Vector3) - speaker.position else nil
-			local flat = if toPlayer then Vector3.new(toPlayer.X, 0, toPlayer.Z) else nil
-			local facing = Vector3.new(speaker.facing.X, 0, speaker.facing.Z)
-			if flat and flat.Magnitude > 1e-3 and facing.Magnitude > 1e-3 then
-				local forward, target = facing.Unit, flat.Unit
-				--- Signed angle about Y, negated so positive reads as the
-				--- speaker's right, which is what bearingWord expects.
-				local cross = forward.Z * target.X - forward.X * target.Z
-				context.bearing = Chatter.bearingWord(math.deg(math.atan2(-cross, forward:Dot(target))))
+			if ground then
+				context.bearing = Chatter.bearingFrom(speaker.facing, (ground :: Vector3) - speaker.position)
 			end
 		end
 
@@ -413,7 +420,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				that down hard (audio.json rangeScale) so it stays a
 				close-quarters tell rather than a map of the whole squad.
 			]]
-			local voice = speaker or speakerNamed(line.speaker)
+			local voice = speaker or Squad.named(bots, line.speaker)
 			if voice then
 				line.at = voice.position + Vector3.new(0, hitbox.chestHeightMetres, 0)
 			end
@@ -441,7 +448,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		projectiles:clear()
 		buildSquad(currentRound)
 		if warmup then
-			state.timeLimit = RoundSchedule.timeLimitSeconds()
+			state.timeLimit = if ctf then math.huge else RoundSchedule.timeLimitSeconds()
 			state.roundIndex += 1
 		else
 			state:beginRound(RoundSchedule.timeLimitSeconds())
@@ -457,12 +464,13 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			botCount = currentRound.botCount,
 			-- The course HUD wants the stage, not the round: "Their Half, 3 of
 			-- 4" reads as a place on the field, "round 6 of 8" does not.
-			mode = if isCourse then "shoothouse" else "gauntlet",
+			mode = mode or "gauntlet",
 			stage = if currentRound.stage then currentRound.stage.displayName else nil,
 			stageIndex = if currentRound.stage then currentRound.stage.index else nil,
 			stageCount = if isCourse then Course.stageCount(mapName) else nil,
 			wave = currentRound.wave,
 			par = if isCourse then Course.parSeconds(mapName) else nil,
+			ctf = if ctf then ctf:snapshot() else nil,
 		})
 		--[[
 			A course is eight round-waves but only four STAGES, and the squad
@@ -507,6 +515,19 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			return
 		end
 
+		--[[
+			Horde writes the next wave only once the last one is cleared.
+
+			The schedule is the mode, so an endless mode is a schedule that is
+			never finished. Appending here rather than precomputing a few
+			hundred waves keeps "endless" true instead of true-looking, and
+			means the wave the player is about to fight is composed against the
+			depth they actually reached.
+		]]
+		if isHorde then
+			table.insert(schedule, Endless.round(currentRound.index + 1))
+		end
+
 		-- Likewise: they concede a stage, not each wave of it.
 		local lastWave = currentRound.stage ~= nil and currentRound.wave == currentRound.stage.waves
 		if not isCourse or currentRound.isFinal or lastWave then
@@ -514,14 +535,27 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		end
 		clearSquad()
 		projectiles:clear()
-		intermissionUntil = t + intermissionSeconds
+		--[[
+			A horde wave carries its own pause: twenty-two seconds on a
+			breather, none at all otherwise. Every fifth wave being the only
+			time you are not being shot at is what makes the breather worth
+			reaching, and it is the only structure a run has.
+		]]
+		local pause = currentRound.intermissionSeconds or intermissionSeconds
+		intermissionUntil = t + pause
+		local nextRound = schedule[roundIndex + 1]
 		Remotes.event("MatchStateChanged"):FireClient(player, {
 			phase = "intermission",
 			map = mapName,
 			round = currentRound.index,
-			roundCount = #schedule,
-			nextBotCount = schedule[roundIndex + 1].botCount,
-			seconds = intermissionSeconds,
+			--- A horde run has no round count to show, only the depth so far.
+			roundCount = if isHorde then nil else #schedule,
+			nextBotCount = if nextRound then nextRound.botCount else nil,
+			seconds = pause,
+			--- The line the squad gets at five, ten, twenty and so on.
+			notice = if isHorde and nextRound and nextRound.endless
+				then nextRound.endless.milestone
+				else nil,
 		})
 	end
 
@@ -659,6 +693,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		eliminations += 1
 		roundElims += 1
 		bot:eliminate(t)
+		reinforce(currentRound)
 		local avatar = avatars[bot.id]
 		if avatar then avatar:splatter(bot.position + Vector3.new(0, hitbox.chestHeightMetres, 0), paintColour) end
 		Remotes.event("BotEliminated"):FireClient(player, {
@@ -730,7 +765,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		projectiles:clear()
 		-- Decided before invulnerability is timed off it, or a course
 		-- respawn would come back 0.5 s before its own grace window.
-		local respawnDelay = if currentRound.stage
+		local respawnDelay = if ctf then ctf.rules.cfg.respawn.playerSeconds elseif currentRound.stage
 			then Config.require("course", "timing.respawnDelaySeconds")
 			else matchData.respawnDelaySeconds
 		invulnerableUntil = t + respawnDelay + matchData.respawn.invulnerabilitySeconds
@@ -743,31 +778,10 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		-- Respawn is free and unlimited. It costs payout, not progress --
 		-- and on a course it costs ten seconds instead, charged once at
 		-- the end by Course.finalSeconds.
-		local respawnAt: Vector3
-		if currentRound.stage then
-			--[[
-				A course sends you back to the checkpoint you reached, not
-				to the start and not to whichever spawn is furthest from
-				the squad. Losing your progress up the field is what the
-				ten seconds is instead of.
-			]]
-			respawnAt = MapGeometry.groundPoint(world, currentRound.stage.checkpoint.position)
-		else
-			respawnAt = MapGeometry.groundPoint(world, vecOf(world.playerRespawns[1].position))
-			local best = -math.huge
-			for _, entry in ipairs(world.playerRespawns) do
-				local candidate = MapGeometry.groundPoint(world, vecOf(entry.position))
-				local nearest = math.huge
-				for _, bot in ipairs(bots) do
-					if bot.alive then
-						nearest = math.min(nearest, (bot.position - candidate).Magnitude)
-					end
-				end
-				if nearest > best then
-					best, respawnAt = nearest, candidate
-				end
-			end
-		end
+		local respawnAt = Squad.respawnPoint({
+			world = world,
+			vecOf = vecOf,
+		} :: any, currentRound, bots)
 		task.delay(respawnDelay, function()
 			if not finished then
 				spawnPlayer(respawnAt)
@@ -805,7 +819,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		if state.phase == "live" then totalLiveElapsed += dt end
 		local keepGoing = state:step(dt)
 		local alive = aliveBots()
-		if alive == 0 then
+		if alive == 0 and not ctf then
 			closeRound(true)
 			return
 		end
@@ -820,13 +834,11 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		markerState:update(t)
 
 		local ground = playerGroundPosition(player)
-		if not ground then
-			return
-		end
-		local playerPosition = ground :: Vector3
+		if not ground and not ctf then return end
+		local playerPosition = ground or ctf.lastPosition
 		local velocity = playerVelocity(player)
 		spread:step(dt, t, velocity)
-		local playerAlive = not respawning and t >= invulnerableUntil
+		local playerAlive = ground ~= nil and not respawning and t >= invulnerableUntil
 
 		local player_ = {
 			position = playerPosition,
@@ -854,7 +866,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 
 		local moraleMultiplier = SquadCoordinator.moraleErrorMultiplier(alive)
 		local targets: { any } = {}
-		for _, bot in ipairs(bots) do
+		for index, bot in ipairs(bots) do
 			bot:tick(dt, {
 				t = t,
 				dt = dt,
@@ -865,6 +877,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				aliveCount = alive,
 				chatter = say,
 				meleeRules = meleeRules,
+				navigate = if ctf then ctf:navigator(bot, index, bots, t) else nil,
 				meleePlayer = function(swinger: any)
 					eliminatePlayer(swinger.position)
 				end,
@@ -906,6 +919,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 					roundHits += 1
 					roundElims += 1
 					bot:eliminate(event.t)
+					reinforce(currentRound)
 					if headshot then
 						headshots += 1
 						camoProgress = Camos.recordHeadshot(handle)
@@ -959,6 +973,12 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				eliminatePlayer(event.position)
 			end
 		end
+		if ctf then
+			ctf:step(dt, ground, ground ~= nil and not respawning and t >= invulnerableUntil, bots, replaceFlagBot, function(snapshot)
+				Remotes.event("MatchStateChanged"):FireClient(player, { phase = "live", ctf = snapshot })
+			end)
+			if ctf.rules.finished then finish(ctf.rules.winner == "player") end
+		end
 	end
 
 	--------------------------------------------------------------------------
@@ -1003,6 +1023,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		]]
 		local breakdown, courseOutcome = Settlement.payout(handle, {
 			isCourse = isCourse,
+			isHorde = isHorde,
 			mapName = mapName,
 			markerName = markerName,
 			reports = reports,
@@ -1015,7 +1036,10 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			cleared = cleared,
 		})
 
+		if ctf then breakdown = ctf:breakdown(deaths, shots, hits) end
 		local summary = Prescription.summarise(shotLog, outcome, tier, breakdown.total)
+		summary.mode = mode or "gauntlet"
+		summary.ctf = if ctf then ctf.rules:summary() else nil
 		summary.headshots = headshots
 
 		--[[
@@ -1026,7 +1050,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			produced. Leaderboard.validate does the refusing; this only supplies
 			numbers the server counted itself.
 		]]
-		if breakdown.cleared then
+		if breakdown.cleared and not ctf then
 			local expected = 0
 			for _, round in ipairs(schedule) do
 				expected += round.botCount
@@ -1041,7 +1065,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 					-- Its own board. A course is 28 defenders and a gauntlet is
 					-- 40 over five rounds; ranked together the course time would
 					-- erase the gauntlet best on the same field.
-					mode = if isCourse then "shoothouse" else "gauntlet",
+					mode = mode or "gauntlet",
 					-- A course is ranked on the time it is JUDGED on, which is the
 					-- clock plus ten seconds a death. Submitting the raw clock
 					-- would put a six-death run above a clean one.
@@ -1094,7 +1118,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			]]
 			-- A course clear is emphatically NOT a gauntlet clear: the campaign
 			-- chapters gate on five rounds against a squad, not on a timed run.
-			if breakdown.cleared and not isCourse then
+			if breakdown.cleared and not isCourse and not isHorde and not ctf then
 				handle.data.gauntletClears = handle.data.gauntletClears or {}
 				local byTier = handle.data.gauntletClears[mapName] or {}
 				local previous = byTier[tier]
@@ -1136,8 +1160,9 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				breakdown = breakdown,
 				rounds = reports,
 				headshots = headshots,
-				mode = if isCourse then "shoothouse" else "gauntlet",
+				mode = mode or "gauntlet",
 				course = courseOutcome,
+				ctf = summary.ctf,
 			})
 		end
 
@@ -1148,6 +1173,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		reloadConnection:Disconnect()
 		swingConnection:Disconnect()
 		active[player] = nil
+		if ctf then ctf:destroy(); clearSquad(); projectiles:clear() end
 
 		state:close()
 		log.info(`match over for {player.Name}: cleared={cleared} deaths={deaths} payout={breakdown.total}`)

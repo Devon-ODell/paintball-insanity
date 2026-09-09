@@ -116,9 +116,24 @@ DialogueService.onAction = function(player: Player, action: string, arg: string?
 		end
 
 	elseif action == "startHorde" then
+		--[[
+			The Long Afternoon.
+
+			This branch used to refuse -- and refuse SILENTLY to anyone who had
+			not unlocked it, because the message sat inside the unlock check, so
+			the one route to the mode said nothing at all to the players it was
+			gated against. Both halves are answered now: it starts the run for
+			anyone who has swept the pro circuit, and tells everyone else what
+			they are missing.
+		]]
 		local record = Campaign.recordFromProfile(handle.data)
 		if Campaign.hordeUnlocked(record) then
-			Remotes.event("MatchStateChanged"):FireClient(player, { phase = "hub", notice = "Horde field preparation is still underway. Gauntlet gates are open." })
+			requestMatch(player, { map = DEFAULT_MAP, tier = DEFAULT_TIER, mode = "horde" })
+		else
+			Remotes.event("MatchStateChanged"):FireClient(player, {
+				phase = "hub",
+				notice = "The Long Afternoon opens when you have swept the pro circuit.",
+			})
 		end
 
 	elseif action == "startDrill" then
@@ -287,6 +302,13 @@ requestMatch = function(player: Player, payload: any): any
 		mapName = asMap(payload.map) or DEFAULT_MAP
 		tier = asTier(payload.tier) or DEFAULT_TIER
 	end
+	if mode == "captureTheFlag" then
+		local handle = Profile.load(player.UserId)
+		if not Config.map(mapName).captureTheFlag or not handle or not Campaign.unlocks(Campaign.recordFromProfile(handle.data)).captureTheFlag then
+			starting[player] = nil
+			return { ok = false, reason = "Capture the Flag opens on Holdfast after the Back Forty chapter." }
+		end
+	end
 	if mode == "shoothouse" and not Course.hasCourse(mapName) then
 		starting[player] = nil
 		return { ok = false, reason = "That field has no Shoothouse course." }
@@ -376,7 +398,8 @@ Hub.onGateEntered = function(player: Player, mapName: string)
 	local handle = Profile.load(player.UserId)
 	if not handle or player.Parent ~= Players then return end
 	local tier = Campaign.recommendedTier(Campaign.recordFromProfile(handle.data))
-	requestMatch(player, { map = mapName, tier = tier })
+	local result = requestMatch(player, { map = mapName, tier = tier, mode = if Config.map(mapName).captureTheFlag then "captureTheFlag" else "gauntlet" })
+	if not result.ok then Remotes.event("MatchStateChanged"):FireClient(player, { phase = "hub", notice = result.reason }) end
 end
 
 --- The other prompt on the same post: the timed course.

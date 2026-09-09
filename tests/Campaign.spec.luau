@@ -151,7 +151,15 @@ return function()
 			end
 		end)
 
-		it("keeps deferred Horde closed even after the pro sweep", function()
+		--[[
+			This asserted the opposite until horde was integrated: it was named
+			"keeps deferred Horde closed even after the pro sweep", and what it
+			pinned was the DEFERRAL, not the gate. The deferral was lifted
+			deliberately; the gate below is the part that always mattered and it
+			is unchanged. The three checks around this one still assert that
+			nothing short of a full pro sweep opens it.
+		]]
+		it("opens once the pro circuit is swept, and not before", function()
 			local r = record()
 			clearAll(r, "rec")
 			Campaign.newlyCompleted(r)
@@ -164,7 +172,7 @@ return function()
 			clearAll(r, "pro")
 			Campaign.newlyCompleted(r)
 			expect(r.completed.proCircuit).to.equal(true)
-			expect(Campaign.hordeUnlocked(r)).to.equal(false)
+			expect(Campaign.hordeUnlocked(r)).to.equal(true)
 		end)
 
 		it("does not open on a partial pro sweep", function()

@@ -2,7 +2,9 @@
   "_comment": "Release: solo Gauntlet. Horde and Capture the Flag are deferred; their tuning is retained for future integration.",
   "order": [
     "gauntlet",
-    "shoothouse"
+    "shoothouse",
+    "horde",
+    "captureTheFlag"
   ],
   "default": "gauntlet",
   "modes": {
@@ -40,7 +42,7 @@
       "_maxPlayers": "The only mode that takes a second player. See Data/course.json coop."
     },
     "horde": {
-      "enabled": false,
+      "enabled": true,
       "displayName": "Horde",
       "subtitle": "The Long Afternoon.",
       "blurb": "Endless waves. Breather every fifth, a marshal every seventh, and it does not have an end -- only a depth you stopped at.",
@@ -53,11 +55,11 @@
       ],
       "rules": "endless",
       "leaderboard": "wave",
-      "integrated": false,
-      "_integrated": "Endless.luau is pure and spec-covered; nothing starts it. See docs/PROGRESS.md."
+      "integrated": true,
+      "_integrated": "Live. The wave loop runs through MatchService like the other two modes: a wave is a ROUND, and horde is the schedule that appends the next one instead of being finished at the start. Reinforcements feed the concurrent cap, veterancy adjusts a COPY of the tier parameters, breathers are the per-wave pause, and a boss wave fields a marshal whose target is its hopper rather than its body. Still gated behind the pro circuit by progression.modeUnlocks.horde -- integrated means it runs, not that everyone can reach it."
     },
     "captureTheFlag": {
-      "enabled": false,
+      "enabled": true,
       "displayName": "Capture the Flag",
       "subtitle": "Holdfast. Their keep, your keep, one flag each.",
       "blurb": "Take their flag out of the north keep and get it back to yours. They are doing the same thing in the other direction, and they have six people to your one.",
@@ -66,9 +68,9 @@
         "holdfast"
       ],
       "rules": "captureTheFlag",
-      "leaderboard": "time",
-      "integrated": false,
-      "_integrated": "CaptureTheFlag.luau is pure and spec-covered; nothing starts it."
+      "leaderboard": "none",
+      "integrated": true,
+      "_integrated": "Live solo flag match on Holdfast: objective squads, timed respawns, capture scoring and server-owned flag state."
     }
   },
   "captureTheFlag": {
@@ -120,6 +122,103 @@
       "winBonus": 2200,
       "usesDeathPenalty": true,
       "usesAccuracyBonus": true
+    },
+    "squadSize": 6,
+    "networkIntervalSeconds": 0.2,
+    "navigation": {
+      "repathSeconds": 1,
+      "arrivalMetres": 0.3,
+      "combatHoldSeconds": 1.5,
+      "combatMoveSeconds": 2.5,
+      "escortOffsetMetres": 2.5
+    },
+    "presentation": {
+      "playerColor": [
+        50,
+        210,
+        236
+      ],
+      "enemyColor": [
+        255,
+        155,
+        65
+      ],
+      "poleHeightMetres": 2.6,
+      "poleWidthMetres": 0.045,
+      "clothSizeMetres": [
+        1.1,
+        0.72,
+        0.035
+      ],
+      "clothHeightMetres": 2.0,
+      "carryHeightMetres": 0.7,
+      "baseSizeMetres": [
+        2.4,
+        0.08,
+        2.4
+      ],
+      "labelPixels": [
+        220,
+        54
+      ],
+      "labelHeightMetres": 3.2,
+      "labelTextPixels": 16
+    },
+    "arena": {
+      "deckHeightMetres": 8.5,
+      "flagXMetres": 6,
+      "flagZMetres": 68,
+      "spawnOffsetsMetres": [
+        [
+          -3,
+          0
+        ],
+        [
+          0,
+          -3
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          -3,
+          -3
+        ],
+        [
+          3,
+          -3
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "stairsStartMetres": 33,
+      "stairsStepMetres": 0.2,
+      "stairsTreadMetres": 0.4,
+      "stairsWidthMetres": 7,
+      "stairsTopMetres": 10.8,
+      "landingEndMetres": 56.4,
+      "deckEntryMetres": 63,
+      "guardOffsetsMetres": [
+        [
+          -6,
+          -6
+        ],
+        [
+          0,
+          -10
+        ],
+        [
+          3,
+          -5
+        ],
+        [
+          -6,
+          -2
+        ]
+      ]
     }
   },
   "_default": "Gauntlet is the first-release default. Shoothouse is deferred until live co-op integration is complete.",

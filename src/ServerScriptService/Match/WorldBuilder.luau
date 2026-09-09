@@ -372,9 +372,9 @@ local function buildPresentation(mapData: any, root: Folder, geometry: Folder)
 end
 
 --- Builds the whole map under a fresh folder in Workspace and returns it.
-function WorldBuilder.build(mapName: string, parent: Instance): Folder
+function WorldBuilder.build(mapName: string, parent: Instance, preparedData: any?): Folder
 	EnvironmentMaterials.install()
-	local mapData = Config.map(mapName)
+	local mapData = preparedData or Config.map(mapName)
 
 	local root = Instance.new("Folder")
 	root.Name = `Map_{mapName}`

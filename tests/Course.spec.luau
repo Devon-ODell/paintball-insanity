@@ -395,11 +395,30 @@ return function()
 			integrated without wiring one would put them back in the exact state
 			the Shoothouse was found in.
 		]]
-		it("does not pretend Horde or Capture the Flag are playable", function()
-			expect(modes.modes.horde.integrated).to.equal(false)
+		--[[
+			Horde used to be in here too, because it was deferred. It is
+			integrated now -- a wave is a round and the loop runs it -- so what
+			is left to pin is the rule rather than the list: a mode is offered
+			only if something actually starts it.
+
+			Capture the Flag is still the example of the opposite. Its rules
+			module is pure and spec-covered and nothing runs it, so it must stay
+			out of `order` and out of `integrated`.
+		]]
+		it("does not pretend Capture the Flag is playable", function()
 			expect(modes.modes.captureTheFlag.integrated).to.equal(false)
-			expect(table.find(modes.order, "horde")).to.equal(nil)
 			expect(table.find(modes.order, "captureTheFlag")).to.equal(nil)
+		end)
+
+		it("offers exactly the modes something can start", function()
+			for _, name in ipairs(modes.order) do
+				expect(modes.modes[name].integrated).to.equal(true)
+			end
+			for name, mode in pairs(modes.modes) do
+				if mode.integrated == true then
+					expect(table.find(modes.order, name)).to.be.ok()
+				end
+			end
 		end)
 	end)
 end

@@ -19,17 +19,26 @@
 	on top of that would price one mistake twice -- once in the time and again
 	in the money -- which reads to a player as the game being unfair rather than
 	as it being hard.
+
+	**Horde** is paid once, for the depth reached, and superlinearly: wave 30 is
+	worth far more than three runs to wave 10. A linear curve would make farming
+	the easy early waves the optimal play, which is the exact opposite of what an
+	endless mode is for. The ordinary death penalty still applies, so
+	brute-forcing depth with forty respawns still earns almost nothing -- the
+	same rule as everywhere else in this game.
 ]]
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local Server = ServerScriptService.Server
 local Payout = require(Server.Economy.Payout)
 local CourseProgress = require(Server.Progression.CourseProgress)
+local Endless = require(Server.Match.Endless)
 
 local Settlement = {}
 
 export type Params = {
 	isCourse: boolean,
+	isHorde: boolean,
 	mapName: string,
 	markerName: string,
 	--- One entry per round actually played.
@@ -51,7 +60,40 @@ export type Params = {
 	`CourseProgress.record` is what decides the medal and therefore what the run
 	was worth, so the two cannot be separated without computing the medal twice.
 ]]
+--[[
+	Waves fully cleared.
+
+	A horde run is not paid for the wave it died on, so this counts cleared
+	reports rather than the depth reached: reaching wave 20 and losing it is a
+	wave-19 run.
+]]
+local function wavesSurvived(reports: { any }): number
+	local count = 0
+	for _, report in ipairs(reports) do
+		if report.cleared then
+			count += 1
+		end
+	end
+	return count
+end
+
 function Settlement.payout(handle: any, params: Params): (any, any)
+	if params.isHorde then
+		local depth = wavesSurvived(params.reports)
+		local total = Endless.payoutFor(depth, 0)
+		--[[
+			Depth is charged for deaths the same way a gauntlet is. Payout.apply
+			owns that curve, so horde cannot drift from the rule the rest of the
+			game is balanced around: death costs payout, never progress.
+		]]
+		return {
+			total = math.floor(total * Payout.deathPenalty(params.deaths) + 0.5),
+			cleared = false,
+			roundsCleared = depth,
+			roundsPlayed = #params.reports,
+			wavesSurvived = depth,
+		}, nil
+	end
 	if not params.isCourse then
 		local roundResults: { Payout.RoundResult } = {}
 		for index, report in ipairs(params.reports) do

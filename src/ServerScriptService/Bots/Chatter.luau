@@ -218,4 +218,27 @@ function Chatter.bearingWord(bearingDeg: number): string
 	end
 end
 
+--[[
+	The bearing word for a target seen from a facing, or nil.
+
+	The arithmetic that turns two vectors into "front left" belongs beside the
+	table that names the words, not in the match loop -- MatchService only wants
+	to know what the speaker would say. Signed about Y and negated so positive
+	reads as the speaker's right, which is what bearingWord expects.
+
+	Returns nil rather than a word when there is no meaningful bearing: standing
+	on the target, or facing nowhere. A callout that interpolated "nil" would be
+	worse than one that says "front".
+]]
+function Chatter.bearingFrom(facing: Vector3, toTarget: Vector3): string?
+	local forward = Vector3.new(facing.X, 0, facing.Z)
+	local target = Vector3.new(toTarget.X, 0, toTarget.Z)
+	if forward.Magnitude < 1e-3 or target.Magnitude < 1e-3 then
+		return nil
+	end
+	forward, target = forward.Unit, target.Unit
+	local cross = forward.Z * target.X - forward.X * target.Z
+	return Chatter.bearingWord(math.deg(math.atan2(-cross, forward:Dot(target))))
+end
+
 return Chatter

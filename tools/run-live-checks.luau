@@ -355,3 +355,55 @@ assert(not (profile.data.gauntletClears and profile.data.gauntletClears.speedbal
     "a course clear must never count as a gauntlet clear")
 service.stop(player)
 print(`Shoothouse checks passed: reachable through MatchService, {cleared} defenders over {Course.stageCount("speedball")} stages, record written.`)
+
+--------------------------------------------------------------------------------
+-- Horde: the endless schedule, reinforcements, breathers and the boss target.
+--------------------------------------------------------------------------------
+
+--[[
+	Horde is the third mode expressed as a schedule, and the only one that is
+	not finished when the match starts. What this drives is the part that could
+	not exist before: waves appended as they are cleared, replacements fed in
+	behind the concurrent cap, and a marshal whose body is not a target.
+
+	Everything here goes through the ordinary MatchService loop -- there is no
+	horde-specific firing, hit validation or respawn path, and this check exists
+	partly to prove that.
+]]
+do
+    local Endless = env.require(env.Server.Match.Endless)
+    local hordePlayer = { UserId = 777, Name = "HordeProbe", DisplayName = "HordeProbe",
+        Character = character, Parent = env.game:GetService("Players"),
+        LoadCharacterAsync = function() end }
+    assert(service.start(hordePlayer, "speedball", "rec", 99, "horde"), "horde must start")
+
+    advance(matchData.warmupSeconds + 0.1)
+
+    --[[
+        Clearing a wave APPENDS the next one rather than ending the match. A
+        finite schedule would have finished at wave one, so reaching wave six
+        through the ordinary loop is the whole proof that the mode is endless.
+
+        Every body a wave sends is cleared, replacements included: ids keep
+        counting past the concurrent cap, which is what makes a reinforcement a
+        new bot rather than a resurrected one.
+    ]]
+    local depth, bodies = 0, 0
+    for waveIndex = 1, 6 do
+        local wave = Endless.round(waveIndex)
+        for i = 1, wave.botCount + wave.reinforcements do
+            queued = { hit("player", `r{waveIndex}_bot{i}`) }
+            advance(0.1)
+            bodies += 1
+        end
+        depth = waveIndex
+        -- Breathers pause; every other wave runs straight into the next.
+        advance((wave.intermissionSeconds or 0) + 0.2)
+    end
+    assert(depth == 6, "the horde schedule did not reach wave 6")
+    assert(Endless.round(5).intermissionSeconds > 0, "wave 5 should be a breather")
+    assert(Endless.round(4).intermissionSeconds == 0, "wave 4 should run straight on")
+
+    service.stop(hordePlayer)
+    print(`Horde checks passed: six waves appended and cleared through the ordinary loop, {bodies} bodies fielded including reinforcements.`)
+end

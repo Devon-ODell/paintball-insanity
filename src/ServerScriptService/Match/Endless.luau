@@ -157,6 +157,40 @@ end
 --------------------------------------------------------------------------------
 
 --[[
+	A wave, expressed as a ROUND the ordinary match loop can run.
+
+	This is the whole integration. MatchService does not know what horde is: it
+	runs a schedule, and a mode is a way of producing one. The gauntlet produces
+	five rounds up front and the Shoothouse produces its stages up front; horde
+	produces them one at a time, forever, which is the only difference.
+
+	`botCount` is the CONCURRENT count, not the wave's total. Twelve is what the
+	field can hold and what the difficulty was tuned against; a wave of
+	twenty-eight sends the rest in as replacements, so depth is felt as pressure
+	that never lets up rather than as a crowd standing in the open.
+
+	`payoutMultiplier` is zero for the same reason a course stage's is: horde is
+	paid once, for the depth reached, by Endless.payoutFor.
+]]
+function Endless.round(index: number): any
+	local wave = Endless.wave(index)
+	return {
+		index = index,
+		botCount = wave.concurrent,
+		tier = wave.tier,
+		payoutMultiplier = 0,
+		--- Everything past the concurrent cap arrives as a replacement.
+		reinforcements = math.max(0, wave.botCount - wave.concurrent),
+		--- Breathers are the only pause in a horde run, and the only place kit
+		--- drops. A wave that is not a breather runs straight into the next.
+		intermissionSeconds = if wave.isBreather then cfg().breatherSeconds else 0,
+		--- Boss waves field a marshal as the first unit; MatchService reads
+		--- this off the wave rather than keeping its own boss schedule.
+		endless = wave,
+	}
+end
+
+--[[
 	Horde payout for reaching a wave.
 
 	Superlinear in depth, so wave 30 is worth far more than three runs to wave
