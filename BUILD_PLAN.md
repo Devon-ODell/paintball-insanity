@@ -1,7 +1,7 @@
 # BUILD_PLAN.md — PROJECT_LIVEROUND
 
 Ordered by dependency and by how much each phase de-risks the rest. Do not start a
-phase until the previous one's acceptance criteria pass. Update `docs/PROGRESS.md`
+phase until the previous one's acceptance criteria pass. Update `docs/CHANGE_REPORT.md`
 at the end of every session.
 
 ---

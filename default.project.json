@@ -34,10 +34,17 @@
       }
     },
 
+    "MaterialService": {
+      "$className": "MaterialService",
+      "$properties": { "Use2022Materials": true }
+    },
+
     "Lighting": {
       "$className": "Lighting",
       "$properties": {
         "Technology": "Future",
+        "LightingStyle": "Realistic",
+        "PrioritizeLightingQuality": true,
         "Ambient": [0.35, 0.36, 0.42],
         "OutdoorAmbient": [0.42, 0.44, 0.5],
         "Brightness": 2.6,

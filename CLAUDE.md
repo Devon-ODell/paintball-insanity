@@ -2,12 +2,17 @@
 
 Persistent instructions. Read fully before every session.
 
+Current changes, debug results, release decisions and AI handoffs live in
+`docs/CHANGE_REPORT.md`. Update that report instead of creating another handoff
+or appending competing status to the legacy progress/review files.
+
 ---
 
 ## What this is
 
 A single-player Roblox PvE paintball shooter built as a **disguised aim trainer**.
-One player against twelve bots per match. Low-poly, flat-shaded, saturated palette.
+One player against up to twelve bots. The current art direction uses authored
+mesh environments, PBR surfaces and readable paintball silhouettes.
 
 The game is deliberately hard. Losing a straight fight against the squad is the
 expected outcome; the

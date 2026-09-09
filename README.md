@@ -1,16 +1,15 @@
 # PROJECT_LIVEROUND
 
 A single-player Roblox PvE paintball shooter, built as a disguised aim trainer.
-One player against twelve bots per match. Low-poly, flat-shaded, saturated palette.
+One player against up to twelve bots, with authored mesh environments and procedural paintball props.
 
 The game is deliberately hard. Losing a straight fight against the squad is the
 expected outcome. Death costs no progress — it costs payout. You can brute-force
 any match with enough respawns and earn almost nothing for it. That is the
 accessibility floor and the skill ceiling in one mechanic.
 
-**Status: pre-release.** No place has been published to Roblox. Every automated
-gate passes; the manual Studio and live-service gates in
-[`docs/PUBLISH_READINESS.md`](docs/PUBLISH_READINESS.md) are outstanding.
+**Status: pre-release.** No place has been published to Roblox. Current automated results, known balance failures, and the remaining Studio/private-server checks are in
+[`docs/CHANGE_REPORT.md`](docs/CHANGE_REPORT.md).
 
 ---
 
@@ -214,7 +213,7 @@ render budgets, character construction, gait, z-fighting and client UI behaviour
 
 None of these is a substitute for rendered performance or real DataStore
 behaviour. What the automated suite cannot see is recorded honestly in
-[`docs/PUBLISH_READINESS.md`](docs/PUBLISH_READINESS.md).
+[`docs/CHANGE_REPORT.md`](docs/CHANGE_REPORT.md).
 
 ---
 
