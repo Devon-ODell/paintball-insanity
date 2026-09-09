@@ -5,13 +5,7 @@
   "advanceOnClear": true,
   "_advanceOnClear": "The next stage does not exist until the current one is empty. No trigger volumes, no leaking a back-stage defender into a fight you are already losing. Clear it and the field moves up.",
   "stageCount": 4,
-  "stageBots": [
-    2,
-    3,
-    4,
-    5
-  ],
-  "_stageBots": "Concurrent defenders per stage -- what is alive at once. Multiplied by wavesPerStage for the stage total, so a course is 28 defenders fought in 4 stages of 4, 6, 8 and 10.",
+  "_stageBots": "REMOVED 2026-09-09. It declared [2,3,4,5] -- fourteen defenders -- while Match/Course derives the count from each stage's anchors and produces twenty-eight, one body per anchor. Two opinions about how many people are in the building, and the data one had never been read.",
   "stageAnnounceSeconds": 2.5,
   "_stageAnnounce": "A beat between stages. The clock does NOT stop for it -- see clockStopsBetweenStages -- it is a breath, not a break.",
   "clockStopsBetweenStages": false,

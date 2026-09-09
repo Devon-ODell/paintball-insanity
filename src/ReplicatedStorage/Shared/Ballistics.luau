@@ -28,7 +28,21 @@ export type State = {
 	distance: number,
 }
 
+local Config = require(script.Parent.Config)
+
 local Ballistics = {}
+
+--[[
+	How many passes the lead/aim solver takes.
+
+	Read from Data/ballistics.json rather than written here. Both call sites had
+	a literal 4 in them and the data already declared `leadSolver.iterations: 4`
+	-- two places to change one tuning number, which is the second-opinion
+	pattern this project keeps finding. Same value, so nothing moves.
+]]
+local function solverIterations(): number
+	return Config.require("ballistics", "leadSolver.iterations")
+end
 
 local EPSILON = 1e-9
 
@@ -116,7 +130,7 @@ function Ballistics.aimDirection(
 	target: Vector3,
 	iterations: number?
 ): (Vector3?, number)
-	local iters = iterations or 4
+	local iters = iterations or solverIterations()
 	local aim = target
 	local tof = 0
 	for _ = 1, iters do
@@ -156,7 +170,7 @@ function Ballistics.solveLead(
 	targetVelocity: Vector3,
 	iterations: number?
 ): (Vector3?, number)
-	local iters = iterations or 4
+	local iters = iterations or solverIterations()
 	local t = (targetPos - shooterPos).Magnitude / spec.muzzleVelocity
 	for _ = 1, iters do
 		local predicted = targetPos + targetVelocity * t

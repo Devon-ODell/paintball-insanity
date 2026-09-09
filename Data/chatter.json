@@ -205,6 +205,13 @@
       "Crossfire's set. Make them move.",
       "We've got both angles. Squeeze it.",
       "They're boxed. Don't let them reset."
+    ],
+    "barrelTag": [
+      "Barrel tag! You're out, you're out, don't shoot me.",
+      "Tag. That's a tag, that's the rule, I'm being NICE.",
+      "Barrel tag. I could have shot you. Remember that.",
+      "Tag! Walk it off. Genuinely, you were very close.",
+      "That's a tag. Do not tell {name} how close you got."
     ]
   },
   "_tierVoice": {

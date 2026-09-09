@@ -137,6 +137,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	local matchData = Config.get("match")
 	local ballisticsData = Config.get("ballistics")
 	local hitbox = ballisticsData.hitbox
+	local hitRules = Config.require("match", "hitRules")
 	local markerName = handle.data.loadout.marker
 	local markerData = Config.require("markers", "markers." .. markerName)
 	local spec = Ballistics.specFromMarker(markerData, ballisticsData)
@@ -539,6 +540,76 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		end
 	end)
 
+	--[[
+		The player is out.
+
+		Extracted so a barrel tag can end a life the same way paint does. It used
+		to live inline in the projectile branch, so the only way to take a player
+		out was to hit them with a ball -- while match.json has declared a
+		barrel-tag range since the rules were written and nothing implemented it.
+
+		`impact` is where the mark lands, for the client splatter. A tag has no
+		ball, so it passes the tagging bot's own muzzle.
+	]]
+	local function eliminatePlayer(impact: Vector3)
+		if respawning or t < invulnerableUntil then
+			return
+		end
+		respawning = true
+		respawning = true
+		deaths += 1
+		roundDeaths += 1
+		shotLog:recordDeath(t)
+		projectiles:clear()
+		-- Decided before invulnerability is timed off it, or a course
+		-- respawn would come back 0.5 s before its own grace window.
+		local respawnDelay = if currentRound.stage
+			then Config.require("course", "timing.respawnDelaySeconds")
+			else matchData.respawnDelaySeconds
+		invulnerableUntil = t + respawnDelay + matchData.respawn.invulnerabilitySeconds
+		Remotes.event("PlayerEliminated"):FireClient(player, {
+			deaths = deaths,
+			impact = Units.vectorToStuds(impact),
+		})
+		say("playerEliminated", {})
+
+		-- Respawn is free and unlimited. It costs payout, not progress --
+		-- and on a course it costs ten seconds instead, charged once at
+		-- the end by Course.finalSeconds.
+		local respawnAt: Vector3
+		if currentRound.stage then
+			--[[
+				A course sends you back to the checkpoint you reached, not
+				to the start and not to whichever spawn is furthest from
+				the squad. Losing your progress up the field is what the
+				ten seconds is instead of.
+			]]
+			respawnAt = MapGeometry.groundPoint(world, currentRound.stage.checkpoint.position)
+		else
+			respawnAt = MapGeometry.groundPoint(world, vecOf(world.playerRespawns[1].position))
+			local best = -math.huge
+			for _, entry in ipairs(world.playerRespawns) do
+				local candidate = MapGeometry.groundPoint(world, vecOf(entry.position))
+				local nearest = math.huge
+				for _, bot in ipairs(bots) do
+					if bot.alive then
+						nearest = math.min(nearest, (bot.position - candidate).Magnitude)
+					end
+				end
+				if nearest > best then
+					best, respawnAt = nearest, candidate
+				end
+			end
+		end
+		task.delay(respawnDelay, function()
+			if not finished then
+				spawnPlayer(respawnAt)
+				respawning = false
+				invulnerableUntil = t + matchData.respawn.invulnerabilitySeconds
+			end
+		end)
+	end
+
 	--------------------------------------------------------------------------
 	-- The loop
 	--------------------------------------------------------------------------
@@ -626,6 +697,10 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				moraleErrorMultiplier = moraleMultiplier,
 				aliveCount = alive,
 				chatter = say,
+				barrelTagRangeMetres = hitRules.surrenderBarrelTagRangeMetres,
+				tagPlayer = function(tagger: any)
+					eliminatePlayer(tagger.position)
+				end,
 			})
 			local avatar = avatars[bot.id]
 			if avatar and bot.alive then
@@ -709,59 +784,8 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 					holdoverErrorM = measurement and measurement.holdoverErrorM,
 					leadErrorM = measurement and measurement.leadErrorM,
 				})
-			elseif event.kind == "target" and event.targetId == "player" and not respawning and t >= invulnerableUntil then
-				respawning = true
-				deaths += 1
-				roundDeaths += 1
-				shotLog:recordDeath(event.t)
-				projectiles:clear()
-				-- Decided before invulnerability is timed off it, or a course
-				-- respawn would come back 0.5 s before its own grace window.
-				local respawnDelay = if currentRound.stage
-					then Config.require("course", "timing.respawnDelaySeconds")
-					else matchData.respawnDelaySeconds
-				invulnerableUntil = t + respawnDelay + matchData.respawn.invulnerabilitySeconds
-				Remotes.event("PlayerEliminated"):FireClient(player, {
-					deaths = deaths,
-					impact = Units.vectorToStuds(event.position),
-				})
-				say("playerEliminated", {})
-
-				-- Respawn is free and unlimited. It costs payout, not progress --
-				-- and on a course it costs ten seconds instead, charged once at
-				-- the end by Course.finalSeconds.
-				local respawnAt: Vector3
-				if currentRound.stage then
-					--[[
-						A course sends you back to the checkpoint you reached, not
-						to the start and not to whichever spawn is furthest from
-						the squad. Losing your progress up the field is what the
-						ten seconds is instead of.
-					]]
-					respawnAt = MapGeometry.groundPoint(world, currentRound.stage.checkpoint.position)
-				else
-					respawnAt = MapGeometry.groundPoint(world, vecOf(world.playerRespawns[1].position))
-					local best = -math.huge
-					for _, entry in ipairs(world.playerRespawns) do
-						local candidate = MapGeometry.groundPoint(world, vecOf(entry.position))
-						local nearest = math.huge
-						for _, bot in ipairs(bots) do
-							if bot.alive then
-								nearest = math.min(nearest, (bot.position - candidate).Magnitude)
-							end
-						end
-						if nearest > best then
-							best, respawnAt = nearest, candidate
-						end
-					end
-				end
-				task.delay(respawnDelay, function()
-					if not finished then
-						spawnPlayer(respawnAt)
-						respawning = false
-						invulnerableUntil = t + matchData.respawn.invulnerabilitySeconds
-					end
-				end)
+			elseif event.kind == "target" and event.targetId == "player" then
+				eliminatePlayer(event.position)
 			end
 		end
 	end

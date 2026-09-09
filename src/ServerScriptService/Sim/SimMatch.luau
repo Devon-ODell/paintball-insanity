@@ -147,6 +147,7 @@ local function runRound(ctx: RoundContext): RoundReport
 	local world = ctx.world
 	local matchData = ctx.matchData
 	local hitbox = ctx.ballisticsData.hitbox
+	local hitRules = Config.require("match", "hitRules")
 	local markerData = ctx.markerData
 	local spec = ctx.spec
 	local round = ctx.round
@@ -444,6 +445,24 @@ local function runRound(ctx: RoundContext): RoundReport
 				player = player,
 				projectiles = projectiles,
 				moraleErrorMultiplier = moraleMultiplier,
+				--[[
+					The barrel tag, in the simulator as well as live, because it
+					is a rule and not a flourish -- and it is one of the few
+					things that makes closing the last few metres cost anything.
+					probe-trading has to see it or the numbers describe a game
+					nobody plays.
+				]]
+				barrelTagRangeMetres = hitRules.surrenderBarrelTagRangeMetres,
+				tagPlayer = function()
+					if player.alive then
+						player.alive = false
+						player.respawnAt = t + matchData.respawnDelaySeconds
+						deaths += 1
+						log:recordDeath(t)
+						projectiles:clear()
+						say("playerEliminated", {})
+					end
+				end,
 				aliveCount = alive,
 				chatter = say,
 			})

@@ -274,6 +274,37 @@ local function tryFire(self: Bot, t: number, ctx: any, aimAt: Vector3, aimVeloci
 		return false
 	end
 
+	--[[
+		The barrel tag.
+
+		`match.json` has declared `hitRules.surrenderBarrelTagRangeMetres` since
+		the rules were written -- "inside this range a bot offers a barrel tag
+		instead of shooting; it is a paintball courtesy and it reads as comedy
+		rather than mercy" -- and nothing has ever implemented it.
+
+		At contact range a player does not get shot, they get touched out with
+		the barrel. That is the real rule on a real field, and mechanically it is
+		the right way round: it makes closing the last few metres COST something
+		rather than being the safe play. probe-trading currently says rushing
+		beats holding an angle on three fields, which is the inverse of the
+		premise this whole game is built on, and a bot that cannot punish
+		somebody walking into its barrel is part of why.
+
+		No paint leaves the marker, so nothing here can be dodged, blocked by
+		cover that is already this close, or reflected in hit rate. The bot says
+		so out loud, because the line is the point.
+	]]
+	local tagRange = ctx.barrelTagRangeMetres or 0
+	if tagRange > 0 and ctx.tagPlayer then
+		local reach = (aimAt - BotController.muzzle(self)).Magnitude
+		if reach <= tagRange then
+			self._lastShotAt = t
+			ctx.chatter("barrelTag", { speaker = self.name })
+			ctx.tagPlayer(self)
+			return true
+		end
+	end
+
 	local solution = AimModel.solve({
 		spec = self.spec,
 		origin = BotController.muzzle(self),

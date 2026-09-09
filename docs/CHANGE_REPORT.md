@@ -2,6 +2,20 @@
 
 Updated 2026-09-09. This is the single current update list and AI handoff. It supersedes the previous world-pass, publish-prep, Shoothouse, agent, progress and debug handoffs, including the historical paintball-insanity review. Older narratives and their superseded numbers remain in Git history; they are not current instructions.
 
+## Third pass, 2026-09-09 — five more
+
+Found by sweeping `Data/*.json` for keys nothing reads. That pattern has been the most productive bug-finder in this codebase, so it is now a gate.
+
+| Area | Before | Current behavior | Verification |
+| --- | --- | --- | --- |
+| Barrel tag | `match.hitRules.surrenderBarrelTagRangeMetres: 4.0` had been declared since the rules were written -- "inside this range a bot offers a barrel tag instead of shooting; it is a paintball courtesy and it reads as comedy rather than mercy" -- and nothing implemented it. The only way to take a player out was a ball. | At contact range a bot tags you out with its barrel instead of firing, and says so. Player elimination is extracted from the projectile branch so paint and a tag end a life the same way. Live and simulated. | `run-live-checks` and `check-client-ui` pass. **It does not move the balance numbers** -- `probe-trading` is identical -- because a rusher is usually shot before it reaches 4 m. This is authenticity and comedy, not a balance fix. |
+| Lead solver tuning | Both solver call sites carried a literal `4` while `ballistics.leadSolver.iterations` already declared 4. Two places to change one tuning value. | Read from the data. Same number, so behaviour is unchanged. | 489 specs unchanged. |
+| Shoothouse defender count | `course.stageBots: [2,3,4,5]` -- fourteen defenders -- against the twenty-eight `Course` derives from stage anchors. Two opinions about how many people are in the building, and the data one had never been read. | Removed, with the reason recorded in place. The derivation is the rule. | `run-live-checks` still reports 28 defenders over 4 stages. |
+| Bot chatter | No line existed for a barrel tag. | Five, in the callouts bank. | `ship-check` dialogue check passes. |
+| Unread configuration | Nothing checked whether an authored tunable was reachable. One manual sweep found a rule never built, a contradictory defender count and a duplicated solver constant. | `tools/check-config-read` gates it, top-level keys only -- going deeper produced a hundred false alarms from registries like `wardrobe.pieces`. Six documented exemptions. | Gate 3 of 20; passes. |
+
+**Debug rerun: 19 of 20 gates pass, 489 specs pass, the same 2 balance specs fail** (357.42 s). No new failure introduced.
+
 ## Second pass, 2026-09-09 — five more
 
 Separate from the five below, which were a different session's. Nothing here changed a balance threshold.
