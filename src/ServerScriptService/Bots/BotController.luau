@@ -63,6 +63,7 @@ export type Bot = typeof(setmetatable(
 		_hopper: number,
 		_reloadUntil: number?,
 		_swingLandsAt: number?,
+		_swingStartedAt: number?,
 		_path: { number }?,
 		_pathIndex: number,
 		_repositionReadyAt: number,
@@ -124,6 +125,7 @@ function BotController.new(config: Config): Bot
 		_hopper = markerData.hopperCapacity,
 		_reloadUntil = nil,
 		_swingLandsAt = nil,
+		_swingStartedAt = nil,
 		_path = nil,
 		_pathIndex = 1,
 		_repositionReadyAt = 0,
@@ -146,6 +148,28 @@ end
 --------------------------------------------------------------------------------
 -- Geometry helpers
 --------------------------------------------------------------------------------
+
+--[[
+	How far through a swing this bot is, or nil.
+
+	Exists so the avatar can show the shove instead of the bot appearing to
+	stand still and eliminate somebody by telepathy. The commit delay is the
+	player's only warning, and a warning nobody can see is not one -- so the
+	animation runs on the same clock as the rule, past contact and through the
+	follow-through.
+]]
+function BotController.swingProgress(self: Bot, t: number): number?
+	local started = self._swingStartedAt
+	if started == nil then
+		return nil
+	end
+	local progress = (t - started) / Melee.rules().swingSeconds
+	if progress >= 1 then
+		self._swingStartedAt = nil
+		return nil
+	end
+	return math.max(progress, 0)
+end
 
 function BotController.eye(self: Bot): Vector3
 	return self.position + Vector3.new(0, self._eyeHeight, 0)
@@ -307,6 +331,7 @@ local function tryFire(self: Bot, t: number, ctx: any, aimAt: Vector3, aimVeloci
 	if rules and ctx.meleePlayer and Melee.reaches(self.position, toTarget, aimAt, rules) then
 		self._lastShotAt = t
 		self._swingLandsAt = t + Melee.contactDelay(rules)
+		self._swingStartedAt = t
 		self.velocity = Vector3.new(0, 0, 0)
 		local flat = Vector3.new(toTarget.X, 0, toTarget.Z)
 		if flat.Magnitude > 1e-3 then

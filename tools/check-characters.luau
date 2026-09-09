@@ -68,6 +68,29 @@ for _, tier in ipairs({ "rec", "amateur", "semipro", "pro", "marshal" }) do
 	end
 	print(string.format("  %-10s %-12s %3d parts", tier, BotAvatar.outfitFor(tier), count))
 	if count < 14 then problems += 1 end
+
+	--[[
+		The shove has to be visible on the body, not just in the rules.
+
+		A bot at contact range used to take a player out while standing
+		perfectly still: the commit delay exists so the swing can be seen coming,
+		and a warning nobody can see is not a warning. Asserted here because it
+		is the one animation that plays for a fraction of a second and then
+		removes the thing that would have shown it.
+	]]
+	local rest = avatar.marker.CFrame
+	avatar:setSwing(0.38)
+	avatar:setPosition(roblox.Vector3.new(0, 0, 0), roblox.Vector3.new(0, 0, -1))
+	if (avatar.marker.CFrame.Position - rest.Position).Magnitude < 0.1 then
+		print(`          {tier}: the marker does not move during a shove`)
+		problems += 1
+	end
+	avatar:setSwing(nil)
+	avatar:setPosition(roblox.Vector3.new(0, 0, 0), roblox.Vector3.new(0, 0, -1))
+	if (avatar.marker.CFrame.Position - rest.Position).Magnitude > 1e-4 then
+		print(`          {tier}: the marker did not come back to rest after a shove`)
+		problems += 1
+	end
 end
 
 print("")

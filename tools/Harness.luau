@@ -429,6 +429,23 @@ function Harness.build(repoRoot: string?): Env
 		globals = sharedGlobals,
 	} :: any
 
+	--[[
+		Every gate asserts SHIPPING behaviour.
+
+		Data/dev.json is a developer's local switch -- infinite money, an
+		unkillable player, skipped rounds -- and a gate that read it would
+		quietly stop testing the game the moment somebody turned it on. That is
+		exactly what happened: with `invulnerable` on, run-live-checks' "one
+		batch must only charge one player elimination" failed, because nothing
+		could charge an elimination at all.
+
+		So the overrides are pinned off here, once, for every tool the harness
+		builds. A check that wants to test a flag turns it on itself, the way
+		check-persistence and the Economy specs already do -- and the flag then
+		reads as the subject of that check rather than as ambient state.
+	]]
+	harnessRequire(rs.Shared.Dev)._setOverrideForTesting({ enabled = false })
+
 	return env
 end
 

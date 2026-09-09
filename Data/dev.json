@@ -1,33 +1,30 @@
 {
   "_comment": "DEVELOPMENT OVERRIDES. Every flag here is OFF in a shipping build. The server logs a loud banner at boot whenever any of them is on, and Economy specs assert that turning them off restores normal behaviour -- so a flag left on cannot hide.",
-
   "_shipChecklist": "Before publishing: set enabled=false. tools/ship-check verifies it and fails the build if it is still true.",
-
-  "enabled": false,
-
+  "enabled": true,
   "infiniteCurrency": {
     "on": true,
     "grantedBalance": 99999999,
     "_note": "Purchases still run the full server-side transaction -- ownership, category and price checks all apply. The balance simply never drops. That way the shop code being exercised in dev is the same code that ships; only the wallet is fake."
   },
-
+  "invulnerable": {
+    "on": true,
+    "_note": "Paint still hits you, the bots still call it, and the round carries on -- you simply are not taken out. Deliberately NOT health: this game has no health bar, one mark ends a round, and adding a hit-point pool for a dev flag would mean shipping a second set of hit rules nobody plays. The elimination is refused at the one place a life ends, so a shove, a headshot and a body shot are all refused identically. Only the live server honours it; SimMatch never reads a dev flag, or every balance number in the project would start describing a player who cannot die."
+  },
   "unlockEverything": {
     "on": true,
-    "_note": "Ignores the map-clear gates in economy.json unlocks. Lets Woods be opened without grinding Speedball first."
+    "_note": "Ignores the map-clear gates in economy.json. Lets Woods be opened without grinding Speedball first. It does NOT unlock camos or the season pass, and an attempt to extend it that far was reverted: Camos.spec asserts that a dev flag cannot forge cosmetic ownership, and the Aurum route asserts the same for course medals. Those ladders are earned, they write into the saved profile, and a flag that could forge them would make the one thing in this game you cannot buy into something you can switch on."
   },
-
   "skipRounds": {
     "on": false,
     "startAtRound": 1,
     "_note": "Jump straight to a later round of the five-round match when tuning the hard end."
   },
-
   "forceTier": {
     "on": false,
     "tier": "pro",
     "_note": "Pins every round to one bot tier, overriding the round schedule's escalation."
   },
-
   "verboseBots": {
     "on": false,
     "_note": "Turns the LiveRound.Bots logger up to verbose on a live server. Noisy: twelve bots' state transitions every tick."

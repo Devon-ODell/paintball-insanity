@@ -102,8 +102,13 @@ local client = {}
 -- UiNavigation and this tool had no stub for it, so the whole check died on
 -- "attempt to index nil" instead of reporting anything -- a list that has to be
 -- edited by hand is a list that goes stale silently.
-for _, name in ipairs({ "UiTheme", "UiNavigation", "Hud", "ShopUi", "DialogueUi", "ViewMarker", "Input", "Tracers" }) do
-	client[name] = { name = name, Parent = client }
+-- ...and it went stale anyway: Audio was added and this list was not. Read the
+-- directory instead, so a new client module is stubbed the moment it exists.
+for _, entry in ipairs(fs.readDir(root .. "/src/StarterPlayer/Client")) do
+	local name = string.match(entry, "^([%w_]+)%.luau$")
+	if name and name ~= "init" then
+		client[name] = { name = name, Parent = client }
+	end
 end
 local cache = {}
 local loaded
@@ -469,6 +474,52 @@ do
     assert(Melee.contactDelay(rules) < rules.swingSeconds, "a swing that lands after it ends")
 end
 print("Reload, sprint, slide, swing and animation reset checks passed")
+
+--[[
+    Audio: every cue is named by something, and every name is a cue.
+
+    Sound ids are deliberately empty in Data/audio.json -- audio belongs to
+    whoever uploaded it, and hardcoding an id ships a build that is silent or
+    moderated out from under you. That makes the whole system quiet by design,
+    which is exactly the condition under which a typo at a call site would never
+    be noticed. So both directions are checked: a cue nobody plays is dead data,
+    and a call naming a cue that does not exist is permanent silence.
+]]
+do
+    local Audio = loaded(client.Audio)
+    local cues = Config.get("audio").cues
+
+    local sources = ""
+    for _, entry in ipairs(fs.readDir(root .. "/src/StarterPlayer/Client")) do
+        if string.match(entry, "%.luau$") then
+            sources ..= fs.readFile(root .. "/src/StarterPlayer/Client/" .. entry)
+        end
+    end
+
+    -- Every quoted name inside an Audio.play(...) call, not just the simple
+    -- form: one call site picks between "headshot" and "hit" inline, and a
+    -- pattern that only matched Audio.play("x") reported the branch it could
+    -- not read as an unplayed cue.
+    local played: { [string]: boolean } = {}
+    for call in string.gmatch(sources, "Audio%.play%b()") do
+        for name in string.gmatch(call, '"([%w_]+)"') do
+            played[name] = true
+            assert(cues[name] ~= nil, `Audio.play names '{name}', which is no cue in Data/audio.json`)
+        end
+    end
+    for name in pairs(cues) do
+        assert(played[name], `audio cue '{name}' is authored and never played`)
+    end
+
+    -- And with no ids supplied, playing every cue is a silent no-op rather
+    -- than an error, which is the shipped state of this file today.
+    for name in pairs(cues) do
+        Audio.play(name)
+    end
+    Audio.play("notACue")
+    Audio.clear()
+    print(`Audio cues checked: {(function() local n = 0 for _ in pairs(cues) do n += 1 end return n end)()} named, all played, none silent by typo`)
+end
 
 for _, id in ipairs(Config.get("markers").order) do
     ViewMarker.equip(id, "factory")

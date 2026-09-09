@@ -28,6 +28,7 @@ local ShopUi = require(script.ShopUi)
 local DialogueUi = require(script.DialogueUi)
 local Theme = require(script.UiTheme)
 local ViewMarker = require(script.ViewMarker)
+local Audio = require(script.Audio)
 local FoliageWind = require(script.FoliageWind)
 
 local player = Players.LocalPlayer
@@ -142,6 +143,7 @@ end
 
 local function requestReload()
 	if phase == "live" and not respawning and markerState:reload(os.clock()) then
+		Audio.play("reloadStart")
 		Remotes.event("RequestReload"):FireServer()
 	end
 end
@@ -166,6 +168,7 @@ local function trySwing()
 	end
 	swingReadyAt = now + Melee.rules().cooldownSeconds
 	ViewMarker.swing()
+	Audio.play("swing")
 	Remotes.event("SwingMarker"):FireServer({
 		direction = camera.CFrame.LookVector,
 		clientTime = now,
@@ -183,6 +186,7 @@ local function tryFire()
 	local now = os.clock()
 	markerState:update(now)
 	if markerState.ammo <= 0 then
+		Audio.play("dryFire")
 		requestReload()
 		return
 	end
@@ -190,6 +194,7 @@ local function tryFire()
 		return
 	end
 	ViewMarker.fire()
+	Audio.play("fire")
 
 	local origin = muzzleMetres()
 	local direction = camera.CFrame.LookVector
@@ -226,6 +231,7 @@ end)
 Remotes.event("ShotResolved").OnClientEvent:Connect(function(result)
 	if result.hit then
 		Hud.flashHit(result.headshot == true)
+		Audio.play(if result.headshot == true then "headshot" else "hit")
 		if result.headshot then
 			if result.camoProgress then
 				Hud.setCamoProgress(result.camoProgress)
@@ -242,11 +248,22 @@ end)
 Remotes.event("BotEliminated").OnClientEvent:Connect(function(payload)
 	remaining = payload.remaining
 	Hud.setRemaining(remaining, roundBotCount)
+	--[[
+		A shove gets its hit marker here rather than from ShotResolved, because
+		it never fires a shot to resolve. Without this the one attack that
+		happens at arm's length was the only one with no confirmation on screen
+		-- the counter simply dropped and the player had to infer it.
+	]]
+	Audio.play("botEliminated")
+	if payload.melee == true then
+		Hud.flashHit(false)
+	end
 end)
 
 Remotes.event("PlayerEliminated").OnClientEvent:Connect(function(payload)
 	respawning = true
 	Tracers.clear()
+	Audio.play("playerEliminated")
 	deaths = payload.deaths
 	-- Mirror of the server's curve, for display only. The server computes the
 	-- real payout and this number never leaves the client.
@@ -261,6 +278,12 @@ end)
 
 Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
 	Tracers.clear()
+	if payload.cleared then
+		Audio.play("matchCleared")
+	end
+	-- Voices are pooled under SoundService, which outlives the match; a run
+	-- that ends is the natural place to hand them back.
+	Audio.clear()
 	Input.setPointerFree(true)
 	--[[
 		The run is over, so the clock stops and is replaced by the server's own
@@ -354,6 +377,9 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 		ShopUi.close()
 		DialogueUi.close()
 		syncPointer()
+		if previousPhase ~= "live" then
+			Audio.play("roundStart")
+		end
 	end
 	if phase == "warmup" then
 		respawning = false
@@ -450,9 +476,15 @@ RunService:BindToRenderStep("LR_Presentation", Enum.RenderPriority.Camera.Value 
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local velocity = if root and root:IsA("BasePart") then root.AssemblyLinearVelocity else Vector3.zero
 	local speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
+	local wasReloading = markerState.reloadUntil ~= nil
 	ViewMarker.step(camera, not respawning and (phase == "live" or phase == "warmup"), dt,
 		Input.state(), speed, markerState.reloadUntil, markerState.reloadSeconds)
 	markerState:update(os.clock())
+	-- The pod comes off the hopper. Read from the state machine rather than a
+	-- timer of its own, so the sound cannot drift from the animation.
+	if wasReloading and markerState.reloadUntil == nil then
+		Audio.play("reloadEnd")
+	end
 	sustainedSpread = math.max(0, sustainedSpread - markerData.spreadDecayPerSecondDeg * dt)
 
 	if Input.state().firing then

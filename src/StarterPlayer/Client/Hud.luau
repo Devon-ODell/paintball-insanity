@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local Config = require(ReplicatedStorage.Shared.Config)
+local Dev = require(ReplicatedStorage.Shared.Dev)
 local Theme = require(script.Parent.UiTheme)
 local Navigation = require(script.Parent.UiNavigation)
 local C = Theme.colors
@@ -157,6 +158,31 @@ function Hud.build()
 	safe:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
 	game:GetService("UserInputService"):GetPropertyChangedSignal("PreferredInput"):Connect(resize)
 	resize()
+	--[[
+		Dev overrides, said out loud on screen.
+
+		Data/dev.json's own comment is that a flag left on must not be able to
+		hide, and the server already prints a banner at boot -- but the person
+		who forgets is the one playing, who never sees the server log. This is
+		the same warning where they are actually looking. It lists the active
+		flags rather than saying "dev mode", so an unlocked wallet and an
+		unkillable player are distinguishable at a glance.
+	]]
+	if Dev.isEnabled() then
+		local flags: { string } = {}
+		for _, name in ipairs({ "invulnerable", "infiniteCurrency", "unlockEverything", "skipRounds", "forceTier" }) do
+			if Dev.flag(name) then
+				table.insert(flags, name)
+			end
+		end
+		-- Below the currency readout and the demo notice, which already own the
+		-- top-right corner at y=4 and y=38.
+		local badge = Theme.text(safe, "DevMode",
+			`DEV MODE\n{table.concat(flags, " · ")}`,
+			UDim2.new(0.36, -8, 0, 40), UDim2.new(0.64, 8, 0, 80), 11)
+		badge.TextXAlignment, badge.TextColor3 = Enum.TextXAlignment.Right, C.warning
+		badge.TextStrokeTransparency = 0.3
+	end
 	if ReplicatedStorage:FindFirstChild("DemoMode") then
 		local demo = Theme.text(safe, "Demo", "LOCAL DEMO\nProgress resets on exit", UDim2.new(0.36, -8, 0, 40), UDim2.new(0.64, 8, 0, 38), 11)
 		demo.TextXAlignment, demo.TextColor3 = Enum.TextXAlignment.Right, C.muted

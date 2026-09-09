@@ -17,6 +17,7 @@ local Fonts = require(ReplicatedStorage.Shared.Fonts)
 local Units = require(ReplicatedStorage.Shared.Units)
 local WorldBuilder = require(script.Parent.WorldBuilder)
 local Wardrobe = require(script.Parent.Parent.World.Wardrobe)
+local CombatMotion = require(ReplicatedStorage.Shared.CombatMotion)
 
 local BotAvatar = {}
 
@@ -26,6 +27,9 @@ export type Avatar = {
 	head: BasePart,
 	marker: BasePart,
 	nameplate: BillboardGui,
+	--- Swing progress, 0 to 1, or nil when this bot is not mid-shove.
+	swing: number?,
+	setSwing: (Avatar, number?) -> (),
 	setPosition: (Avatar, Vector3, Vector3, number?) -> (),
 	splatter: (Avatar, Vector3, Color3?) -> (),
 	destroy: (Avatar) -> (),
@@ -197,8 +201,20 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 		head = head,
 		marker = marker,
 		nameplate = nameplate,
+		swing = nil,
 
-		setPosition = function(_: Avatar, position: Vector3, facing: Vector3, dt: number?)
+		--[[
+			How far through a shove this bot is, 0 to 1, or nil.
+
+			Set by MatchService from the controller's own clock before the pose
+			is applied, so the marker swings on exactly the schedule the rule
+			resolves on rather than on a second timer that could drift.
+		]]
+		setSwing = function(self: Avatar, progress: number?)
+			self.swing = progress
+		end,
+
+		setPosition = function(self: Avatar, position: Vector3, facing: Vector3, dt: number?)
 			--[[
 				Drive the walk cycle off distance actually covered.
 
@@ -230,8 +246,22 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 				glance. That is the information that makes peeking a decision
 				rather than a coin flip.
 			]]
+			--[[
+				And when the bot shoves, the marker actually swings.
+
+				The pose comes from the SAME timeline the first-person swing
+				reads, so the two views cannot describe different attacks, and it
+				runs on the controller's clock rather than a second timer. Before
+				this, a bot at contact range took a player out while standing
+				perfectly still -- the commit delay exists to be seen, and a
+				warning nobody can see is not a warning.
+			]]
+			local swingPose = if self.swing then CombatMotion.swing(self.swing) else nil
 			marker.CFrame = root.CFrame
 				* CFrame.new(Units.metresToStuds(0.14), Units.metresToStuds(0.04), -Units.metresToStuds(0.30))
+				* (if swingPose
+					then CFrame.new(Units.vectorToStuds(swingPose.marker.Position)) * swingPose.marker.Rotation
+					else CFrame.identity)
 			barrel.CFrame = marker.CFrame
 				* CFrame.new(0, 0, -Units.metresToStuds(0.38))
 				* CFrame.Angles(0, math.pi / 2, 0)

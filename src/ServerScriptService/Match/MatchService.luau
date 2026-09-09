@@ -31,6 +31,7 @@ local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
 local Melee = require(ReplicatedStorage.Shared.Melee)
+local Dev = require(ReplicatedStorage.Shared.Dev)
 local Spread = require(ReplicatedStorage.Shared.Spread)
 local Log = require(ReplicatedStorage.Shared.Log)
 local Remotes = require(ReplicatedStorage.Net.Remotes)
@@ -313,6 +314,9 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	local totalLiveElapsed = 0
 	local markerState = MarkerState.new(markerData)
 	local respawning = false
+	--- Last time the invulnerability override told the player it had eaten a
+	--- hit. Only read when that dev flag is on.
+	local lastDevNoticeAt = -math.huge
 	local spread = Spread.new(markerData, matchData.player, root:fork(500))
 	local invulnerableUntil = 0
 	local t = 0
@@ -624,6 +628,36 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		if respawning or t < invulnerableUntil then
 			return
 		end
+		--[[
+			The dev override, refused here and only here.
+
+			Every way a life can end -- a body shot, a headshot, a shove --
+			arrives at this function, so one guard covers all of them and there
+			is no second set of hit rules to keep in step. The hit still
+			happened: the bots still call it, paint still lands, the round
+			carries on. You simply are not taken out.
+
+			It is deliberately not "health". This game has no health bar, one
+			mark ends a round, and giving a dev flag a hit-point pool would mean
+			shipping rules nobody plays. SimMatch never reads this, or every
+			balance number in the project would start describing a player who
+			cannot die -- and Leaderboard already quarantines dev runs onto
+			their own keys, so nothing recorded under it can reach a real board.
+		]]
+		if Dev.flag("invulnerable") then
+			-- Throttled: standing in a pro squad's crossfire is a hit every few
+			-- frames, and a remote per hit would be the dev flag generating more
+			-- traffic than the match.
+			if t - lastDevNoticeAt > 2 then
+				lastDevNoticeAt = t
+				Remotes.event("MatchStateChanged"):FireClient(player, {
+					phase = state.phase,
+					notice = "DEV: hit ignored",
+					noticeSeconds = 1.2,
+				})
+			end
+			return
+		end
 		respawning = true
 		deaths += 1
 		roundDeaths += 1
@@ -772,6 +806,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			})
 			local avatar = avatars[bot.id]
 			if avatar and bot.alive then
+				avatar:setSwing(BotController.swingProgress(bot, t))
 				avatar:setPosition(bot.position, bot.facing, dt)
 			end
 			table.insert(targets, BotController.asTarget(bot))
@@ -1151,11 +1186,39 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	beginRound(RoundSchedule.startIndex(), true)
 	local accumulator = 0
 	local fixedStep = ballisticsData.simulation.fixedStep
+	--[[
+		Bounded catch-up.
+
+		This loop used to run as many fixed steps as the elapsed time asked for.
+		One long frame -- an asset load, a breakpoint, a client hitching on a
+		weak machine -- would ask for sixty steps of twelve bots and every
+		projectile inside a single frame; that takes longer than a frame, which
+		makes the next dt larger, which asks for more steps. A single hitch
+		becomes a freeze.
+
+		So the steps are capped and the surplus is DROPPED, not carried:
+		carrying it is the same spiral written differently. A stall costs
+		simulated time, which the player experiences as a moment of slow motion,
+		instead of costing the server. It is logged the first time in a match so
+		a real performance problem cannot hide behind the cap.
+	]]
+	local maxSteps = ballisticsData.simulation.maxStepsPerFrame
+	local warnedAboutCatchUp = false
 	connection = RunService.Heartbeat:Connect(function(dt)
 		accumulator += dt
+		local steps = 0
 		while accumulator >= fixedStep and not finished do
 			accumulator -= fixedStep
 			step(fixedStep)
+			steps += 1
+			if steps >= maxSteps then
+				if accumulator >= fixedStep and not warnedAboutCatchUp then
+					warnedAboutCatchUp = true
+					log.warn(`simulation fell {string.format("%.0f", accumulator * 1000)} ms behind and dropped the surplus`)
+				end
+				accumulator = 0
+				break
+			end
 		end
 	end)
 	return match

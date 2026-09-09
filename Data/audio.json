@@ -1,0 +1,23 @@
+{
+  "_comment": "Every sound the game makes, in one place. IDs are deliberately EMPTY. Audio assets belong to whoever uploaded them, and hardcoding someone else's id ships a build that is either silent or moderated out from under you. Put a Creator Store id in `soundId` -- the full 'rbxassetid://0000000000' string -- and that cue plays. Nothing else needs wiring: every cue below is already called from the right moment in the client. This mirrors how Data/overworld.json already handles the hub's ambience beds.",
+
+  "_howToFill": "In Studio: View -> Toolbox -> Marketplace -> Audio, audition a sound, right-click Copy Asset ID, and paste it here as 'rbxassetid://<id>'. Audio you did not upload is subject to Roblox's audio privacy rules -- a sound that is not public or not yours will simply not play in a published experience, so check it in a published test place, not only in Studio.",
+
+  "maxConcurrent": 12,
+  "_maxConcurrent": "Ceiling on sounds playing at once from this system. A full-auto marker against twelve bots can ask for a lot of one-shots in a second, and the cheapest way for audio to ruin a build is to become the thing that costs the frame.",
+
+  "cues": {
+    "fire": { "soundId": null, "volume": 0.45, "pitchVariance": 0.07 },
+    "dryFire": { "soundId": null, "volume": 0.35, "pitchVariance": 0.03 },
+    "reloadStart": { "soundId": null, "volume": 0.4, "pitchVariance": 0.02 },
+    "reloadEnd": { "soundId": null, "volume": 0.4, "pitchVariance": 0.02 },
+    "hit": { "soundId": null, "volume": 0.5, "pitchVariance": 0.05 },
+    "headshot": { "soundId": null, "volume": 0.6, "pitchVariance": 0.02 },
+    "botEliminated": { "soundId": null, "volume": 0.5, "pitchVariance": 0.04 },
+    "playerEliminated": { "soundId": null, "volume": 0.6, "pitchVariance": 0.0 },
+    "swing": { "soundId": null, "volume": 0.45, "pitchVariance": 0.06 },
+    "roundStart": { "soundId": null, "volume": 0.5, "pitchVariance": 0.0 },
+    "matchCleared": { "soundId": null, "volume": 0.6, "pitchVariance": 0.0 }
+  },
+  "_cues": "volume is the cue's own level. pitchVariance is how far PlaybackSpeed is allowed to wander either side of 1.0 -- the difference between a marker that sounds like a marker and one that sounds like a loop, and the reason fire varies more than a round-start sting does."
+}

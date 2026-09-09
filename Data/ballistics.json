@@ -1,37 +1,32 @@
 {
   "_comment": "All ballistics math runs in METRES and SECONDS. The Roblox layer converts at the engine boundary using studsPerMetre. Nothing here may be duplicated in Luau.",
-
   "studsPerMetre": 3.5714286,
   "gravity": 9.81,
-
   "_dragModel": "Quadratic drag linearised along the flight path: v(s) = v0 * exp(-k*s). k has units 1/m. 1/k is the distance over which speed falls by 1/e.",
   "defaultDragK": 0.012,
-
   "simulation": {
     "fixedStep": 0.0166666667,
+    "_maxStepsPerFrame": "How many fixed steps one Heartbeat may run. The catch-up loop was unbounded: a one-second stall -- an asset load, a Studio breakpoint, a hitching client on a weak machine -- asked for sixty steps of twelve bots and every projectile inside a single frame, which takes longer than a frame, which makes the next dt larger. That is the spiral, and it turns one hitch into a freeze. Five steps is 83 ms of simulated time per frame: enough to absorb ordinary jitter, bounded enough that a stall costs simulated time instead of the server. Time past the cap is DROPPED rather than carried, because carrying it is the spiral written a different way.",
+    "maxStepsPerFrame": 5,
     "maxFlightTime": 4.0,
     "maxRangeMetres": 140.0,
     "projectileRadiusMetres": 0.0086
   },
-
   "leadSolver": {
     "iterations": 4,
     "convergenceMetres": 0.02
   },
-
   "lagCompensation": {
     "maxRewindSeconds": 0.35,
     "snapshotRateHz": 30,
     "positionToleranceMetres": 0.6
   },
-
   "hitbox": {
     "bodyWidthMetres": 0.62,
     "bodyHeightMetres": 1.8,
     "headTopMetres": 1.75,
     "chestHeightMetres": 1.32
   },
-
   "_designTargets": {
     "note": "These are the two numbers the whole skill curve rests on. Ballistics specs assert against them, and tools/tune-report regenerates them.",
     "dropAt10mMetres": 0.031,

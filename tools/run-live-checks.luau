@@ -19,6 +19,24 @@ local function signal()
     }
 end
 local heartbeat = signal()
+--[[
+    Wall time, delivered the way Roblox delivers it.
+
+    These checks used to hand the server a single ten-second Heartbeat, which
+    no engine ever does. MatchService now caps how many fixed steps one frame
+    may run and drops the surplus -- an unbounded catch-up loop turns one
+    stall into a freeze -- so a ten-second frame legitimately advances the
+    match by a fraction of a second. Firing real frames keeps this tool
+    measuring the server rather than an impossible input.
+]]
+local function advance(seconds: number)
+    local remaining = seconds
+    while remaining > 0 do
+        local slice = math.min(1 / 60, remaining)
+        heartbeat:fire(slice)
+        remaining -= slice
+    end
+end
 env.game:GetService("RunService").Heartbeat = heartbeat
 local actualRemotes = env.require(env.ReplicatedStorage.Net.Remotes)
 local events = {}
@@ -53,7 +71,9 @@ replace(env.Server.Match.FieldDetails, { build = function() return shopVenue end
     the real world builder without lying about the type.
 ]]
 replace(env.Server.Match.WorldBuilder, { build = function() return roblox.Instance.new("Folder") end })
-replace(env.Server.Match.BotAvatar, { new = function() return { setPosition = function() end, splatter = function() end, destroy = function() end } end })
+replace(env.Server.Match.BotAvatar, { new = function()
+    return { setPosition = function() end, setSwing = function() end, splatter = function() end, destroy = function() end }
+end })
 local ticks, fired = 0, 0
 local botPositions = {}
 local madeBots = {}
@@ -71,6 +91,7 @@ replace(env.Server.Bots.BotController, {
         return bot
     end,
     pathTo = function() end, setState = function() end,
+    swingProgress = function() return nil end,
     asTarget = function(bot) return { id = bot.id, alive = bot.alive } end,
 })
 local queued = {}
@@ -93,10 +114,10 @@ assert(service.start(player, "speedball", "rec", 123))
 assert(event("MatchStateChanged").sent[1].phase == "warmup")
 local payload = { origin = roblox.Vector3.zero, direction = roblox.Vector3.new(0, 0, -1), stance = "standing", clientTime = 0 }
 event("FireMarker").OnServerEvent:fire(player, payload)
-heartbeat:fire(0.1)
+advance(0.1)
 assert(fired == 0 and ticks == 0, "warmup must block both player fire and bot ticks")
 local matchData = env.require(env.Data.match)
-heartbeat:fire(matchData.warmupSeconds)
+advance(matchData.warmupSeconds)
 payload.origin = roblox.Vector3.new(10000, 0, 0)
 event("FireMarker").OnServerEvent:fire(player, payload)
 assert(fired == 1, "live fire should be accepted")
@@ -107,10 +128,10 @@ local marker = env.require(env.Data.markers).markers.mechanical
 local expectedDirection = Spread.sample(payload.direction, Spread.angle(marker, 0, "standing", 0), Rng.new(123):fork(500))
 assert((lastFire.direction - expectedDirection).Magnitude < 1e-6, "live fire must use the authoritative marker spread stream")
 event("RequestReload").OnServerEvent:fire(player)
-heartbeat:fire(1)
+advance(1)
 event("FireMarker").OnServerEvent:fire(player, payload)
 assert(fired == 1, "server must reject shots during manual reload")
-heartbeat:fire(10)
+advance(10)
 event("FireMarker").OnServerEvent:fire(player, payload)
 assert(fired == 2, "server must accept shots after reload")
 local function hit(team, target)
@@ -119,7 +140,7 @@ local function hit(team, target)
     return { projectile = { team = team, id = 1 }, kind = "target", targetId = target, t = 15, position = ground + roblox.Vector3.new(0, height, 0), distance = 10 }
 end
 queued = { hit("player", "r1_bot1"), hit("player", "r1_bot1") }
-heartbeat:fire(0.1)
+advance(0.1)
 assert(#event("BotEliminated").sent == 1, "one bot must only be eliminated once in a batch")
 assert(event("BotEliminated").sent[1].headshot == true, "authoritative mask hit should be a headshot")
 local profile = env.require(env.Server.Economy.Profile).get(player.UserId)
@@ -151,13 +172,13 @@ do
     -- Behind the swinger: in range, wrong side. A whiff still spends the
     -- cooldown -- that is the cost of committing -- so the clock moves between
     -- each of these.
-    heartbeat:fire(1.1)
+    advance(1.1)
     behind.position = roblox.Vector3.new(0, 0, 1.2)
     event("SwingMarker").OnServerEvent:fire(player, { direction = roblox.Vector3.new(0, 0, -1), clientTime = 0 })
     assert(#event("BotEliminated").sent == before, "a swing reached behind the player")
 
     -- In reach, in front.
-    heartbeat:fire(1.1)
+    advance(1.1)
     victim.position = roblox.Vector3.new(0, 0, -1.4)
     event("SwingMarker").OnServerEvent:fire(player, { direction = roblox.Vector3.new(0, 0, -1), clientTime = 0 })
     local sent = event("BotEliminated").sent
@@ -175,8 +196,28 @@ do
 end
 print("Melee checks passed: server-side reach, arc, cooldown and payload validation.")
 
+--[[
+    The invulnerability override, tested as the subject rather than assumed.
+
+    The harness pins every dev flag off so that gates measure the shipping
+    game; this block turns exactly one of them on, proves it refuses the
+    elimination, and turns it off again. Without this the flag would be a
+    feature with no check behind it -- and the failure mode of a dev override
+    is that it silently stays on.
+]]
+do
+    local Dev = env.require(env.Shared.Dev)
+    local before = #event("PlayerEliminated").sent
+    Dev._setOverrideForTesting({ enabled = true, invulnerable = { on = true } })
+    queued = { hit("bot", "player"), hit("bot", "player") }
+    advance(0.1)
+    assert(#event("PlayerEliminated").sent == before, "the invulnerability override let an elimination through")
+    Dev._setOverrideForTesting({ enabled = false })
+    print("Dev override checked: invulnerable refuses the one place a life ends.")
+end
+
 queued = { hit("bot", "player"), hit("bot", "player") }
-heartbeat:fire(0.1)
+advance(0.1)
 assert(#event("PlayerEliminated").sent == 1, "one batch must only charge one player elimination")
 print("Live MatchService checks passed: warmup, reload, duplicate bot hits, duplicate player hits (mock engine boundaries).")
 
@@ -197,15 +238,15 @@ local oldCapacity, oldReload = marker.hopperCapacity, marker.reloadSeconds
 marker.hopperCapacity, marker.reloadSeconds = 1, 999
 local firedBefore = fired
 assert(service.start(player, "speedball", "rec", 456))
-heartbeat:fire(matchData.warmupSeconds + 0.1)
+advance(matchData.warmupSeconds + 0.1)
 event("FireMarker").OnServerEvent:fire(player, payload)
 assert(fired == firedBefore + 1)
 event("RequestReload").OnServerEvent:fire(player)
 for i = 1, matchData.rounds.schedule[1].bots do
     table.insert(queued, hit("player", "r1_bot" .. i))
 end
-heartbeat:fire(0.1)
-heartbeat:fire(matchData.rounds.intermissionSeconds + 0.1)
+advance(0.1)
+advance(matchData.rounds.intermissionSeconds + 0.1)
 local latest = event("MatchStateChanged").sent[#event("MatchStateChanged").sent]
 assert(latest.phase == "live" and latest.round == 2, "test must reach round two")
 event("FireMarker").OnServerEvent:fire(player, payload)
@@ -277,7 +318,7 @@ do
     end
 end
 
-heartbeat:fire(matchData.warmupSeconds + 0.1)
+advance(matchData.warmupSeconds + 0.1)
 
 -- Clear every stage-wave. There is no intermission to wait out: the course
 -- clock does not stop between stages.
@@ -300,8 +341,8 @@ for r, count in ipairs(expected) do
         table.insert(queued, hit("player", `r{r}_bot{i}`))
     end
     cleared += count
-    heartbeat:fire(0.1)
-    heartbeat:fire(0.1)
+    advance(0.1)
+    advance(0.1)
 end
 assert(cleared == Course.totalBots("speedball"),
     `cleared {cleared} defenders, course declares {Course.totalBots("speedball")}`)
