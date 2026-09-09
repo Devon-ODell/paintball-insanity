@@ -21,6 +21,7 @@ local CourseProgress = require(Server.Progression.CourseProgress)
 local Profile = require(Server.Economy.Profile)
 local Shop = require(Server.Economy.Shop)
 local Commerce = require(Server.Economy.Commerce)
+local SeasonPass = require(Server.Progression.SeasonPass)
 local Hub = require(Server.World.Hub)
 local RangeService = require(Server.Range.RangeService)
 local DialogueService = require(Server.Dialogue.DialogueService)
@@ -162,6 +163,31 @@ DialogueService.prescriptionFor = function(player: Player): string?
 		return nil
 	end
 	return coaching.line
+end
+
+--[[
+	The season track, granted the moment pass ownership is known.
+
+	Two callers, and the second is the one that matters: join, and the instant a
+	purchase completes. Without the second the player pays for the pass, sees
+	nothing happen, and only receives the rewards they already earned after
+	finishing a whole match. Awarding at match end alone was the bug.
+
+	Safe to run repeatedly -- Season.claimed makes every reward grant once.
+]]
+Commerce.onPassResolved = function(player: Player)
+	local handle = Profile.load(player.UserId)
+	if not handle then
+		return
+	end
+	local granted = SeasonPass.grantDue(handle)
+	if #granted > 0 and player.Parent == Players then
+		Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout)
+		Remotes.event("MatchStateChanged"):FireClient(player, {
+			phase = "hub",
+			notice = `Season rewards unlocked: {#granted}`,
+		})
+	end
 end
 
 DialogueService.bind()
@@ -505,6 +531,12 @@ Remotes.fn("RequestSessionState").OnServerInvoke = function(player: Player): any
 			twice.
 		]]
 		courses = CourseProgress.summary(handle.data),
+		--[[
+			The season track. Sent with session state rather than on its own
+			remote because the client needs it at exactly the moments it already
+			asks for this: on join, and after the shop changes something.
+		]]
+		season = SeasonPass.summary(handle),
 	}
 end
 

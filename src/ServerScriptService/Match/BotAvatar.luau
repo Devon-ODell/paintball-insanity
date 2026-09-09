@@ -75,6 +75,61 @@ function BotAvatar.outfitFor(tier: string?): string
 	return OUTFIT_FOR_TIER[tier or "rec"] or "botRec"
 end
 
+--[[
+	The marker a bot carries: body, barrel and hopper.
+
+	Split out of BotAvatar.new because that function had grown to 214 lines and
+	nothing that long gets read.
+
+	Returns all three parts, because `setPosition` poses each of them every frame
+	and the barrel and hopper hang off the marker's own frame rather than the
+	body's. Returning only the marker left the other two out of scope and every
+	bot failed on the first pose -- caught immediately by check-characters.
+]]
+local function buildMarkerRig(model: Model, markerColour: Color3): (BasePart, BasePart, BasePart)
+	local marker = part("Marker", Units.vectorToStuds(Vector3.new(0.07, 0.11, 0.44)), markerColour, model)
+	marker.Material = Enum.Material.Metal
+	marker.Reflectance = 0.06
+
+	local barrel = part("Barrel", Units.vectorToStuds(Vector3.new(0.045, 0.045, 0.36)), shade(markerColour, 0.7), model)
+	barrel.Shape = Enum.PartType.Cylinder
+	barrel.Material = Enum.Material.Metal
+
+	local hopperPart = part("Hopper", Units.vectorToStuds(Vector3.new(0.13, 0.22, 0.22)), WorldBuilder.colourOf("bunkerC"), model)
+	hopperPart.Shape = Enum.PartType.Cylinder
+
+	return marker, barrel, hopperPart
+end
+
+--[[
+	The floating name, capped in range so a full squad is not twelve labels.
+
+	Returns the label as well as the gui: `splatter` rewrites it to "-- OUT"
+	when a bot is marked, and returning only the BillboardGui left that write
+	pointing at a nil. check-demo-world caught it; check-characters did not,
+	because nothing there stands a bot down.
+]]
+local function buildNameplate(root: BasePart, displayName: string, hitbox: any): (BillboardGui, TextLabel)
+	local nameplate = Instance.new("BillboardGui")
+	nameplate.Name = "Nameplate"
+	nameplate.Size = UDim2.fromScale(6, 1.2)
+	nameplate.StudsOffsetWorldSpace = Vector3.new(0, Units.metresToStuds(hitbox.bodyHeightMetres + 0.35), 0)
+	nameplate.AlwaysOnTop = false
+	nameplate.MaxDistance = Units.metresToStuds(45)
+	nameplate.Parent = root
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Text = displayName
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.TextStrokeTransparency = 0.4
+	label.TextScaled = true
+	label.Font = Fonts.world("nameplate")
+	label.Parent = nameplate
+	return nameplate, label
+end
+
 function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: string?): Avatar
 	local hitbox = Config.require("ballistics", "hitbox")
 	local jersey = WorldBuilder.colourOf("enemyJersey")
@@ -107,34 +162,10 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 	local root = body.byName.Torso
 	local head = body.byName.Head
 
-	local marker = part("Marker", Units.vectorToStuds(Vector3.new(0.07, 0.11, 0.44)), markerColour, model)
-	marker.Material = Enum.Material.Metal
-	marker.Reflectance = 0.06
-	local barrel = part("Barrel", Units.vectorToStuds(Vector3.new(0.045, 0.045, 0.36)), shade(markerColour, 0.7), model)
-	barrel.Shape = Enum.PartType.Cylinder
-	barrel.Material = Enum.Material.Metal
-	local hopperPart = part("Hopper", Units.vectorToStuds(Vector3.new(0.13, 0.22, 0.22)), WorldBuilder.colourOf("bunkerC"), model)
-	hopperPart.Shape = Enum.PartType.Cylinder
+	local marker, barrel, hopperPart = buildMarkerRig(model, markerColour)
 
 	model.PrimaryPart = root
-
-	local nameplate = Instance.new("BillboardGui")
-	nameplate.Name = "Nameplate"
-	nameplate.Size = UDim2.fromScale(6, 1.2)
-	nameplate.StudsOffsetWorldSpace = Vector3.new(0, Units.metresToStuds(hitbox.bodyHeightMetres + 0.35), 0)
-	nameplate.AlwaysOnTop = false
-	nameplate.MaxDistance = Units.metresToStuds(45)
-	nameplate.Parent = root
-
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.fromScale(1, 1)
-	label.BackgroundTransparency = 1
-	label.Text = displayName
-	label.TextColor3 = Color3.fromRGB(255, 255, 255)
-	label.TextStrokeTransparency = 0.4
-	label.TextScaled = true
-	label.Font = Fonts.world("nameplate")
-	label.Parent = nameplate
+	local nameplate, label = buildNameplate(root, displayName, hitbox)
 
 	model.Parent = parent
 

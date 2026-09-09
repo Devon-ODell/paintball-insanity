@@ -160,9 +160,30 @@ end
 --- The categories the counter in front of this player actually stocks, or an
 --- empty list if they are not at a counter. This is the server-side gate on
 --- what a purchase request is allowed to name.
+--[[
+	What the counter this player is standing at will sell them.
+
+	Empty unless they are actually at it. The bay used to be latched open by the
+	prompt and cleared only when the player left the SERVER, so one visit to the
+	barn meant `RequestPurchase`'s "walk up to a counter" rule never applied
+	again -- you could buy jerseys from the far side of the pond for the rest of
+	the session. `isAtCounter` was written to prevent exactly that and was never
+	called by anything.
+
+	Walking out of range closes the bay rather than merely hiding it, so the
+	catalogue, the purchase path and the equip path cannot disagree about where
+	the player is.
+]]
 function Hub.allowedCategories(player: Player): { string }
 	local bay = openBay[player]
-	return if bay then bay.categories else {}
+	if not bay then
+		return {}
+	end
+	if not Hub.isAtCounter(player) then
+		Hub.closeCounter(player)
+		return {}
+	end
+	return bay.categories
 end
 
 function Hub.isAtCounter(player: Player): boolean

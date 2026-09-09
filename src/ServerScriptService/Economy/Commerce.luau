@@ -87,6 +87,15 @@ end
 
 -- Injectable boundaries let receipt retries, lost sessions and failed writes be
 -- tested with the production transaction logic, without making a real purchase.
+--[[
+	Called after pass ownership is (re)established for a player, by join or by a
+	completed purchase. Bootstrap fills it in.
+
+	Commerce deliberately does not know what a season is. It knows a pass changed
+	hands; whoever cares about that consequence subscribes here.
+]]
+Commerce.onPassResolved = nil :: ((Player) -> ())?
+
 function Commerce.new(deps: any?): any
 	local d = deps or {
 		marketplace = game:GetService("MarketplaceService"),
@@ -223,6 +232,10 @@ function Commerce.new(deps: any?): any
 			if not d.players:GetPlayerByUserId(player.UserId) then return end
 			self:refreshPass(player, id)
 		end
+		-- Ownership is settled; anything that depends on it can now run.
+		if Commerce.onPassResolved then
+			(Commerce.onPassResolved :: any)(player)
+		end
 	end
 
 	function self:forget(userId: number)
@@ -237,6 +250,14 @@ function Commerce.new(deps: any?): any
 			if not wasPurchased then return end
 			for id, offer in pairs(Catalog.config().offers) do
 				if offer.kind == "pass" and offer.marketplaceId == passId then self:refreshPass(player, id) end
+			end
+			--[[
+				The moment that matters most for a season pass. Without this the
+				player pays, sees nothing, and only receives the track they just
+				bought after finishing a whole match.
+			]]
+			if Commerce.onPassResolved then
+				(Commerce.onPassResolved :: any)(player)
 			end
 		end)
 	end

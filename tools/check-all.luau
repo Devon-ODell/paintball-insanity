@@ -28,6 +28,7 @@ type Gate = { id: string, why: string }
 ]]
 local GATES: { Gate } = {
 	{ id = "check-source", why = "Luau syntax across every module" },
+	{ id = "check-static", why = "Power of 10 rules that translate, plus reachability" },
 	{ id = "ship-check", why = "release configuration: dev flags, modes, monetization" },
 	{ id = "check-budget", why = "part, shadow and alpha budgets per scene" },
 	{ id = "check-zfight", why = "coplanar surfaces that shimmer in motion" },
