@@ -144,18 +144,60 @@ function Policies.competent(sigmaDeg: number?, reactionSeconds: number?): Policy
 	local sigma = sigmaDeg or 1.6
 	local reaction = reactionSeconds or 0.25
 	local acquired: { [string]: number } = {}
+	-- Which enemy spawn the sweep is walking to, and whether it has started.
+	local sweepIndex, sweepAt = 1, 0
 
 	return {
 		name = `competent(sigma={sigma})`,
 		decide = function(ctx: Context): Intent
 			local bot = nearest(ctx)
 			if not bot then
-				-- Advance to contact. A player who never leaves spawn produces
-				-- engagement distances that describe the spawn, not the map, so
-				-- the benchmark policy has to actually push in.
-				local centre = Vector3.new(0, 0, 0)
-				local delta = centre - ctx.position
-				if delta.Magnitude < 6 then
+				--[[
+					Advance to contact, toward where the defence actually is.
+
+					This used to push to the world origin and idle within six
+					metres of it. On Speedball, 34 by 55 metres, the origin is
+					close enough to everything that it did not matter. On
+					Holdfast, 132 by 176, it left the benchmark standing in an
+					empty middle while twelve bots held a fort at the far end:
+					six seeded gauntlets produced 0 shots, 0 deaths and a 0%
+					clear rate, so the largest field in the game had never once
+					been measured.
+
+					The target is the centroid of the field's own bot spawns. A
+					benchmark meant to stand in for a competent player is allowed
+					to know where the enemy starts, because a competent player
+					knows after one match. It is not given a single bot position
+					and it is never given one it cannot see -- `visible` is still
+					the only way it learns about anybody.
+				]]
+				local spawns = ctx.world and ctx.world.botSpawns
+				local target = Vector3.new(0, 0, 0)
+				if spawns and #spawns > 0 then
+					--[[
+						Sweep the enemy spawns in order rather than parking on
+						their centroid.
+
+						Standing on the centroid was the bug. On Holdfast that
+						point is inside the fort's own cover -- measured, it can
+						see 0 of 12 spawns from there, where the same point on
+						Speedball sees 6 of 6 -- so the benchmark arrived,
+						idled, and reported a field with no fights in it. A
+						player who walks into a room, sees nobody and simply
+						stops is not a competent player, and a benchmark that
+						does it measures the pause rather than the map.
+					]]
+					if sweepAt >= 1 then
+						local reached = Vector3.new(spawns[sweepIndex].position[1], 0, spawns[sweepIndex].position[3])
+						if (reached - ctx.position).Magnitude < 8 then
+							sweepIndex = (sweepIndex % #spawns) + 1
+						end
+					end
+					sweepAt = 1
+					target = Vector3.new(spawns[sweepIndex].position[1], 0, spawns[sweepIndex].position[3])
+				end
+				local delta = target - ctx.position
+				if delta.Magnitude < 1 then
 					return IDLE
 				end
 				return {

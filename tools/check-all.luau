@@ -32,6 +32,7 @@ local GATES: { Gate } = {
 	{ id = "ship-check", why = "release configuration: dev flags, modes, monetization" },
 	{ id = "check-budget", why = "part, shadow and alpha budgets per scene" },
 	{ id = "check-zfight", why = "coplanar surfaces that shimmer in motion" },
+	{ id = "check-spawns", why = "no spawn inside a wall, and what round one opens at" },
 	{ id = "check-characters", why = "every bot and civilian builds" },
 	{ id = "check-gait", why = "the walk cycle moves with the ground" },
 	{ id = "check-inflatables", why = "speedball bunker geometry and budgets" },

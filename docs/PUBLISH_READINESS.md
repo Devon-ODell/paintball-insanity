@@ -252,3 +252,31 @@ On this Mac, double-click `Play.command` to check configuration, rebuild, and
 open the current source in Studio. Double-click `Check Release.command` to run
 all automated gates before building (allow several minutes). Both launchers use
 the installed tools in `~/.local/bin`; neither publishes to Roblox.
+
+### BLOCKING: Holdfast produces no fights at all (2026-09-08)
+
+Six seeded gauntlets on Holdfast return **0 shots, 0 eliminations, 0 deaths, 0%
+clear** — identically at every tier and every seed, and identically for a single
+round as for a full gauntlet. The largest field in the game, and the campaign's
+final one at 720 base payout, has never been measured by anything.
+
+Three real faults were found and fixed while chasing it, and **none of them was
+the cause**:
+
+- Round one takes the FIRST FOUR bot spawns in declared order, and Holdfast
+  declared its four most distant first — 130 to 139 m out, against a semi-pro's
+  78 m vision. Reordering nearest-first fixed **Woods** measurably (mean deaths
+  65.3 → 51.5, engagement median onto its own declared 38.7 m target). It did
+  not move Holdfast.
+- The benchmark policy advanced to a fixed point and idled. On Speedball that
+  point sees 6 of 6 spawns; on Holdfast it sees **0 of 12** — inside the fort's
+  own cover. It now sweeps the spawns instead. It did not move Holdfast.
+- `tools/check-spawns` was written to catch a spawn inside a wall. It found
+  none on Holdfast: the player spawn is on `knoll_south`, which is a walkable
+  volume, and standing on it is correct.
+
+**The cause is still unknown.** Do not ship Holdfast. It is reachable in the
+campaign, so either the field is fixed or it comes out of the rotation before
+release. The next thing to try is instrumenting a single Holdfast round for
+player position and bot state over time — everything above was inferred from
+geometry rather than watched.

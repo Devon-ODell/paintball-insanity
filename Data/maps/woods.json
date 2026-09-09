@@ -711,81 +711,21 @@
   "botSpawns": [
     {
       "position": [
-        -21.12,
-        0,
-        29.92
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        0.0
-      ]
-    },
-    {
-      "position": [
-        33.44,
-        0,
-        8.8
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        0.0
-      ]
-    },
-    {
-      "position": [
-        -19.27,
-        0,
-        35.64
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        0.0
-      ]
-    },
-    {
-      "position": [
-        22.88,
-        0,
-        38.72
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        0.0
-      ]
-    },
-    {
-      "position": [
-        1.76,
-        0,
-        26.4
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        0.0
-      ]
-    },
-    {
-      "position": [
-        -31.68,
-        0,
-        10.56
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        0.0
-      ]
-    },
-    {
-      "position": [
         1.76,
         0,
         2.2
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        -45.76
+      ]
+    },
+    {
+      "position": [
+        14.08,
+        0,
+        3.52
       ],
       "lookAt": [
         0.0,
@@ -819,18 +759,6 @@
     },
     {
       "position": [
-        14.08,
-        0,
-        3.52
-      ],
-      "lookAt": [
-        0.0,
-        0,
-        -45.76
-      ]
-    },
-    {
-      "position": [
         -3.52,
         0,
         15.84
@@ -851,6 +779,78 @@
         0.0,
         0,
         -45.76
+      ]
+    },
+    {
+      "position": [
+        33.44,
+        0,
+        8.8
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        0.0
+      ]
+    },
+    {
+      "position": [
+        -31.68,
+        0,
+        10.56
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        0.0
+      ]
+    },
+    {
+      "position": [
+        1.76,
+        0,
+        26.4
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        0.0
+      ]
+    },
+    {
+      "position": [
+        -21.12,
+        0,
+        29.92
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        0.0
+      ]
+    },
+    {
+      "position": [
+        -19.27,
+        0,
+        35.64
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        0.0
+      ]
+    },
+    {
+      "position": [
+        22.88,
+        0,
+        38.72
+      ],
+      "lookAt": [
+        0.0,
+        0,
+        0.0
       ]
     }
   ],
@@ -1608,5 +1608,6 @@
         ]
       }
     ]
-  }
+  },
+  "_botSpawnOrder": "Ordered nearest-first from the player spawn on 2026-09-08. Rounds take spawns in declared order (botSpawns[((i-1) % #botSpawns)+1]), so round one's four bots are the FIRST four entries. On this field those four were [78.6, 64.0, 83.6, 87.5] m out -- 1/4 within a semi-pro bot's 78 m vision -- so round one had nobody who could see anybody. Six seeded gauntlets returned 0 shots, 0 deaths and a 0% clear rate. Nearest-first also reads better: round one fights the close defenders and the later rounds fill the field in behind them. Re-run tools/sim after touching this."
 }
