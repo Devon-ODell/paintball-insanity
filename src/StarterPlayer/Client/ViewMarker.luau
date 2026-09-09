@@ -5,6 +5,7 @@ local Camos = require(ReplicatedStorage.Shared.Camos)
 local Units = require(ReplicatedStorage.Shared.Units)
 
 local CombatMotion = require(ReplicatedStorage.Shared.CombatMotion)
+local Melee = require(ReplicatedStorage.Shared.Melee)
 local motion = Config.get("combatAnimations")
 local movementPose = CFrame.identity
 local stride = 0
@@ -17,6 +18,10 @@ local camoId = "factory"
 local skinId = "raw"
 local pulseAt = -math.huge
 local kickAt = -math.huge
+local swingAt = -math.huge
+--- Read once, like `motion` above: step runs on RenderStepped and the swing
+--- length is a rule, not a per-marker property.
+local swingSeconds = Melee.rules().swingSeconds
 local animated = false
 --[[
 	Per-frame constants, resolved once at equip.
@@ -115,12 +120,36 @@ function ViewMarker.equip(id: string, camo: string?)
 	kickSeconds, kickBackStuds, kickDegrees = tuning.kickSeconds, tuning.kickBackStuds, tuning.kickDegrees
 	pulseSeconds, pulseFrequencyHz = tuning.pulseSeconds, tuning.pulseFrequencyHz
 
-	local function piece(name: string, size: Vector3, at: Vector3, tint: string, shape: string?, rotation: CFrame?)
+	--[[
+		One part of the marker.
+
+		`finish` is the surface, and it is why the thing reads as hardware rather
+		than as a pile of blocks. There are no uploaded textures in this project
+		and there are not going to be -- everything a player sees is built-in
+		material, colour and reflectance -- and at these sizes a tiled material
+		is useless anyway: the grip is a third of a stud across, so a Metal or
+		DiamondPlate tile covers it about four times over. What is left, and what
+		is actually doing the work, is the specular difference between an
+		anodized tank, a milled trigger, a soft rubber grip and a translucent
+		hopper. Those live in the data beside each piece.
+	]]
+	local function piece(name: string, size: Vector3, at: Vector3, tint: string, shape: string?, rotation: CFrame?, finish: any?)
 		local part = Instance.new("Part")
 		part.Name, part.Size = name, Units.vectorToStuds(size)
 		part.Color = if tint == "body" then markerColour elseif tint == "metal" then trim else dark
 		part.Material = if tint == "metal" or tint == "barrel" then Enum.Material.Metal else Enum.Material.SmoothPlastic
 		part.Reflectance = if tint == "metal" or marker.cosmetic then tuning.reflectance else 0
+		if finish then
+			if finish.material then
+				part.Material = (Enum.Material :: any)[finish.material]
+			end
+			if finish.reflectance then
+				part.Reflectance = finish.reflectance
+			end
+			if finish.transparency then
+				part.Transparency = finish.transparency
+			end
+		end
 		part.Anchored, part.CanCollide, part.CanQuery, part.CanTouch, part.CastShadow = true, false, false, false, false
 		if shape == "Ball" then part.Shape = Enum.PartType.Ball
 		elseif shape == "Cylinder" then part.Shape = Enum.PartType.Cylinder end
@@ -198,7 +227,7 @@ function ViewMarker.equip(id: string, camo: string?)
 		end
 	end
 	for _, part in ipairs(spec.pieces or archetypeSpec.pieces or {}) do
-		piece(part.name, vector(part.size), vector(part.at), part.colour, part.shape, rotationOf(part))
+		piece(part.name, vector(part.size), vector(part.at), part.colour, part.shape, rotationOf(part), part)
 	end
 	--[[
 		Panels are mirrored onto both sides here, so a layout in markers.json is
@@ -263,6 +292,26 @@ function ViewMarker.fire()
 	kickAt = os.clock()
 end
 
+--[[
+	The shove, on screen.
+
+	Purely local and purely cosmetic: the server has already been told the
+	direction and decides from its own view of the field whether anything was in
+	reach. Playing the swing here regardless is deliberate -- a swing that only
+	animated on a confirmed hit would tell the player they missed a full network
+	round trip after they pressed the button, and the whole mechanic lives
+	inside about four tenths of a second.
+]]
+function ViewMarker.swing()
+	swingAt = os.clock()
+end
+
+--- True while the swing is on screen. The controller uses it to hold the
+--- trigger closed: you cannot shoot with the marker turned sideways.
+function ViewMarker.isSwinging(): boolean
+	return os.clock() - swingAt < swingSeconds
+end
+
 function ViewMarker.step(camera: Camera, visible: boolean, dt: number, state: any, speed: number, reloadUntil: number?, reloadSeconds: number)
 	if not model then return end
 	local parent = if visible then camera else nil
@@ -270,10 +319,15 @@ function ViewMarker.step(camera: Camera, visible: boolean, dt: number, state: an
 	if not visible then
 		movementPose = CFrame.identity
 		stride = 0
+		-- A marker that comes back on screen comes back at rest. Carrying a
+		-- half-finished swing or an unspent recoil across a respawn would
+		-- animate a shot the player is no longer taking.
+		swingAt, kickAt = -math.huge, -math.huge
 		return
 	end
 	local now = os.clock()
-	local kick = math.clamp(1 - (now - kickAt) / kickSeconds, 0, 1)
+	--- Signed: the small negative lobe is the settle past rest, not an error.
+	local kick = CombatMotion.recoil(now - kickAt, kickSeconds)
 	--[[
 		`offsetStuds` is in STUDS. Everything else in this module is metres run
 		through Units.vectorToStuds; this one is applied raw to the camera CFrame,
@@ -287,6 +341,16 @@ function ViewMarker.step(camera: Camera, visible: boolean, dt: number, state: an
 	]]
 	local reloading = reloadUntil ~= nil and now < (reloadUntil :: number)
 	local reloadPose = if reloading then CombatMotion.reload(1 - ((reloadUntil :: number) - now) / reloadSeconds) else nil
+	--[[
+		A swing outranks a reload on screen, because it outranks it in the
+		fiction: somebody has walked into you and the pod can wait. Only the
+		marker and the left hand are taken from it -- the hopper lid and the pod
+		keep following the reload timeline underneath, so a swing interrupting a
+		pour does not leave the lid stuck open.
+	]]
+	local swingElapsed = now - swingAt
+	local swingPose = if swingElapsed < swingSeconds then CombatMotion.swing(swingElapsed / swingSeconds) else nil
+	local handPose = swingPose or reloadPose
 	local target = CFrame.identity
 	if state.sliding then
 		target = CombatMotion.pose(motion.slide.position, motion.slide.rotation)
@@ -298,8 +362,9 @@ function ViewMarker.step(camera: Camera, visible: boolean, dt: number, state: an
 			* CFrame.Angles(0, 0, math.rad(math.sin(stride) * motion.bobRollDeg))
 	end
 	movementPose = movementPose:Lerp(target, 1 - math.exp(-motion.blendSpeed * dt))
-	local at = camera.CFrame * restOffset * (if reloadPose then reloadPose.marker else movementPose)
-	if kick > 0 then
+	local at = camera.CFrame * restOffset
+		* (if swingPose then swingPose.marker elseif reloadPose then reloadPose.marker else movementPose)
+	if kick ~= 0 then
 		at = at * CFrame.new(0, 0, kick * kickBackStuds)
 			* CFrame.Angles(math.rad(kick * kickDegrees), 0, 0)
 	end
@@ -310,10 +375,10 @@ function ViewMarker.step(camera: Camera, visible: boolean, dt: number, state: an
 			local hinge = CFrame.new(Units.vectorToStuds(vector(motion.lidHingeMetres)))
 			offset = hinge * CFrame.Angles(math.rad(motion.lidOpenDegrees * (if reloadPose then reloadPose.lid else 0)), 0, 0)
 				* hinge:Inverse() * offset
-		elseif name == "LeftGlove" and reloadPose then
-			offset = CFrame.new(reloadPose.hand)
+		elseif name == "LeftGlove" and handPose then
+			offset = CFrame.new(handPose.hand)
 		elseif name == "LeftSleeve" or name == "RightSleeve" then
-			local wrist = if name == "LeftSleeve" and reloadPose then reloadPose.hand
+			local wrist = if name == "LeftSleeve" and handPose then handPose.hand
 				else Units.vectorToStuds(vector(if name == "LeftSleeve" then motion.leftHandMetres else motion.rightHandMetres))
 			local elbow = wrist + Units.vectorToStuds(vector(motion.forearmOffsetMetres))
 			local diameter = Units.metresToStuds(motion.sleeveDiameterMetres)

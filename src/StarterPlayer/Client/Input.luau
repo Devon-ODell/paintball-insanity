@@ -36,6 +36,7 @@ export type State = {
 	firing: boolean,
 	lastSprintAt: number,
 	reloadRequested: boolean,
+	swingRequested: boolean,
 }
 
 local state: State = {
@@ -48,6 +49,7 @@ local state: State = {
 	firing = false,
 	lastSprintAt = -math.huge,
 	reloadRequested = false,
+	swingRequested = false,
 }
 
 function Input.state(): State
@@ -121,7 +123,7 @@ end
 local function reset()
 	setSprint(false)
 	state.firing, state.sliding, state.crouching = false, false, false
-	state.lean, state.reloadRequested = 0, false
+	state.lean, state.reloadRequested, state.swingRequested = 0, false, false
 	leanLeft, leanRight = false, false
 	applySpeed()
 end
@@ -193,6 +195,21 @@ function Input.bind()
 		return Enum.ContextActionResult.Pass
 	end, false, Enum.KeyCode.R, Enum.KeyCode.ButtonX)
 
+	--[[
+		The shove. Bound next to reload rather than next to fire, because it is
+		the same kind of decision: a thing you commit to instead of shooting, not
+		a second trigger. V and the right stick click are where every console
+		shooter has put melee for fifteen years, and a twelve-year-old should not
+		have to be told where it is.
+	]]
+	ContextActionService:BindAction("LR_Melee", function(_, inputState)
+		if pointerFree then return Enum.ContextActionResult.Pass end
+		if inputState == Enum.UserInputState.Begin then
+			state.swingRequested = true
+		end
+		return Enum.ContextActionResult.Pass
+	end, false, Enum.KeyCode.V, Enum.KeyCode.ButtonR3)
+
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed or pointerFree then
 			return
@@ -221,6 +238,12 @@ end
 function Input.consumeReload(): boolean
 	local requested = state.reloadRequested
 	state.reloadRequested = false
+	return requested
+end
+
+function Input.consumeSwing(): boolean
+	local requested = state.swingRequested
+	state.swingRequested = false
 	return requested
 end
 

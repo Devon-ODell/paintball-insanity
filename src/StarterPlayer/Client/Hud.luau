@@ -148,9 +148,11 @@ function Hud.build()
 	controls = Theme.text(safe, "Controls", "", UDim2.new(1, 0, 0, 44), UDim2.new(0, 0, 1, -44), 11)
 	controls.TextColor3, controls.TextStrokeTransparency = C.muted, 0.4
 	local function resize()
-		controls.Text = if game:GetService("UserInputService").PreferredInput == Enum.PreferredInput.Gamepad then "R2 fire · X reload · L3 sprint · B crouch · R1 slide · D-pad lean"
-			elseif safe.AbsoluteSize.X < cfg.compactViewportPixels then "R reload  ·  Shift sprint  ·  Ctrl crouch"
-			else "WASD move  ·  Mouse fire  ·  R reload  ·  Shift sprint  ·  Ctrl crouch  ·  C slide  ·  Q/E lean"
+		-- A control nobody is told about does not exist, and melee is the one
+		-- the player only finds out about by being shoved first.
+		controls.Text = if game:GetService("UserInputService").PreferredInput == Enum.PreferredInput.Gamepad then "R2 fire · X reload · R3 melee · L3 sprint · B crouch · R1 slide · D-pad lean"
+			elseif safe.AbsoluteSize.X < cfg.compactViewportPixels then "R reload  ·  V melee  ·  Shift sprint  ·  Ctrl crouch"
+			else "WASD move  ·  Mouse fire  ·  R reload  ·  V melee  ·  Shift sprint  ·  Ctrl crouch  ·  C slide  ·  Q/E lean"
 	end
 	safe:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
 	game:GetService("UserInputService"):GetPropertyChangedSignal("PreferredInput"):Connect(resize)

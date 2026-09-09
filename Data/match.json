@@ -66,8 +66,17 @@
     "_comment": "Paintball rules. One mark and you are out for the round. No health, no regeneration, no armour, and nothing purchasable changes any of this.",
     "oneHitElimination": true,
     "friendlyFire": false,
-    "surrenderBarrelTagRangeMetres": 4.0,
-    "_surrenderNote": "Inside this range a bot offers a barrel tag instead of shooting -- it is a paintball courtesy and it reads as comedy rather than mercy."
+    "melee": {
+      "_comment": "The butt of the marker. There is no knife in a paintball game and there is not going to be one -- at contact range you turn the marker around and shove somebody with the tank. It replaces the barrel tag, which asked the bot to be polite at four metres and read as the bot refusing to play.",
+      "rangeMetres": 2.4,
+      "reachHeightMetres": 2.0,
+      "_arc": "Horizontal only. A swing is a shove, so it does not care how tall the target is inside reachHeightMetres, and it cannot reach behind the swinger.",
+      "arcDegrees": 110,
+      "cooldownSeconds": 1.0,
+      "swingSeconds": 0.45,
+      "_contact": "Fraction of the swing at which the butt actually arrives. Nothing lands on the frame the button is pressed -- for the player it is the commitment, and for a bot it is the only warning you get.",
+      "contactFraction": 0.38
+    }
   },
   "respawn": {
     "_comment": "Respawn is free and unlimited. It is the accessibility floor: anyone can finish. The payout curve in economy.json is what makes only skill profitable.",

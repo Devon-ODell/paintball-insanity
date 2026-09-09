@@ -30,6 +30,20 @@ export type FireRequest = {
 	stance: Types.Stance,
 }
 
+--[[
+	A swing of the marker's butt.
+
+	The only thing the client is allowed to say is which way it was facing.
+	Where the swinger stood, who was inside reach, and whether the cooldown had
+	elapsed are all the server's, decided in Melee against the server's own
+	position -- so this payload cannot name a victim any more than a fire
+	request can.
+]]
+export type SwingRequest = {
+	direction: Vector3,
+	clientTime: number,
+}
+
 export type ShotResult = {
 	shotId: number,
 	hit: boolean,
@@ -43,6 +57,7 @@ export type ShotResult = {
 local DEFINITIONS = {
 	-- Client -> server intents.
 	FireMarker = "Event",
+	SwingMarker = "Event",
 	RequestReload = "Event",
 	RequestPurchase = "Function",
 	RequestCommerce = "Function",
@@ -163,6 +178,30 @@ function Remotes.validateFireRequest(payload: any): FireRequest?
 		clientTime = payload.clientTime,
 		stance = stance :: Types.Stance,
 	}
+end
+
+--[[
+	Validates a swing off the wire.
+
+	Deliberately thinner than a fire request, because a swing carries less: no
+	origin worth reading (the server uses its own), no stance (a shove does not
+	have a cone). Same rule though -- malformed is dropped, never clamped.
+]]
+function Remotes.validateSwingRequest(payload: any): SwingRequest?
+	if type(payload) ~= "table" or typeof(payload.direction) ~= "Vector3" then
+		return nil
+	end
+	if not finiteVector(payload.direction) then
+		return nil
+	end
+	local magnitude = payload.direction.Magnitude
+	if magnitude < 1e-4 or magnitude > 1e4 then
+		return nil
+	end
+	if type(payload.clientTime) ~= "number" or not finite(payload.clientTime) then
+		return nil
+	end
+	return { direction = payload.direction.Unit, clientTime = payload.clientTime }
 end
 
 return Remotes

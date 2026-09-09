@@ -31,7 +31,13 @@ local function event(name)
     end
     return events[name]
 end
-replace(env.ReplicatedStorage.Net.Remotes, { event = event, validateFireRequest = actualRemotes.validateFireRequest })
+--- The validators are the real ones on purpose: this stub replaces the wire,
+--- not the rules about what is allowed to come off it.
+replace(env.ReplicatedStorage.Net.Remotes, {
+    event = event,
+    validateFireRequest = actualRemotes.validateFireRequest,
+    validateSwingRequest = actualRemotes.validateSwingRequest,
+})
 local shopVenue = {
     exit = { Position = roblox.Vector3.zero, Interact = { Triggered = signal() } },
     enter = { Position = roblox.Vector3.zero, Interact = { Triggered = signal() } },
@@ -50,16 +56,19 @@ replace(env.Server.Match.WorldBuilder, { build = function() return roblox.Instan
 replace(env.Server.Match.BotAvatar, { new = function() return { setPosition = function() end, splatter = function() end, destroy = function() end } end })
 local ticks, fired = 0, 0
 local botPositions = {}
+local madeBots = {}
 local lastFire = nil
 replace(env.Server.Bots.BotController, {
     new = function(options)
         botPositions[options.id] = options.position
-        return {
+        local bot = {
             id = options.id, name = options.name, position = options.position, facing = options.facing,
             velocity = roblox.Vector3.zero, alive = true,
             tick = function() ticks += 1 end,
             eliminate = function(self) self.alive = false end,
         }
+        table.insert(madeBots, bot)
+        return bot
     end,
     pathTo = function() end, setState = function() end,
     asTarget = function(bot) return { id = bot.id, alive = bot.alive } end,
@@ -115,6 +124,57 @@ assert(#event("BotEliminated").sent == 1, "one bot must only be eliminated once 
 assert(event("BotEliminated").sent[1].headshot == true, "authoritative mask hit should be a headshot")
 local profile = env.require(env.Server.Economy.Profile).get(player.UserId)
 assert(profile.data.camoProgress.headshots == 1, "duplicate hits must never duplicate headshot progress")
+--[[
+    The butt of the marker.
+
+    The client sends one thing -- which way it was facing -- so everything worth
+    cheating is asserted here: that the server picks the victim from its own
+    view of the field, that a swing at nothing eliminates nothing, that facing
+    away eliminates nothing, and that mashing the key cannot beat the cooldown.
+]]
+do
+    local victim, behind = nil, nil
+    for _, bot in ipairs(madeBots) do
+        if bot.alive then
+            if not victim then victim = bot else behind = bot; break end
+        end
+    end
+    assert(victim and behind, "the squad mock did not build two live bots")
+    local before = #event("BotEliminated").sent
+
+    -- Out of reach: a swing at empty air.
+    victim.position = roblox.Vector3.new(0, 0, -9)
+    behind.position = roblox.Vector3.new(0, 0, 9)
+    event("SwingMarker").OnServerEvent:fire(player, { direction = roblox.Vector3.new(0, 0, -1), clientTime = 0 })
+    assert(#event("BotEliminated").sent == before, "a swing at nothing took somebody out")
+
+    -- Behind the swinger: in range, wrong side. A whiff still spends the
+    -- cooldown -- that is the cost of committing -- so the clock moves between
+    -- each of these.
+    heartbeat:fire(1.1)
+    behind.position = roblox.Vector3.new(0, 0, 1.2)
+    event("SwingMarker").OnServerEvent:fire(player, { direction = roblox.Vector3.new(0, 0, -1), clientTime = 0 })
+    assert(#event("BotEliminated").sent == before, "a swing reached behind the player")
+
+    -- In reach, in front.
+    heartbeat:fire(1.1)
+    victim.position = roblox.Vector3.new(0, 0, -1.4)
+    event("SwingMarker").OnServerEvent:fire(player, { direction = roblox.Vector3.new(0, 0, -1), clientTime = 0 })
+    local sent = event("BotEliminated").sent
+    assert(#sent == before + 1, "a swing in reach did not take anybody out")
+    assert(sent[#sent].botId == victim.id and sent[#sent].melee == true, "the wrong bot was shoved")
+    assert(not victim.alive, "the shoved bot is still standing")
+
+    -- Mashing it must not beat the cooldown, and the payload cannot name a target.
+    behind.position = roblox.Vector3.new(0, 0, -1.2)
+    event("SwingMarker").OnServerEvent:fire(player, { direction = roblox.Vector3.new(0, 0, -1), clientTime = 0, targetId = behind.id })
+    assert(#event("BotEliminated").sent == before + 1, "the swing cooldown was not enforced by the server")
+    event("SwingMarker").OnServerEvent:fire(player, { direction = roblox.Vector3.new(0, 0, 0) })
+    assert(#event("BotEliminated").sent == before + 1, "a malformed swing was accepted")
+    behind.alive = false
+end
+print("Melee checks passed: server-side reach, arc, cooldown and payload validation.")
+
 queued = { hit("bot", "player"), hit("bot", "player") }
 heartbeat:fire(0.1)
 assert(#event("PlayerEliminated").sent == 1, "one batch must only charge one player elimination")

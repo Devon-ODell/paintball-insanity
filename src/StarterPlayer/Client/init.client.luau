@@ -16,6 +16,7 @@ local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local Units = require(ReplicatedStorage.Shared.Units)
 local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
 local Spread = require(ReplicatedStorage.Shared.Spread)
+local Melee = require(ReplicatedStorage.Shared.Melee)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local tracerRng = Rng.new(12345)
 local Remotes = require(ReplicatedStorage.Net.Remotes)
@@ -145,8 +146,38 @@ local function requestReload()
 	end
 end
 
+--[[
+	The shove.
+
+	Local cooldown is presentation only -- it stops the animation restarting on
+	a mashed key. The rule is enforced on the server, which decides from its own
+	view of the field whether anything was in reach, so nothing here can be sped
+	up by editing this file.
+]]
+local swingReadyAt = -math.huge
+
+local function trySwing()
+	if phase ~= "live" or respawning or Input.isPointerFree() then
+		return
+	end
+	local now = os.clock()
+	if now < swingReadyAt then
+		return
+	end
+	swingReadyAt = now + Melee.rules().cooldownSeconds
+	ViewMarker.swing()
+	Remotes.event("SwingMarker"):FireServer({
+		direction = camera.CFrame.LookVector,
+		clientTime = now,
+	})
+end
+
 local function tryFire()
 	if phase ~= "live" or respawning or Input.isPointerFree() then
+		return
+	end
+	-- You cannot pull the trigger with the marker turned sideways.
+	if ViewMarker.isSwinging() then
 		return
 	end
 	local now = os.clock()
@@ -431,6 +462,9 @@ RunService:BindToRenderStep("LR_Presentation", Enum.RenderPriority.Camera.Value 
 	end
 	if Input.consumeReload() then
 		requestReload()
+	end
+	if Input.consumeSwing() then
+		trySwing()
 	end
 
 	local viewport = camera.ViewportSize.Y

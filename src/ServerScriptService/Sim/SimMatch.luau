@@ -25,6 +25,7 @@ local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local Spread = require(ReplicatedStorage.Shared.Spread)
 local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
+local Melee = require(ReplicatedStorage.Shared.Melee)
 local Log = require(ReplicatedStorage.Shared.Log)
 
 local Server = script.Parent.Parent
@@ -147,7 +148,7 @@ local function runRound(ctx: RoundContext): RoundReport
 	local world = ctx.world
 	local matchData = ctx.matchData
 	local hitbox = ctx.ballisticsData.hitbox
-	local hitRules = Config.require("match", "hitRules")
+	local meleeRules = Melee.rules()
 	local markerData = ctx.markerData
 	local spec = ctx.spec
 	local round = ctx.round
@@ -446,14 +447,14 @@ local function runRound(ctx: RoundContext): RoundReport
 				projectiles = projectiles,
 				moraleErrorMultiplier = moraleMultiplier,
 				--[[
-					The barrel tag, in the simulator as well as live, because it
-					is a rule and not a flourish -- and it is one of the few
-					things that makes closing the last few metres cost anything.
+					The butt of the marker, in the simulator as well as live,
+					because it is a rule and not a flourish -- it is one of the few
+					things that makes closing the last two metres cost anything, and
 					probe-trading has to see it or the numbers describe a game
 					nobody plays.
 				]]
-				barrelTagRangeMetres = hitRules.surrenderBarrelTagRangeMetres,
-				tagPlayer = function()
+				meleeRules = meleeRules,
+				meleePlayer = function()
 					if player.alive then
 						player.alive = false
 						player.respawnAt = t + matchData.respawnDelaySeconds

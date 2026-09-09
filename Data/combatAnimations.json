@@ -306,5 +306,121 @@
     0,
     -0.22,
     0.32
+  ],
+  "_recoil": "Recoil is an impulse, not a fade. The old curve was linear -- full displacement on the frame of the shot decaying evenly to nothing -- which reads as the marker being dragged back rather than kicked. This is a damped spring: it snaps to full on the shot, recovers fast, and crosses slightly past rest once before settling, which is what a blowback marker actually does in the hands. decay sets how quickly it gives up its energy; settleTurns is how much of one oscillation fits inside kickSeconds, so anything under 1 is a single overshoot and no ringing.",
+  "recoil": {
+    "decay": 3.2,
+    "settleTurns": 0.72
+  },
+  "_melee": "The shove. Wind up across the body, drive the tank end forward, follow through, recover. The contact frame sits at t = 0.38 because match.json's hitRules.melee.contactFraction is 0.38 -- the frame where the butt arrives and the frame where the server decides the hit are the same moment on purpose, and they must be edited together. Positions are metres in camera space and rotations are degrees, both relative to the rest pose, exactly as the reload timeline is. `hand` is the left glove, which stays on the foregrip through the whole swing.",
+  "melee": [
+    {
+      "t": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "hand": [
+        -0.08,
+        -0.09,
+        -0.2
+      ]
+    },
+    {
+      "t": 0.16,
+      "position": [
+        0.13,
+        0.05,
+        0.14
+      ],
+      "rotation": [
+        -14,
+        32,
+        -34
+      ],
+      "hand": [
+        0.02,
+        -0.02,
+        -0.1
+      ]
+    },
+    {
+      "t": 0.38,
+      "position": [
+        -0.17,
+        -0.05,
+        -0.36
+      ],
+      "rotation": [
+        8,
+        -36,
+        52
+      ],
+      "hand": [
+        -0.14,
+        -0.1,
+        -0.3
+      ]
+    },
+    {
+      "t": 0.52,
+      "position": [
+        -0.21,
+        -0.1,
+        -0.24
+      ],
+      "rotation": [
+        12,
+        -42,
+        60
+      ],
+      "hand": [
+        -0.18,
+        -0.13,
+        -0.22
+      ]
+    },
+    {
+      "t": 0.78,
+      "position": [
+        -0.05,
+        -0.02,
+        0.06
+      ],
+      "rotation": [
+        4,
+        -10,
+        16
+      ],
+      "hand": [
+        -0.11,
+        -0.09,
+        -0.1
+      ]
+    },
+    {
+      "t": 1,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "hand": [
+        -0.08,
+        -0.09,
+        -0.2
+      ]
+    }
   ]
 }

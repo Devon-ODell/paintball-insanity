@@ -19,6 +19,7 @@ local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local Log = require(ReplicatedStorage.Shared.Log)
+local Melee = require(ReplicatedStorage.Shared.Melee)
 local AimModel = require(script.Parent.AimModel)
 
 local BotController = {}
@@ -61,6 +62,7 @@ export type Bot = typeof(setmetatable(
 		_restUntil: number,
 		_hopper: number,
 		_reloadUntil: number?,
+		_swingLandsAt: number?,
 		_path: { number }?,
 		_pathIndex: number,
 		_repositionReadyAt: number,
@@ -121,6 +123,7 @@ function BotController.new(config: Config): Bot
 		_restUntil = -math.huge,
 		_hopper = markerData.hopperCapacity,
 		_reloadUntil = nil,
+		_swingLandsAt = nil,
 		_path = nil,
 		_pathIndex = 1,
 		_repositionReadyAt = 0,
@@ -275,34 +278,42 @@ local function tryFire(self: Bot, t: number, ctx: any, aimAt: Vector3, aimVeloci
 	end
 
 	--[[
-		The barrel tag.
+		The butt of the marker.
 
-		`match.json` has declared `hitRules.surrenderBarrelTagRangeMetres` since
-		the rules were written -- "inside this range a bot offers a barrel tag
-		instead of shooting; it is a paintball courtesy and it reads as comedy
-		rather than mercy" -- and nothing has ever implemented it.
+		There is no knife in a paintball game and there is not going to be one. At
+		contact range you turn the marker around and shove somebody with the tank,
+		and that is what this is -- one shove, out for the round, exactly like a
+		mark.
 
-		At contact range a player does not get shot, they get touched out with
-		the barrel. That is the real rule on a real field, and mechanically it is
-		the right way round: it makes closing the last few metres COST something
-		rather than being the safe play. probe-trading currently says rushing
-		beats holding an angle on three fields, which is the inverse of the
-		premise this whole game is built on, and a bot that cannot punish
-		somebody walking into its barrel is part of why.
+		It replaces the barrel tag, which lived in match.json unimplemented since
+		the rules were written and, once built, asked the bot to decline a shot at
+		four metres. That reads as the squad refusing to play. A shove is the same
+		distance rule pointed the right way round: it makes closing the last two
+		metres cost something instead of being the safe play.
 
-		No paint leaves the marker, so nothing here can be dodged, blocked by
-		cover that is already this close, or reflected in hit rate. The bot says
-		so out loud, because the line is the point.
+		The swing is COMMITTED rather than instant. Melee.contactDelay is the whole
+		fairness of the mechanic: the bot stops, says something, and the butt
+		arrives a moment later, so a player who is paying attention can still back
+		out of it. Nothing here fires paint, so no cover, hit rate or spread number
+		moves -- a shove is decided by geometry alone, in Melee, where the live
+		server and the simulation both read it.
 	]]
-	local tagRange = ctx.barrelTagRangeMetres or 0
-	if tagRange > 0 and ctx.tagPlayer then
-		local reach = (aimAt - BotController.muzzle(self)).Magnitude
-		if reach <= tagRange then
-			self._lastShotAt = t
-			ctx.chatter("barrelTag", { speaker = self.name })
-			ctx.tagPlayer(self)
-			return true
+	local rules = ctx.meleeRules
+	local toTarget = aimAt - self.position
+	--- Tested against the bearing to the target rather than the bot's current
+	--- facing: somebody who has walked into contact range is turned towards,
+	--- not swung past because the bot was still pre-placed on a watch angle.
+	--- The bot commits to that bearing here, and the landing check uses it.
+	if rules and ctx.meleePlayer and Melee.reaches(self.position, toTarget, aimAt, rules) then
+		self._lastShotAt = t
+		self._swingLandsAt = t + Melee.contactDelay(rules)
+		self.velocity = Vector3.new(0, 0, 0)
+		local flat = Vector3.new(toTarget.X, 0, toTarget.Z)
+		if flat.Magnitude > 1e-3 then
+			self.facing = flat.Unit
 		end
+		ctx.chatter("melee", { speaker = self.name })
+		return true
 	end
 
 	local solution = AimModel.solve({
@@ -460,6 +471,10 @@ export type TickContext = {
 	moraleErrorMultiplier: number,
 	chatter: (kind: string, context: any) -> (),
 	aliveCount: number,
+	--- Contact-range rules, and what to call when the butt lands. Absent in any
+	--- caller that does not model a shovable player.
+	meleeRules: Melee.Rules?,
+	meleePlayer: ((swinger: any) -> ())?,
 }
 
 --[[
@@ -477,6 +492,29 @@ function BotController.tick(self: Bot, dt: number, ctx: TickContext)
 	local movement = Config.require("bots", "movement")
 	local t = ctx.t
 	local player = ctx.player
+
+	--[[
+		0. Finish a swing already in flight.
+
+		Once the butt is moving the bot is not steering it, so it neither senses
+		nor shoots until the swing resolves. That pause is deliberate: it is the
+		window the player has to step out of reach, and a bot that could cancel
+		a committed swing to shoot instead would be getting the mechanic for
+		free.
+	]]
+	if self._swingLandsAt then
+		self.velocity = Vector3.new(0, 0, 0)
+		if t < self._swingLandsAt then
+			return
+		end
+		self._swingLandsAt = nil
+		local rules = ctx.meleeRules
+		if rules and ctx.meleePlayer and player.alive
+			and Melee.reaches(self.position, self.facing, player.position, rules) then
+			ctx.meleePlayer(self)
+		end
+		return
+	end
 
 	-- 1. Sense.
 	local sees = player.alive and BotController.canSee(self, player.position)

@@ -86,7 +86,20 @@ end
 	body's. Returning only the marker left the other two out of scope and every
 	bot failed on the first pose -- caught immediately by check-characters.
 ]]
-local function buildMarkerRig(model: Model, markerColour: Color3): (BasePart, BasePart, BasePart)
+--[[
+	The marker a bot carries.
+
+	Four parts, and the fourth is the point: a body, a barrel and a hopper read
+	as a bent stick at forty metres, and the air tank slung back under the grip
+	is what makes the silhouette say paintball rather than "gun". It is also
+	the end that lands a shove, so a bot that has closed to contact range is
+	holding something the player can see it swing.
+
+	Everything here is built-in material and colour -- this project uploads no
+	assets -- so the read comes from shape and specular contrast: anodized tank,
+	milled barrel, matte hopper.
+]]
+local function buildMarkerRig(model: Model, markerColour: Color3): (BasePart, BasePart, BasePart, BasePart)
 	local marker = part("Marker", Units.vectorToStuds(Vector3.new(0.07, 0.11, 0.44)), markerColour, model)
 	marker.Material = Enum.Material.Metal
 	marker.Reflectance = 0.06
@@ -98,7 +111,12 @@ local function buildMarkerRig(model: Model, markerColour: Color3): (BasePart, Ba
 	local hopperPart = part("Hopper", Units.vectorToStuds(Vector3.new(0.13, 0.22, 0.22)), WorldBuilder.colourOf("bunkerC"), model)
 	hopperPart.Shape = Enum.PartType.Cylinder
 
-	return marker, barrel, hopperPart
+	local tank = part("AirTank", Units.vectorToStuds(Vector3.new(0.3, 0.13, 0.13)), shade(markerColour, 0.55), model)
+	tank.Shape = Enum.PartType.Cylinder
+	tank.Material = Enum.Material.Foil
+	tank.Reflectance = 0.18
+
+	return marker, barrel, hopperPart, tank
 end
 
 --[[
@@ -162,7 +180,7 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 	local root = body.byName.Torso
 	local head = body.byName.Head
 
-	local marker, barrel, hopperPart = buildMarkerRig(model, markerColour)
+	local marker, barrel, hopperPart, tank = buildMarkerRig(model, markerColour)
 
 	model.PrimaryPart = root
 	local nameplate, label = buildNameplate(root, displayName, hitbox)
@@ -220,6 +238,13 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 			hopperPart.CFrame = marker.CFrame
 				* CFrame.new(0, Units.metresToStuds(0.15), Units.metresToStuds(0.04))
 				* CFrame.Angles(0, 0, math.pi / 2)
+			-- Slung back and down under the grip, angled into the shoulder, the
+			-- way a tank actually sits. Posed here with the rest of the rig:
+			-- splitting this builder once already left a part in scope for the
+			-- assembly and out of scope for the pose.
+			tank.CFrame = marker.CFrame
+				* CFrame.new(0, -Units.metresToStuds(0.1), Units.metresToStuds(0.3))
+				* CFrame.Angles(math.rad(-10), math.pi / 2, 0)
 		end,
 
 		--[[

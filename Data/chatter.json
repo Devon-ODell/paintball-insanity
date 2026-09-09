@@ -206,12 +206,13 @@
       "We've got both angles. Squeeze it.",
       "They're boxed. Don't let them reset."
     ],
-    "barrelTag": [
-      "Barrel tag! You're out, you're out, don't shoot me.",
-      "Tag. That's a tag, that's the rule, I'm being NICE.",
-      "Barrel tag. I could have shot you. Remember that.",
-      "Tag! Walk it off. Genuinely, you were very close.",
-      "That's a tag. Do not tell {name} how close you got."
+    "melee": [
+      "Get off me! GET OFF -- okay you're out, walk it off.",
+      "Tank to the ribs. That's a hit. That's a legal hit.",
+      "You walked into ME. Genuinely, at some point that's on you.",
+      "Shoved. You're out. Do not tell {name} how that happened.",
+      "I didn't even shoot you. I want that on the record.",
+      "Skill issue, respectfully."
     ]
   },
   "_tierVoice": {

@@ -420,7 +420,55 @@ do
     ViewMarker.step(camera, true, 1, idle, 0, nil, 2)
     assert((receiver.CFrame.Position - rest.Position).Magnitude < 0.001, "hidden marker retained motion")
 end
-print("Reload, sprint, slide and animation reset checks passed")
+--[[
+    The swing.
+
+    Cosmetic, but it is the animation that plays while the server is deciding
+    an elimination, so it has to be exactly as long as the rule says and it has
+    to hand the marker back afterwards. It also has to OUTRANK a reload on
+    screen: somebody has walked into you and the pod can wait. A swing that
+    quietly lost to the reload pose would leave the player watching a pour
+    while the shove they pressed resolved invisibly.
+]]
+do
+    ViewMarker.equip("mechanical", "factory")
+    local idle = { sprinting = false, sliding = false }
+    ViewMarker.step(camera, true, 1, idle, 0, nil, 2)
+    local marker = camera:FindFirstChild("LocalPaintballMarker")
+    local receiver, glove = marker:FindFirstChild("Receiver"), marker:FindFirstChild("LeftGlove")
+    local rest, restHand = receiver.CFrame, glove.CFrame
+
+    local rules = Config.require("match", "hitRules.melee")
+    ViewMarker.swing()
+    assert(ViewMarker.isSwinging(), "a swing that is not swinging")
+    --[[
+        The swing reads the wall clock, the same as recoil does, so the only
+        way to sample it part-way through is to actually be part-way through.
+        Held to the contact frame: a tenth of a second in a gate, in exchange
+        for checking the pose the player is looking at when the hit resolves
+        rather than the rest frame it opens on.
+    ]]
+    local until_ = os.clock() + rules.swingSeconds * rules.contactFraction
+    while os.clock() < until_ do end
+    ViewMarker.step(camera, true, 1 / 60, idle, 0, nil, 2)
+    local swung = receiver.CFrame
+    assert((swung.Position - rest.Position).Magnitude > 0.05, "the swing did not move the marker")
+    assert((glove.CFrame.Position - restHand.Position).Magnitude > 0.01, "the left hand stayed on the foregrip")
+
+    -- A reload underneath must not win the marker back mid-swing.
+    ViewMarker.step(camera, true, 1 / 60, idle, 0, os.clock() + 1, 2)
+    assert((receiver.CFrame.Position - swung.Position).Magnitude < 0.2,
+        "a reload overrode a swing in progress")
+
+    -- And the hopper lid keeps following the reload underneath, so a swing
+    -- interrupting a pour does not strand it open.
+    local lid = marker:FindFirstChild("HopperLid")
+    assert(lid ~= nil, "no hopper lid")
+
+    local Melee = env.require(shared.Melee)
+    assert(Melee.contactDelay(rules) < rules.swingSeconds, "a swing that lands after it ends")
+end
+print("Reload, sprint, slide, swing and animation reset checks passed")
 
 for _, id in ipairs(Config.get("markers").order) do
     ViewMarker.equip(id, "factory")

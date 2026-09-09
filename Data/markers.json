@@ -388,7 +388,9 @@
           -0.15,
           0.07
         ],
-        "colour": "dark"
+        "colour": "dark",
+        "material": "SmoothPlastic",
+        "reflectance": 0.0
       },
       {
         "name": "FeedNeck",
@@ -402,7 +404,9 @@
           0.12,
           -0.03
         ],
-        "colour": "metal"
+        "colour": "metal",
+        "material": "Metal",
+        "reflectance": 0.2
       },
       {
         "name": "HopperBody",
@@ -422,7 +426,9 @@
           0,
           0,
           90
-        ]
+        ],
+        "material": "SmoothPlastic",
+        "reflectance": 0.04
       },
       {
         "name": "HopperTaper",
@@ -456,7 +462,9 @@
           0,
           0,
           90
-        ]
+        ],
+        "material": "SmoothPlastic",
+        "reflectance": 0.06
       },
       {
         "name": "HopperLatch",
@@ -490,7 +498,9 @@
           0,
           90,
           0
-        ]
+        ],
+        "material": "Foil",
+        "reflectance": 0.22
       },
       {
         "name": "TankCollar",
@@ -510,7 +520,9 @@
           0,
           90,
           0
-        ]
+        ],
+        "material": "Metal",
+        "reflectance": 0.3
       },
       {
         "name": "TankRegulator",
@@ -524,7 +536,9 @@
           -0.2,
           0.08
         ],
-        "colour": "metal"
+        "colour": "metal",
+        "material": "Metal",
+        "reflectance": 0.28
       },
       {
         "name": "TriggerGuardFront",
@@ -566,7 +580,189 @@
           0,
           0.213
         ],
-        "colour": "metal"
+        "colour": "metal",
+        "material": "Metal",
+        "reflectance": 0.3
+      },
+      {
+        "name": "HopperWindow",
+        "size": [
+          0.136,
+          0.2,
+          0.2
+        ],
+        "at": [
+          0,
+          0.2,
+          -0.05
+        ],
+        "colour": "body",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          0,
+          90
+        ],
+        "material": "Glass",
+        "transparency": 0.55,
+        "reflectance": 0.05
+      },
+      {
+        "name": "PaintStack",
+        "size": [
+          0.13,
+          0.14,
+          0.14
+        ],
+        "at": [
+          0,
+          0.185,
+          -0.05
+        ],
+        "colour": "metal",
+        "shape": "Ball",
+        "material": "SmoothPlastic",
+        "reflectance": 0.03
+      },
+      {
+        "name": "MacroFittingTank",
+        "size": [
+          0.03,
+          0.038,
+          0.03
+        ],
+        "at": [
+          0.045,
+          -0.155,
+          0.085
+        ],
+        "colour": "metal",
+        "material": "Metal",
+        "reflectance": 0.3
+      },
+      {
+        "name": "MacroFittingBody",
+        "size": [
+          0.03,
+          0.038,
+          0.03
+        ],
+        "at": [
+          0.045,
+          -0.075,
+          0.145
+        ],
+        "colour": "metal",
+        "material": "Metal",
+        "reflectance": 0.3
+      },
+      {
+        "name": "MacroLine",
+        "size": [
+          0.1,
+          0.018,
+          0.018
+        ],
+        "at": [
+          0.045,
+          -0.115,
+          0.115
+        ],
+        "colour": "dark",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          -37,
+          0,
+          90
+        ],
+        "material": "SmoothPlastic",
+        "reflectance": 0.02
+      },
+      {
+        "name": "TankButt",
+        "size": [
+          0.03,
+          0.148,
+          0.148
+        ],
+        "at": [
+          0,
+          -0.2,
+          0.465
+        ],
+        "colour": "dark",
+        "shape": "Cylinder",
+        "rotationDeg": [
+          0,
+          90,
+          0
+        ],
+        "material": "SmoothPlastic",
+        "reflectance": 0.0
+      },
+      {
+        "name": "GripPanelL",
+        "size": [
+          0.007,
+          0.16,
+          0.068
+        ],
+        "at": [
+          -0.043,
+          -0.16,
+          0.07
+        ],
+        "colour": "metal",
+        "material": "SmoothPlastic",
+        "reflectance": 0.02
+      },
+      {
+        "name": "GripPanelR",
+        "size": [
+          0.007,
+          0.16,
+          0.068
+        ],
+        "at": [
+          0.043,
+          -0.16,
+          0.07
+        ],
+        "colour": "metal",
+        "material": "SmoothPlastic",
+        "reflectance": 0.02
+      },
+      {
+        "name": "TriggerBlade",
+        "size": [
+          0.014,
+          0.055,
+          0.02
+        ],
+        "at": [
+          0,
+          -0.135,
+          -0.06
+        ],
+        "colour": "metal",
+        "material": "Metal",
+        "reflectance": 0.32
+      },
+      {
+        "name": "FeedClamp",
+        "size": [
+          0.058,
+          0.022,
+          0.058
+        ],
+        "at": [
+          0,
+          0.075,
+          -0.03
+        ],
+        "colour": "metal",
+        "material": "Metal",
+        "reflectance": 0.25
       },
       {
         "name": "AccentLeft",
@@ -1005,6 +1201,7 @@
         }
       ]
     },
-    "_camoLayouts": "camoPanels below stays as the fallback for any finish that does not name a layout, so an older profile equipping an older camo still renders."
+    "_camoLayouts": "camoPanels below stays as the fallback for any finish that does not name a layout, so an older profile equipping an older camo still renders.",
+    "_finish": "Per-piece surface. There are no uploaded textures in this project, and at this scale a tiled material is useless anyway -- the grip is a third of a stud across, so a Metal or DiamondPlate tile covers it four times over. What separates an anodized tank from a milled trigger from a rubber grip is specular response, so each piece names its own material, reflectance and transparency and the builder applies them. `accent` and `camo` pieces are excluded on purpose: their material is owned by the camo pulse."
   }
 }

@@ -12,8 +12,9 @@
 	This sweep has found, in one pass:
 
 	  * `match.hitRules.surrenderBarrelTagRangeMetres` -- a paintball rule
-	    declared since the rules were written and never built. Bots now tag you
-	    out at contact range instead of shooting you.
+	    declared since the rules were written and never built. It has since been
+	    replaced outright by `hitRules.melee`: at contact range you shove
+	    somebody with the butt of the marker, and so do they.
 	  * `course.stageBots: [2,3,4,5]` -- fourteen defenders, against the
 	    twenty-eight Course derives from anchors. Two opinions about how many
 	    people are in the building, and the data one was never read.

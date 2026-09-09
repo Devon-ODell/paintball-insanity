@@ -30,6 +30,7 @@ local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
+local Melee = require(ReplicatedStorage.Shared.Melee)
 local Spread = require(ReplicatedStorage.Shared.Spread)
 local Log = require(ReplicatedStorage.Shared.Log)
 local Remotes = require(ReplicatedStorage.Net.Remotes)
@@ -137,7 +138,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	local matchData = Config.get("match")
 	local ballisticsData = Config.get("ballistics")
 	local hitbox = ballisticsData.hitbox
-	local hitRules = Config.require("match", "hitRules")
+	local meleeRules = Melee.rules()
 	local markerName = handle.data.loadout.marker
 	local markerData = Config.require("markers", "markers." .. markerName)
 	local spec = Ballistics.specFromMarker(markerData, ballisticsData)
@@ -540,22 +541,89 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		end
 	end)
 
+	--------------------------------------------------------------------------
+	-- The butt of the marker
+	--------------------------------------------------------------------------
+
+	local swingReadyAt = -math.huge
+
+	--[[
+		The player shoves somebody.
+
+		The client says one thing -- which way it was facing -- and the server
+		decides everything that matters: where the player actually stood, who was
+		inside reach, and whether the cooldown had elapsed. A swing therefore
+		cannot be spammed off a modified client any faster than it can be swung
+		here, and it can never name its own victim.
+
+		It costs nothing and it counts as an elimination, so two things are
+		deliberately NOT done: no shot is logged, and no headshot is recorded.
+		A shove is not aim, so letting it into the shot log would flatter the
+		accuracy the coach reads back, and letting it into the headshot counter
+		would make contact range a way to grind camos without ever hitting a
+		head. Payout still pays for the body, which is correct -- you did take
+		them out.
+	]]
+	local function onSwing(payload: any)
+		if finished or respawning or intermissionUntil ~= nil or not RoundState.shotsCount(state) then
+			return
+		end
+		local request = Remotes.validateSwingRequest(payload)
+		if not request then
+			log.warn(`{player.Name} sent a malformed swing request`)
+			return
+		end
+		if t < swingReadyAt then
+			return
+		end
+		swingReadyAt = t + meleeRules.cooldownSeconds
+
+		local ground = playerGroundPosition(player)
+		if not ground then
+			return
+		end
+		local origin = (ground :: Vector3) + Vector3.new(0, hitbox.chestHeightMetres, 0)
+		local bot = Melee.pick(origin, request.direction, bots :: any, meleeRules) :: any
+		if not bot then
+			return
+		end
+
+		eliminations += 1
+		roundElims += 1
+		bot:eliminate(t)
+		local avatar = avatars[bot.id]
+		if avatar then avatar:splatter(bot.position + Vector3.new(0, hitbox.chestHeightMetres, 0), paintColour) end
+		Remotes.event("BotEliminated"):FireClient(player, {
+			botId = bot.id,
+			name = bot.name,
+			distance = (bot.position - origin).Magnitude,
+			remaining = aliveBots(),
+			headshot = false,
+			melee = true,
+		})
+		say("botEliminated", {})
+	end
+
+	local swingConnection = Remotes.event("SwingMarker").OnServerEvent:Connect(function(swingingPlayer, payload)
+		if swingingPlayer == player then
+			onSwing(payload)
+		end
+	end)
+
 	--[[
 		The player is out.
 
-		Extracted so a barrel tag can end a life the same way paint does. It used
-		to live inline in the projectile branch, so the only way to take a player
-		out was to hit them with a ball -- while match.json has declared a
-		barrel-tag range since the rules were written and nothing implemented it.
+		Extracted so a shove can end a life the same way paint does. It used to
+		live inline in the projectile branch, so the only way to take a player
+		out was to hit them with a ball.
 
-		`impact` is where the mark lands, for the client splatter. A tag has no
-		ball, so it passes the tagging bot's own muzzle.
+		`impact` is where the mark lands, for the client splatter. A shove has no
+		ball, so it passes the swinging bot's own position.
 	]]
 	local function eliminatePlayer(impact: Vector3)
 		if respawning or t < invulnerableUntil then
 			return
 		end
-		respawning = true
 		respawning = true
 		deaths += 1
 		roundDeaths += 1
@@ -697,9 +765,9 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				moraleErrorMultiplier = moraleMultiplier,
 				aliveCount = alive,
 				chatter = say,
-				barrelTagRangeMetres = hitRules.surrenderBarrelTagRangeMetres,
-				tagPlayer = function(tagger: any)
-					eliminatePlayer(tagger.position)
+				meleeRules = meleeRules,
+				meleePlayer = function(swinger: any)
+					eliminatePlayer(swinger.position)
 				end,
 			})
 			local avatar = avatars[bot.id]
@@ -1010,6 +1078,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		end
 		fireConnection:Disconnect()
 		reloadConnection:Disconnect()
+		swingConnection:Disconnect()
 		active[player] = nil
 
 		state:close()
