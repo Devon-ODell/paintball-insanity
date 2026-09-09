@@ -268,6 +268,31 @@
       104,
       126,
       72
+    ],
+    "signGreen": [
+      26,
+      90,
+      58
+    ],
+    "signYellow": [
+      236,
+      186,
+      42
+    ],
+    "signWhite": [
+      236,
+      234,
+      226
+    ],
+    "signRed": [
+      168,
+      44,
+      42
+    ],
+    "signSteel": [
+      132,
+      138,
+      142
     ]
   },
   "lighting": {
@@ -825,122 +850,112 @@
           {
             "kind": "markerRack",
             "at": [
-              -2.6,
-              2.49,
-              -0.95
+              -1.7,
+              1.3,
+              0.3
             ],
             "count": 4
           },
           {
             "kind": "markerRack",
             "at": [
-              2.6,
-              3.44,
-              -0.95
+              1.7,
+              1.3,
+              0.3
             ],
-            "count": 4
+            "count": 3,
+            "colorKey": "brass"
           },
           {
             "kind": "barrelBin",
             "at": [
-              -3.6,
-              2.49,
-              -0.95
-            ]
-          },
-          {
-            "kind": "barrelBin",
-            "at": [
-              3.7,
-              4.39,
-              -0.95
+              -0.1,
+              0.0,
+              0.55
             ]
           },
           {
             "kind": "barrelSocks",
             "at": [
-              0.5,
-              4.39,
-              -0.95
-            ],
-            "count": 5
-          },
-          {
-            "kind": "barrelSocks",
-            "at": [
-              -0.9,
-              3.44,
-              -0.95
-            ],
-            "count": 5
+              0.9,
+              1.05,
+              0.34
+            ]
           },
           {
             "kind": "chronoReadout",
             "at": [
-              3.1,
-              1.23,
-              0.06
-            ],
-            "readout": "284 FPS"
-          },
-          {
-            "kind": "register",
-            "at": [
-              -3.2,
-              1.23,
-              0.02
+              -2.6,
+              1.12,
+              0.34
             ]
-          },
-          {
-            "kind": "squeegeeJar",
-            "at": [
-              -2.3,
-              1.23,
-              0.08
-            ]
-          },
-          {
-            "kind": "coffeeCup",
-            "at": [
-              1.6,
-              1.23,
-              0.1
-            ],
-            "rotationY": 20
           },
           {
             "kind": "priceList",
             "at": [
-              -3.4,
-              3.9,
-              -1.15
+              2.7,
+              1.85,
+              0.26
             ],
-            "width": 1.7,
-            "height": 1.2,
-            "title": "BARREL KITS",
+            "width": 1.5,
+            "height": 1.0,
+            "title": "MARKERS",
             "lines": [
-              "Bore + porting",
-              "Sound only",
-              "Never accuracy"
+              "MECH \u2014 HONEST",
+              "ELECTRO \u2014 LOUD",
+              "PUMP \u2014 A CHOICE",
+              "none of it aims for you"
             ]
           },
           {
-            "kind": "corkboard",
+            "kind": "wallClock",
             "at": [
-              3.4,
-              3.9,
-              -1.15
-            ],
-            "width": 1.5,
-            "height": 1.1,
-            "count": 5
+              0.0,
+              2.35,
+              0.26
+            ]
           },
           {
             "kind": "fireExtinguisher",
             "at": [
-              4.4,
-              1.5,
-              -1.1
+              3.4,
+              0.0,
+              0.3
+            ]
+          },
+          {
+            "kind": "aisleShelf",
+            "at": [
+              -1.2,
+              0.0,
+              3.4
+            ],
+            "length": 3.4,
+            "shelves": 3,
+            "perShelf": 5
+          },
+          {
+            "kind": "roadSign",
+            "at": [
+              -4.2,
+              0.0,
+              2.2
+            ],
+            "face": "guide",
+            "width": 1.6,
+            "height": 0.8,
+            "top": 2.5,
+            "lines": [
+              "MARKERS",
+              "SIDEGRADES ONLY"
+            ]
+          },
+          {
+            "kind": "tapeRoll",
+            "at": [
+              -2.1,
+              1.1,
+              0.3
             ]
           }
         ]
@@ -972,129 +987,126 @@
           {
             "kind": "paintCases",
             "at": [
-              -3.2,
-              2.49,
-              -0.9
-            ],
-            "rows": 3
-          },
-          {
-            "kind": "paintCases",
-            "at": [
-              3.3,
-              2.49,
-              -0.9
-            ],
-            "rows": 2,
-            "rotationY": 8
-          },
-          {
-            "kind": "podRack",
-            "at": [
-              -1.2,
-              3.44,
-              -0.95
-            ],
-            "count": 8
-          },
-          {
-            "kind": "podRack",
-            "at": [
-              1.4,
-              4.39,
-              -0.95
-            ],
-            "count": 8
-          },
-          {
-            "kind": "tankRow",
-            "at": [
+              -1.9,
               0.0,
-              2.49,
-              -0.95
-            ],
-            "count": 6
+              0.55
+            ]
+          },
+          {
+            "kind": "podRack",
+            "at": [
+              0.6,
+              1.05,
+              0.34
+            ]
           },
           {
             "kind": "tankRow",
             "at": [
-              3.4,
-              3.44,
-              -0.95
-            ],
-            "count": 5
+              2.0,
+              0.0,
+              0.5
+            ]
           },
           {
             "kind": "fillStation",
             "at": [
-              -4.0,
+              -2.9,
               0.0,
-              -0.8
-            ]
-          },
-          {
-            "kind": "register",
-            "at": [
-              3.0,
-              1.23,
-              0.02
-            ]
-          },
-          {
-            "kind": "tapeRoll",
-            "at": [
-              2.1,
-              1.23,
-              0.06
+              0.4
             ]
           },
           {
             "kind": "squeegeeJar",
             "at": [
-              -2.8,
-              1.23,
-              0.06
+              1.3,
+              1.1,
+              0.3
+            ]
+          },
+          {
+            "kind": "tapeRoll",
+            "at": [
+              1.6,
+              1.1,
+              0.3
             ]
           },
           {
             "kind": "coffeeCup",
             "at": [
-              -1.9,
-              1.23,
-              0.12
-            ],
-            "rotationY": -14
+              -0.4,
+              1.1,
+              0.28
+            ]
           },
           {
             "kind": "priceList",
             "at": [
-              3.5,
-              3.9,
-              -1.15
+              3.0,
+              1.85,
+              0.26
             ],
-            "width": 1.7,
-            "height": 1.2,
+            "width": 1.5,
+            "height": 1.0,
             "title": "PAINT & AIR",
             "lines": [
-              "Fills while you wait",
-              "Pods by the case",
-              "Ask about the hopper"
+              "FILL \u2014 WHILE YOU WAIT",
+              "PODS \u2014 YOU SOUND LIKE A SHELF",
+              "PAINT \u2014 IT IS ALL THE SAME PAINT"
             ]
           },
           {
-            "kind": "wallClock",
+            "kind": "corkboard",
             "at": [
-              -4.3,
-              5.2,
-              -1.14
+              -3.4,
+              1.8,
+              0.26
+            ],
+            "count": 5
+          },
+          {
+            "kind": "aisleShelf",
+            "at": [
+              0.0,
+              0.0,
+              3.4
+            ],
+            "length": 3.6,
+            "shelves": 3,
+            "perShelf": 6
+          },
+          {
+            "kind": "roadSign",
+            "at": [
+              -4.4,
+              0.0,
+              2.2
+            ],
+            "face": "warning",
+            "width": 1.0,
+            "height": 1.0,
+            "top": 2.4,
+            "lines": [
+              "FILL",
+              "AREA"
             ]
           },
           {
-            "kind": "fireExtinguisher",
+            "kind": "roadSign",
             "at": [
-              -4.5,
-              1.5,
-              -1.1
+              4.4,
+              0.0,
+              2.2
+            ],
+            "face": "regulatory",
+            "width": 0.9,
+            "height": 1.2,
+            "top": 2.4,
+            "lines": [
+              "NO",
+              "CHRONO",
+              "NO FIELD"
             ]
           }
         ]
@@ -1127,117 +1139,117 @@
           {
             "kind": "maskShelf",
             "at": [
-              -2.8,
-              2.49,
-              -0.95
-            ],
-            "count": 4
-          },
-          {
-            "kind": "maskShelf",
-            "at": [
-              2.9,
-              3.44,
-              -0.95
-            ],
-            "count": 4
+              -1.6,
+              1.2,
+              0.34
+            ]
           },
           {
             "kind": "jerseyRail",
             "at": [
-              -0.4,
-              3.3899999999999997,
-              -0.95
-            ],
-            "count": 5,
-            "width": 2.4
+              1.4,
+              1.65,
+              0.3
+            ]
           },
           {
             "kind": "padStack",
             "at": [
-              3.6,
-              2.49,
-              -0.9
-            ],
-            "count": 4
+              2.6,
+              0.0,
+              0.5
+            ]
           },
           {
-            "kind": "padStack",
+            "kind": "maskShelf",
             "at": [
-              3.6,
-              4.39,
-              -0.9
-            ],
-            "count": 3
-          },
-          {
-            "kind": "padStack",
-            "at": [
-              -4.0,
-              3.44,
-              -0.9
-            ],
-            "count": 4
+              0.2,
+              1.75,
+              0.34
+            ]
           },
           {
             "kind": "register",
             "at": [
-              2.9,
-              1.23,
-              0.02
+              -3.0,
+              1.05,
+              0.3
             ]
           },
           {
-            "kind": "tapeRoll",
+            "kind": "priceList",
             "at": [
-              -3.4,
-              1.23,
-              0.06
+              3.2,
+              1.85,
+              0.26
+            ],
+            "width": 1.5,
+            "height": 1.0,
+            "title": "PROTECTIVE",
+            "lines": [
+              "NOTHING HERE STOPS PAINT",
+              "IT STOPS THE STING",
+              "THAT IS THE WHOLE PITCH"
             ]
           },
           {
             "kind": "coffeeCup",
             "at": [
-              1.4,
-              1.23,
-              0.08
-            ],
-            "rotationY": 32
+              -2.4,
+              1.1,
+              0.28
+            ]
           },
           {
-            "kind": "priceList",
+            "kind": "aisleShelf",
             "at": [
-              -3.5,
-              3.9,
-              -1.15
+              1.2,
+              0.0,
+              3.4
             ],
-            "width": 1.7,
-            "height": 1.2,
-            "title": "PROTECTIVE",
+            "length": 3.2,
+            "shelves": 3,
+            "perShelf": 5
+          },
+          {
+            "kind": "roadSign",
+            "at": [
+              4.4,
+              0.0,
+              2.2
+            ],
+            "face": "guide",
+            "width": 1.6,
+            "height": 0.8,
+            "top": 2.5,
             "lines": [
-              "Quiet or quick",
-              "Pick one",
-              "None of it stops paint"
+              "PROTECTIVE",
+              "EXIT 4"
+            ]
+          },
+          {
+            "kind": "roadSign",
+            "at": [
+              -4.4,
+              0.0,
+              2.2
+            ],
+            "face": "stop",
+            "width": 0.95,
+            "height": 0.95,
+            "top": 2.3,
+            "lines": [
+              "MASK ON"
             ]
           },
           {
             "kind": "corkboard",
             "at": [
-              0.2,
-              5.1,
-              -1.15
+              -4.0,
+              1.8,
+              0.26
             ],
-            "width": 1.4,
-            "height": 1.0,
             "count": 4
-          },
-          {
-            "kind": "fireExtinguisher",
-            "at": [
-              4.4,
-              1.5,
-              -1.1
-            ]
           }
         ]
       }

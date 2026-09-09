@@ -90,6 +90,7 @@ local PROP_KINDS: { [string]: boolean } = {
 	maskShelf = true, jerseyRail = true, padStack = true,
 	register = true, squeegeeJar = true, tapeRoll = true, coffeeCup = true,
 	priceList = true, corkboard = true, wallClock = true, fireExtinguisher = true,
+	aisleShelf = true, roadSign = true,
 }
 
 function PoleBarn.handlesProp(kind: string): boolean
@@ -784,6 +785,65 @@ function PoleBarn.build(cfg: any, palette: { [string]: Color3 }, parent: Instanc
 					{ text = "PARSONS", height = 0.26, colour = Color3.fromRGB(120, 104, 82) },
 					{ text = "EST 1998", height = 0.2, colour = Color3.fromRGB(150, 136, 112) },
 				})
+
+			elseif kind == "aisleShelf" then
+				--[[
+					A free-standing aisle. Two uprights, boards between them, and
+					stock on the boards -- the point is that the player walks
+					BETWEEN things rather than along one wall, which is the
+					difference between a shop and a diorama.
+
+					Deliberately shallow: three boards, not six. A barn aisle you
+					can see over is a shop; one you cannot is a warehouse.
+				]]
+				local length = prop.length or 3.2
+				local shelves = prop.shelves or 3
+				for _, side in ipairs({ -1, 1 }) do
+					piece(Vector3.new(side * length / 2, 0.9, 0), Vector3.new(0.08, 1.8, 0.5), "sheetMetal")
+				end
+				for level = 1, shelves do
+					local y = 0.30 + (level - 1) * 0.52
+					piece(Vector3.new(0, y, 0), Vector3.new(length, 0.05, 0.5), "barnWoodDark")
+					-- Stock, alternating so an aisle does not read as one product.
+					local perShelf = prop.perShelf or 5
+					for i = 1, perShelf do
+						local x = (i - (perShelf + 1) / 2) * (length / (perShelf + 0.6))
+						local tone = if (i + level) % 3 == 0 then "paintCase"
+							elseif (i + level) % 3 == 1 then "podPlastic"
+							else "podPlasticAlt"
+						piece(Vector3.new(x, y + 0.17, 0), Vector3.new(0.22, 0.28, 0.3), tone)
+					end
+				end
+
+			elseif kind == "roadSign" then
+				--[[
+					An actual road sign, because Marge did not commission
+					signage -- she used what the county left behind. Real
+					proportions: a u-channel post, a plate standing off it, and
+					highway colours. A diamond is rotated 45 degrees, which is
+					the whole reason a warning sign reads from distance.
+				]]
+				local face = prop.face or "guide"
+				local width = prop.width or 1.5
+				local height = prop.height or 0.75
+				local top = prop.top or 2.4
+				tube(Vector3.new(0, top / 2, 0), top, 0.07, "signSteel", true)
+				local plateKey = if face == "warning" then "signYellow"
+					elseif face == "stop" then "signRed"
+					elseif face == "regulatory" then "signWhite"
+					else "signGreen"
+				local plate = piece(Vector3.new(0, top, 0.05), Vector3.new(width, height, 0.04), plateKey)
+				if face == "warning" then
+					plate.CFrame = plate.CFrame * CFrame.Angles(0, 0, math.rad(45))
+				end
+				local ink = if face == "warning" or face == "regulatory"
+					then Color3.fromRGB(28, 28, 30)
+					else Color3.fromRGB(236, 236, 230)
+				local rows: { any } = {}
+				for _, line in ipairs(prop.lines or { prop.text or "" }) do
+					table.insert(rows, { text = line, height = 1 / math.max(1, #(prop.lines or { 1 })), colour = ink })
+				end
+				signFace(plate, Vector2.new(math.floor(width * 260), math.floor(height * 260)), rows)
 
 			elseif kind == "fireExtinguisher" then
 				tube(Vector3.new(0, 0.28, 0), 0.5, 0.16, "extinguisher", true)

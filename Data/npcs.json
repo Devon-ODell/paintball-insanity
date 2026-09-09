@@ -5,7 +5,9 @@
     "No profanity, no slurs, no threats. Roblox Mild, and it is funnier clean.",
     "No firearm words, ever. Markers, hoppers, barrels, air, paint, fill.",
     "Everyone wants something and nobody is a quest dispenser. Marge wants the field to survive another season. Tildy wants someone to let her test things.",
-    "The player never speaks aloud -- dialogue options are what you chose to say, not a voice. It keeps the walk quiet."
+    "The player never speaks aloud -- dialogue options are what you chose to say, not a voice. It keeps the walk quiet.",
+    "Dark, not bleak. The dread is economic and social: a business quietly failing, a man narrating his life to nobody, forty years spent on one hobby. Never harm.",
+    "Denny is the only one who talks like the internet. That is the joke and it only works because nobody else does -- Marge asking him what a word means is funnier than six people using it. Do not spread his voice to the others."
   ],
   "npcs": {
     "marge": {
@@ -149,7 +151,7 @@
       "root": {
         "lines": [
           "You again.",
-          "Field's open. Same as it was yesterday."
+          "Field's open. Same as it was yesterday. Same as it'll be tomorrow, probably."
         ],
         "options": [
           {
@@ -194,7 +196,7 @@
       "accepted": {
         "lines": [
           "Mm.",
-          "Gate's where it's always been."
+          "Gate's where it's always been. It's not going to move because you agreed to something."
         ],
         "options": [
           {
@@ -223,13 +225,46 @@
       "caseAnswer": {
         "lines": [
           "It's the worst marker on this field. One shot, then you work the pump, and if you missed, you missed.",
-          "Anyone who wants it because it's gold doesn't want it.",
-          "Come back when you don't need it."
+          "Anyone who wants it because it's gold can't use it. Anyone who can use it doesn't care that it's gold.",
+          "So it sits there. Like everything else here."
         ],
         "options": [
           {
-            "text": "...",
-            "goto": "root"
+            "text": "That's bleak.",
+            "goto": "exit"
+          },
+          {
+            "text": "I'll be back for it.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "shoothouse": {
+        "lines": [
+          "Timed run. Same building, same doors, and a clock that does not care how you feel about any of it.",
+          "Denny's done it four hundred times. Denny has not improved."
+        ],
+        "options": [
+          {
+            "text": "Why does he keep doing it?",
+            "goto": "shoothouseWhy"
+          },
+          {
+            "text": "I'll try it.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "shoothouseWhy": {
+        "lines": [
+          "Because the clock's honest. Nothing else out here is.",
+          "You can lie to yourself about a match. Six people, bad angles, somebody's kid on the wrong team.",
+          "You cannot lie to a stopwatch. That's the whole appeal and it's also why most people only do it once."
+        ],
+        "options": [
+          {
+            "text": "Right.",
+            "goto": "exit"
           }
         ]
       },
@@ -238,32 +273,31 @@
           "chapterComplete": "theLongAfternoon"
         },
         "lines": [
-          "A flawless pro Gauntlet on every campaign field.",
-          "All four campaign fields. No paint on you at all.",
-          "Right."
+          "You did the thing.",
+          "All four fields. Pro. Nobody touched you.",
+          "So. The case."
         ],
         "options": [
           {
-            "text": "Open the case.",
+            "text": "The gold one.",
             "action": "claimAurum",
             "goto": "aurumGiven"
           },
           {
             "text": "Not yet.",
-            "goto": "root"
+            "goto": "exit"
           }
         ],
         "entry": true
       },
       "aurumGiven": {
         "lines": [
-          "Twelve rounds. No hopper feed. You'll be dry constantly and you'll hate it for a week.",
-          "Then you won't.",
-          "Go on."
+          "Take it. It's yours, it's terrible, and you've earned the right to find that out personally.",
+          "Case stays. Case has been there longer than you have."
         ],
         "options": [
           {
-            "text": "Thanks, Marge.",
+            "text": "Thank you, Marge.",
             "goto": "exit"
           }
         ]
@@ -273,43 +307,13 @@
           "Mm."
         ],
         "options": []
-      },
-      "shoothouse": {
-        "lines": [
-          "The course? Same field, laid out in a line.",
-          "Four stages. Two of them on the near cover, then three, then four, then five -- and each stage refills once before you're through it.",
-          "Clock's running the whole time. Dying costs you ten seconds and the last checkpoint you got to. It doesn't cost you the run.",
-          "Beat par on a field and you've got a medal. That's all it is. Nobody's handing you anything for it."
-        ],
-        "options": [
-          {
-            "text": "Why would I run it?",
-            "goto": "shoothouseWhy"
-          },
-          {
-            "text": "Right.",
-            "goto": "root"
-          }
-        ]
-      },
-      "shoothouseWhy": {
-        "lines": [
-          "Because the gauntlet drops you in the middle of a field and lets you find out where everyone is.",
-          "The course makes you walk it. In order. You learn the same ground and you can only be wrong about one piece of it at a time.",
-          "Hold E at the gate instead of F. That's the whole difference."
-        ],
-        "options": [
-          {
-            "text": "Got it.",
-            "goto": "root"
-          }
-        ]
       }
     },
     "tildy": {
       "root": {
         "lines": [
-          "Okay so I have been thinking."
+          "Okay so I have been thinking.",
+          "Which Marge says is the dangerous part."
         ],
         "options": [
           {
@@ -337,7 +341,7 @@
       "pitch": {
         "lines": [
           "Pods. Everyone buys the six-pack, right? Six pods, never run dry, brilliant.",
-          "Except you're carrying a shelf. You sound like a shelf. They hear the shelf.",
+          "Except you're carrying a shelf. You sound like a shelf. They hear the shelf coming.",
           "Get the racer harness. Three pods, mounted tight, and you reload like it's nothing."
         ],
         "options": [
@@ -354,8 +358,9 @@
       "pitchTwo": {
         "lines": [
           "It's not! That's the trade! You get fewer and you get them faster!",
-          "Nothing here is better than anything else, it's all just — differently annoying.",
-          "Marge says that's the whole business model."
+          "Nothing here is better than anything else, it's all just -- differently annoying.",
+          "Marge says that's the whole business model. Marge says that about everything.",
+          "Marge said it about my birthday."
         ],
         "options": [
           {
@@ -387,7 +392,7 @@
       "droneTwo": {
         "lines": [
           "It's very good ears! On a stick! That flies!",
-          "And before you ask — yes, the shots you take while it's up get flagged.",
+          "And before you ask \u2014 yes, the shots you take while it's up get flagged.",
           "Coach won't score them for crosshair placement. He was extremely clear about that."
         ],
         "options": [
@@ -420,7 +425,8 @@
     "wheels": {
       "root": {
         "lines": [
-          "Don't touch that, it's timed."
+          "Don't touch that, it's timed.",
+          "Everything in here is timed. That's the job."
         ],
         "options": [
           {
@@ -445,7 +451,8 @@
       "work": {
         "lines": [
           "Dwell. Valve's open four milliseconds too long, so it's burning air and throwing hot.",
-          "Nobody notices. Everybody notices at forty metres."
+          "Nobody notices. Everybody notices at forty metres.",
+          "That's most of my life, that sentence."
         ],
         "options": [
           {
@@ -462,7 +469,7 @@
         "lines": [
           "Ball's in the air over a third of a second. Drops the better part of a metre.",
           "So you're not aiming at them, you're aiming at a spot above them, and if the velocity wanders you're aiming at a spot that moved.",
-          "Consistent air. That's the whole job."
+          "Consistent air. That's the whole job. Forty years, that's the whole job."
         ],
         "options": [
           {
@@ -490,8 +497,9 @@
       },
       "margeJoke": {
         "lines": [
-          "Marge sells things and tells you they won't help.",
-          "That's why she's still here and the place down the road isn't."
+          "She'll tell you she's closing. She's been closing since 2011.",
+          "She had the sign made. It's in the loft. I know because I put it there.",
+          "Ask her about the sign sometime. Actually, don't."
         ],
         "options": [
           {
@@ -510,7 +518,8 @@
     "coachRuiz": {
       "root": {
         "lines": [
-          "Show me the last ten shots."
+          "Show me the last ten shots.",
+          "I'll know in four."
         ],
         "options": [
           {
@@ -553,12 +562,16 @@
         "lines": [
           "Because missing and under-leading are not the same mistake and they do not have the same fix.",
           "If your angle is good and your lead is short, you don't need to aim better. You need to aim somewhere else.",
-          "Most people spend a year not knowing which one they're doing."
+          "Most people spend a year not knowing which one they're doing. Some people spend a career."
         ],
         "options": [
           {
             "text": "How do you tell?",
             "goto": "howTell"
+          },
+          {
+            "text": "Which were you?",
+            "goto": "career"
           },
           {
             "text": "Set it up.",
@@ -567,23 +580,45 @@
           }
         ]
       },
-      "howTell": {
+      "career": {
         "lines": [
-          "The sign. If your misses are all on the same side of them, that's lead — you're shooting where they were.",
-          "If they're scattered evenly, that's not lead, that's drop, and you want the holdover boards.",
-          "The range keeps the sign. That's the only reason it's worth anything."
+          "A career.",
+          "Eleven years. I was quick and I was wrong, and quick and wrong looks exactly like good until somebody films it.",
+          "Somebody filmed it."
         ],
         "options": [
           {
             "text": "Set it up.",
             "action": "startDrill",
             "goto": "exit"
+          },
+          {
+            "text": "I'm sorry.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "howTell": {
+        "lines": [
+          "The sign. If your misses are all on the same side of them, that's lead -- you're shooting where they were.",
+          "If they're scattered evenly, that's not lead, that's drop, and you want the holdover boards.",
+          "The range keeps the sign. That's the only reason it's worth anything, and it's the only reason I'm still here."
+        ],
+        "options": [
+          {
+            "text": "Set it up.",
+            "action": "startDrill",
+            "goto": "exit"
+          },
+          {
+            "text": "Later.",
+            "goto": "exit"
           }
         ]
       },
       "exit": {
         "lines": [
-          "Mm. Boards are open when you are."
+          "Boards are always up. I'm always here. Neither of those is a threat."
         ],
         "options": []
       }
@@ -611,8 +646,8 @@
       "what": {
         "lines": [
           "Nothing. There was a heron. It's gone now.",
-          "Anyway — you got me in round three. Straight through the gap on the snake side.",
-          "I've been thinking about it a lot actually."
+          "Anyway -- you got me in round three. Straight through the gap on the snake side. I was so cooked.",
+          "I've been thinking about it a lot actually. Like, a normal amount. Like a normal amount for a person."
         ],
         "options": [
           {
@@ -627,8 +662,9 @@
       },
       "noWorries": {
         "lines": [
-          "Oh, no, it was great! Genuinely!",
-          "I told everyone. Oz doesn't believe me."
+          "Oh, no, it was great! Genuinely! You ate.",
+          "I told everyone. Oz doesn't believe me. Oz thinks I'm being delulu about it.",
+          "I said Oz, I was THERE."
         ],
         "options": [
           {
@@ -641,7 +677,7 @@
         "lines": [
           "You waited. That's the thing. You waited until Marcus committed and then you took the angle he left.",
           "We can't cover two lanes with the same guy. Nobody can. It just LOOKS like we can because there's six of us.",
-          "...I probably shouldn't have said that."
+          "...I probably shouldn't have said that. Chat, I probably shouldn't have said that."
         ],
         "options": [
           {
@@ -649,7 +685,28 @@
             "goto": "regret"
           },
           {
+            "text": "Who's chat?",
+            "goto": "chat"
+          },
+          {
             "text": "Thanks, Denny.",
+            "goto": "exit"
+          }
+        ]
+      },
+      "chat": {
+        "lines": [
+          "What? Nobody. It's a figure of speech.",
+          "...I don't stream. I keep saying I'm going to. I bought the light.",
+          "The light's still in the box. In my car. It's been in my car since March."
+        ],
+        "options": [
+          {
+            "text": "You should set it up.",
+            "goto": "regret"
+          },
+          {
+            "text": "Sure, Denny.",
             "goto": "exit"
           }
         ]
@@ -668,24 +725,24 @@
       },
       "team": {
         "lines": [
-          "Technically! Yeah!",
-          "But like — it's a Saturday, and you're here, and I'm here.",
-          "Coach says fraternising's fine as long as I don't tell you where the flanker sets up. Which I would never."
+          "Yeah! No, yeah. I'm on the squad.",
+          "But like, off the field we're all just guys. Marcus does my taxes. Badly, but he does them.",
+          "It's not that deep."
         ],
         "options": [
           {
-            "text": "Where does the flanker set up?",
+            "text": "It's a little deep.",
             "goto": "tip"
           },
           {
-            "text": "Very professional.",
+            "text": "Fair enough.",
             "goto": "exit"
           }
         ]
       },
       "exit": {
         "lines": [
-          "Cool. Cool cool cool. See you."
+          "Later! Get home safe! ...you live here basically, but still!"
         ],
         "options": []
       }
@@ -695,7 +752,8 @@
         "lines": [
           "She looks at you.",
           "Then at the notice board.",
-          "Then back at you."
+          "Then back at you.",
+          "This is the entire conversation and she is fully committed to it."
         ],
         "options": [
           {
@@ -712,7 +770,7 @@
       "board": {
         "lines": [
           "She taps the third column with one finger. Times. Full clears, all five rounds.",
-          "Then she shrugs, very slightly."
+          "Then she shrugs, very slightly. It is somehow worse than being told."
         ],
         "options": [
           {
@@ -734,8 +792,8 @@
         },
         "lines": [
           "She turns and walks to the back gate.",
-          "She points to a sign: Horde — coming later.",
-          "There is no round counter on the sign above it."
+          "She points to a sign: Horde -- coming later.",
+          "There is no round counter on the sign above it. She taps the empty space twice."
         ],
         "options": [
           {
@@ -751,7 +809,8 @@
       },
       "exit": {
         "lines": [
-          "She nods, once."
+          "She nods, once.",
+          "It is the warmest thing that has happened to you today."
         ],
         "options": []
       }
