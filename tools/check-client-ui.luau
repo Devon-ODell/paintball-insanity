@@ -632,6 +632,44 @@ do
     assert(not camera:FindFirstChildOfClass("AudioListener"), "the old camera kept a listener")
     AudioMix.follow(camera)
 
+    --[[
+        The victory cue has to survive the cleanup on the same frame.
+
+        `MatchSummary` played `matchCleared` and then called `Audio.clear()` in
+        the same callback, and clear destroys the folder every voice is parented
+        to and empties the pools -- so the one sound that says you won was
+        silenced the instant it started, on every clear of every field. Nothing
+        errored and no sound id was wrong, which is exactly why the id checks
+        above cannot see it: this is an ORDERING bug and only a sequence
+        assertion catches it.
+
+        Reproduced at the seam rather than by driving the whole dispatcher: play
+        a cue, clear, and confirm the voice that was playing is gone. The client
+        must therefore clear FIRST and play the result cue after.
+    ]]
+    Audio.play("fire")
+    local playing = built:FindFirstChildOfClass("AudioPlayer")
+    assert(playing, "a played cue must have a voice")
+    Audio.clear()
+    assert(playing.Parent == nil,
+        "Audio.clear destroys the voices that were playing -- so anything played BEFORE it is silenced, "
+            .. "and a results cue must be started AFTER the clear, not before it")
+
+    --- And the client does it in that order. Read from the source, because the
+    --- two calls are one line apart and the wrong order looks identical.
+    do
+        local source = fs.readFile(root .. "/src/StarterPlayer/Client/init.client.luau")
+        local summary = string.match(source, [[Remotes%.event%("MatchSummary"%)%.OnClientEvent.-
+
+Remotes%.event]])
+        assert(summary, "could not find the MatchSummary handler")
+        local clearAt = string.find(summary, "Audio%.clear%(%)")
+        local playAt = string.find(summary, [[Audio%.play%("matchCleared"%)]])
+        assert(clearAt and playAt, "the MatchSummary handler must both clear the voices and play the victory cue")
+        assert(clearAt < playAt,
+            "MatchSummary plays matchCleared before Audio.clear(), which destroys it on the same frame")
+    end
+
     probeCues.fire.soundId, probeCues.enemyFire.soundId = nil, nil
     Audio.clear()
     assert(not SoundService:FindFirstChild("LiveRoundAudio"), "audio teardown left its folder behind")

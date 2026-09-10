@@ -227,6 +227,92 @@ return function()
 		end)
 	end)
 
+	--[[
+		A pass is an entitlement, not a bag of cosmetics.
+
+		`seasonPassS1.grants` is deliberately empty -- the pass unlocks a TRACK
+		and hands over nothing at the till. `Commerce.owns` looped over those
+		grants, ran zero times and returned true, so every fresh player was told
+		they had already collected the season pass and ShopUi disabled the
+		offer. Meanwhile `SeasonPass.ownsPass` reads the entitlement record,
+		which nothing wrote, and said false. Two authorities, one player,
+		opposite answers.
+	]]
+	describe("season pass entitlement", function()
+		local SeasonPass = require(Server.Progression.SeasonPass)
+		local passId
+		beforeEach(function()
+			passId = Config.require("seasons", "passOfferId")
+		end)
+
+		it("does not report a fresh player as owning a pass that grants nothing", function()
+			local entry
+			for _, offer in ipairs(Commerce.catalogueFor(handle)) do
+				if offer.id == passId then entry = offer end
+			end
+			expect(entry ~= nil).to.equal(true)
+			expect(entry.owned).to.equal(false)
+			--- The catalogue and the track must agree, because they are answering
+			--- the same question about the same player.
+			expect(SeasonPass.ownsPass(handle)).to.equal(entry.owned)
+		end)
+
+		it("makes a free claim actually confer the pass, and says so consistently", function()
+			local claimed = service:claim(player, passId)
+			expect(claimed.ok).to.equal(true)
+			expect(SeasonPass.ownsPass(handle)).to.equal(true)
+			local entry
+			for _, offer in ipairs(Commerce.catalogueFor(handle)) do
+				if offer.id == passId then entry = offer end
+			end
+			expect(entry.owned).to.equal(true)
+		end)
+
+		--[[
+			The track owes rewards the moment the pass changes hands.
+
+			A purchase announces through `onPassResolved` and the season hands
+			over every paid reward up to the tier already reached. A free claim
+			took the same pass and announced nothing, so a player who had earned
+			marks before claiming was owed rewards nobody handed over.
+		]]
+		it("reconciles rewards after a free claim, exactly as a purchase does", function()
+			local resolved = 0
+			local previous = Commerce.onPassResolved
+			Commerce.onPassResolved = function() resolved += 1 end
+			service:claim(player, passId)
+			Commerce.onPassResolved = previous
+			expect(resolved).to.equal(1)
+		end)
+
+		--[[
+			A claim that reports success must be a claim that survived the write.
+
+			The entitlement is written before the save confirmation so the
+			confirmation can require it -- otherwise a failed write could still
+			leave a player believing they owned a pass the store never recorded.
+		]]
+		it("refuses to report success when the entitlement did not save", function()
+			state.persistent, state.save = true, false
+			local claimed = service:claim(player, passId)
+			expect(claimed.ok).to.equal(false)
+		end)
+
+		--[[
+			Paid mode is disabled today and must not be enabled with the broken
+			contract: `prompt` calls `owns` before opening a purchase window, so
+			a vacuous true meant telling a non-owner they already owned it and
+			never charging them.
+		]]
+		it("does not tell a paid non-owner they already own the pass", function()
+			cfg.freeMode, cfg.paidEnabled = false, true
+			cfg.offers[passId].marketplaceId = 456
+			state.owned = false
+			local result = service:prompt(player, passId)
+			expect(result.owned).never.to.equal(true)
+		end)
+	end)
+
 	describe("economy integrity", function()
 		it("reconciles old saves without losing balance, equipment or progress", function()
 			local old = { version = 1, currency = 700, ownedMarkers = { "mechanical", "pump" }, loadout = { marker = "pump" } }

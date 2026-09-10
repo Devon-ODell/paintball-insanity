@@ -350,13 +350,24 @@ Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
 	Tracers.clear()
 	flagSnapshot = nil
 	Input.setCarrierMultiplier(1)
+	--[[
+		Clear the match's voices FIRST, then start the results cue.
+
+		These were the other way round, and `Audio.clear` destroys the folder
+		every voice is parented to and empties the pools -- including the
+		`matchCleared` sound started two lines above it. The one cue that says
+		you won was silenced by the cleanup on the same frame it began, every
+		single time. Nothing errored and no sound id was wrong, so a validity
+		check could never have found it.
+
+		Voices are pooled under SoundService, which outlives the match; a run
+		that ends is the natural place to hand them back.
+	]]
+	Audio.clear()
 	if payload.summary and payload.summary.cleared then
 		Audio.play("matchCleared")
 	end
 	Music.setContext(Config.get("audio").music.context.results)
-	-- Voices are pooled under SoundService, which outlives the match; a run
-	-- that ends is the natural place to hand them back.
-	Audio.clear()
 	Input.setPointerFree(true)
 	--[[
 		The run is over, so the clock stops and is replaced by the server's own

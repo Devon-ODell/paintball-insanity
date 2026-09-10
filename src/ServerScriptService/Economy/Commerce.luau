@@ -48,14 +48,57 @@ function Commerce.audit(): { string }
 	return problems
 end
 
-local function owns(data: any, offer: any): boolean
+--[[
+	The marker written for a pass owned in the free build.
+
+	A pass is an ENTITLEMENT, not a bag of cosmetics, so ownership has to be
+	recorded even when nothing was granted. `refreshPass` writes the marketplace
+	id it verified against; a free claim has no marketplace id to write, and
+	writing zero would be indistinguishable from an unset field.
+]]
+local FREE_PASS = "free"
+
+--[[
+	Whether this player already has what an offer gives.
+
+	Split by KIND, because the two kinds mean different things and one answer
+	for both was wrong in the most expensive direction. A collection is its
+	items: you own it when you hold all of them. A pass unlocks a TRACK and
+	grants nothing on purchase -- `seasonPassS1.grants` is deliberately empty --
+	so the loop below ran zero times and returned true. Every fresh player saw
+	the season pass as "Collected", ShopUi disabled the offer, and
+	`SeasonPass.ownsPass` -- reading the entitlement record, which nothing wrote
+	-- said false. The catalogue and the track disagreed about the same player.
+
+	Now both read the same field. `prompt` calls this before opening a purchase
+	window, so this is also what stops a paid build from telling a non-owner
+	they already own it and never charging them.
+]]
+local function owns(data: any, id: string, offer: any): boolean
+	local commerce = data.commerce or {}
+	if offer.kind == "pass" then
+		return (commerce.passes or {})[id] ~= nil
+	end
+	--[[
+		A non-pass offer that grants nothing has no inventory to check, so
+		"owned" can only mean "claimed". Without this the same vacuous-true
+		would come back for any future offer authored with an empty grant list.
+	]]
+	if next(offer.grants) == nil then
+		return (commerce.claims or {})[id] == true
+	end
 	for category, ids in pairs(offer.grants) do
-		for _, id in ipairs(ids) do
-			if not table.find(data[FIELDS[category]] or {}, id) then return false end
+		for _, gid in ipairs(ids) do
+			if not table.find(data[FIELDS[category]] or {}, gid) then return false end
 		end
 	end
 	return true
 end
+
+--- Exposed so anything that has to agree with the shop about ownership reads
+--- the shop's own answer rather than reimplementing it.
+Commerce.owns = owns
+Commerce.FREE_PASS = FREE_PASS
 
 local function grant(data: any, offer: any)
 	for category, ids in pairs(offer.grants) do
@@ -76,7 +119,7 @@ function Commerce.catalogueFor(handle: Profile.Handle): { any }
 			table.insert(out, {
 				id = id, displayName = offer.displayName, description = offer.description,
 				kind = offer.kind, marketplaceId = offer.marketplaceId,
-				owned = owns(handle.data, offer), free = Catalog.isFree(),
+				owned = owns(handle.data, id, offer), free = Catalog.isFree(),
 				price = if Catalog.isFree() then 0 else nil,
 				purchasable = Catalog.isFree() or (Catalog.canPrompt(offer) and Profile.isPersistent()),
 			})
@@ -125,10 +168,40 @@ function Commerce.new(deps: any?): any
 		Profile.reconcile(handle.data)
 		grant(handle.data, offer)
 		handle.data.commerce.claims[id] = true
+		--[[
+			A claimed pass is an OWNED pass.
+
+			`claims` records that the offer was taken; it is not the entitlement
+			anything reads. `SeasonPass.ownsPass` reads `commerce.passes`, so a
+			free claim returned ok=true, wrote nothing that unlocked the track,
+			and left the player owning a pass that granted them nothing -- while
+			the catalogue, from its own vacuous grant check, had already been
+			telling them it was collected before they claimed it at all.
+
+			Written BEFORE the save confirmation so the confirmation can require
+			it: a claim that reports success has to be a claim whose entitlement
+			survived the write.
+		]]
+		local isPass = offer.kind == "pass"
+		if isPass then
+			handle.data.commerce.passes[id] = FREE_PASS
+		end
 		if d.persistent() and not d.save(handle, function(saved: any)
-			return saved and saved.commerce and saved.commerce.claims[id] == true
+			if not (saved and saved.commerce and saved.commerce.claims[id] == true) then return false end
+			return not isPass or saved.commerce.passes[id] ~= nil
 		end) then
 			return { ok = false, reason = "Your collection is in your kit; save confirmation is pending. Try again shortly." }
+		end
+		--[[
+			Reward reconciliation, on the same terms a purchase gets.
+
+			`refreshPass` announces a pass changing hands and the season track
+			hands over every paid reward up to the tier already reached. A free
+			claim took the same pass and announced nothing, so a player who had
+			earned marks before claiming was owed rewards nobody handed over.
+		]]
+		if isPass and Commerce.onPassResolved then
+			(Commerce.onPassResolved :: any)(player)
 		end
 		return { ok = true, free = true }
 	end
@@ -158,7 +231,7 @@ function Commerce.new(deps: any?): any
 		if offer.kind == "pass" and self:refreshPass(player, id) then return { ok = true, owned = true } end
 		local handle = d.profileFor(player.UserId)
 		if not handle or not handle:isActive() then return { ok = false, reason = "Field pass unavailable." } end
-		if owns(handle.data, offer) then return { ok = true, owned = true } end
+		if owns(handle.data, id, offer) then return { ok = true, owned = true } end
 		local ok, info = pcall(function()
 			return d.marketplace:GetProductInfoAsync(offer.marketplaceId,
 				if offer.kind == "pass" then Enum.InfoType.GamePass else Enum.InfoType.Product)
