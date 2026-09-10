@@ -410,6 +410,45 @@ return function()
 			expect(Profile.hasUnlocked(handle, "dustline")).to.equal(true)
 			expect(Profile.hasUnlocked(handle, "urban")).to.equal(false)
 		end)
+
+		--[[
+			A course clear is emphatically not a gauntlet clear.
+
+			`bestClears` was the map-unlock authority and excluded only CTF, so a
+			timed Shoothouse run -- 28 defenders, no escalation, no growing squad
+			-- opened the next field. Meanwhile the campaign chapter that is
+			supposed to announce that progression reads `gauntletClears` and
+			stayed shut. Two authorities, one player, opposite answers.
+		]]
+		it("does not open the next field for a Shoothouse run", function()
+			local handle = freshProfile()
+			Profile.recordMatch(handle, {
+				map = "speedball", tier = "rec", marker = "mechanical", mode = "shoothouse",
+				shots = 40, hits = 12, eliminations = 6, deaths = 0,
+				cleared = true, durationSeconds = 90, scores = {},
+			})
+			--- The run is still RECORDED -- it was a clean clear and the board
+			--- and the medal both want it. It just is not the thing that opens
+			--- the next field.
+			expect(handle.data.bestClears.speedball ~= nil).to.equal(true)
+			expect(handle.data.bestClears.speedball.mode).to.equal("shoothouse")
+			expect(Profile.hasUnlocked(handle, "dustline")).to.equal(false)
+
+			Profile.recordMatch(handle, {
+				map = "speedball", tier = "rec", marker = "mechanical", mode = "gauntlet",
+				shots = 60, hits = 20, eliminations = 20, deaths = 3,
+				cleared = true, durationSeconds = 240, scores = {},
+			})
+			expect(Profile.hasUnlocked(handle, "dustline")).to.equal(true)
+		end)
+
+		--- A clear recorded before the mode was written down still counts:
+		--- taking a field away from somebody who earned it would be worse.
+		it("honours a clear recorded before clears named their mode", function()
+			local handle = freshProfile()
+			handle.data.bestClears.speedball = { deaths = 2, tier = "rec", marker = "mechanical", durationSeconds = 200 }
+			expect(Profile.hasUnlocked(handle, "dustline")).to.equal(true)
+		end)
 	end)
 
 	describe("shop exploits", function()

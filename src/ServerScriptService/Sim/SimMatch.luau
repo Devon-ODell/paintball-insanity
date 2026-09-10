@@ -24,6 +24,7 @@ local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local Spread = require(ReplicatedStorage.Shared.Spread)
+local Loadout = require(ReplicatedStorage.Shared.Loadout)
 local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
 local Melee = require(ReplicatedStorage.Shared.Melee)
 local Log = require(ReplicatedStorage.Shared.Log)
@@ -150,6 +151,23 @@ local function runRound(ctx: RoundContext): RoundReport
 	local hitbox = ctx.ballisticsData.hitbox
 	local meleeRules = Melee.rules()
 	local markerData = ctx.markerData
+	--[[
+		The resolved kit, through the same function the live match uses.
+
+		The reload comment below is the reason: a gear stat that changed
+		reloading live and not here would leave the simulator on the old
+		behaviour and quietly invalidate every difficulty number in
+		docs/PUBLISH_READINESS.md without failing a test. The same argument
+		applies to how loud the player is -- `BotController` enters its hearing
+		branch only when it has a value, so an unconnected loudness means a
+		simulator in which the squad cannot hear anybody.
+
+		The sim runs the DEFAULT loadout, so this is the neutral kit -- but it is
+		the neutral kit resolved through the same function, which is what makes a
+		tuned build measurable at all.
+	]]
+	local kit = Loadout.resolve(nil, markerData)
+	local playerLoudness = kit.loudnessMultiplier * (markerData.loudness or 1)
 	local spec = ctx.spec
 	local round = ctx.round
 	local log = ctx.log
@@ -204,7 +222,8 @@ local function runRound(ctx: RoundContext): RoundReport
 			changed reloading live would have left this copy on the old behaviour
 			and quietly invalidated the difficulty tuning without failing a test.
 		]]
-		marker = MarkerState.new(markerData),
+		--- The same resolved kit the live match runs on -- see `kit` above.
+		marker = MarkerState.new(markerData, kit),
 		respawnAt = nil :: number?,
 		invulnerableUntil = 0,
 		previousAim = nil :: Vector3?,
@@ -284,7 +303,7 @@ local function runRound(ctx: RoundContext): RoundReport
 			player.alive = true
 			player.respawnAt = nil
 			player.invulnerableUntil = t + matchData.respawn.invulnerabilitySeconds
-			player.marker = MarkerState.new(markerData)
+			player.marker = MarkerState.new(markerData, kit)
 			table.clear(visibleSince)
 		end
 
@@ -446,6 +465,10 @@ local function runRound(ctx: RoundContext): RoundReport
 				player = player,
 				projectiles = projectiles,
 				moraleErrorMultiplier = moraleMultiplier,
+				--- The squad can hear the player here too -- see `playerLoudness`
+				--- above. Connecting it live and not here would leave the
+				--- difficulty tuning describing a different game.
+				playerLoudness = playerLoudness,
 				--[[
 					The butt of the marker, in the simulator as well as live,
 					because it is a rule and not a flourish -- it is one of the few

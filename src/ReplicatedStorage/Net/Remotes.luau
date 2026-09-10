@@ -96,6 +96,8 @@ local DEFINITIONS = {
 	ChatterLine = "Event",
 	LoadoutChanged = "Event",
 	CurrencyChanged = "Event",
+	-- Presentation only; an asynchronous notification cannot change activity.
+	Notice = "Event",
 	DrillScore = "Event",
 	--- Which bearing the next Peek target will appear at. The drill's angles are
 	--- deliberately learnable; a cue nobody is told is not a cue.

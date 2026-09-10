@@ -900,4 +900,118 @@ return function()
 			end
 		end)
 	end)
+
+	--[[
+		`GearStats.resolve` had specs, a shop, prices and no production caller.
+
+		Sprint, crouch, slide, reload, loudness and pod count were authored per
+		item, displayed in the barn as tradeoffs and granted as chapter rewards,
+		and reached nothing at all. `Shared/Loadout` is the snapshot that both
+		the server and the client's prediction consume, and these are the
+		properties that make it worth having.
+	]]
+	describe("a loadout that actually does something", function()
+		local Loadout = require(ReplicatedStorage.Shared.Loadout)
+		local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
+		local Config = require(ReplicatedStorage.Shared.Config)
+
+		local function kitFor(loadout: any)
+			return Loadout.resolve({ loadout = loadout })
+		end
+
+		it("turns a quiet build into a slower, quieter one", function()
+			local quiet = kitFor({ marker = "mechanical", jersey = "paddedTwill", pads = "fullWrap", pods = "twoPack", barrel = "ported" })
+			local fast = kitFor({ marker = "mechanical", jersey = "slickComp", pads = "kneeSliders", pods = "fourPack", barrel = "stock" })
+			expect(quiet.loudnessMultiplier < fast.loudnessMultiplier).to.equal(true)
+			expect(quiet.sprintSpeedMps < fast.sprintSpeedMps).to.equal(true)
+		end)
+
+		--[[
+			Walking is not scaled by the sprint multiplier.
+
+			Gear that trades mobility for quiet is supposed to cost the ability
+			to CLOSE GROUND, not the ability to walk -- and the flag carrier's
+			cost had exactly this bug, a "sprint multiplier" applied to every
+			kind of locomotion including crouching.
+		]]
+		it("costs a quiet build its sprint, not its walk", function()
+			local base = Config.require("match", "player.walkSpeedMps")
+			for _, jersey in ipairs({ "houseWhite", "paddedTwill", "slickComp" }) do
+				expect(kitFor({ marker = "mechanical", jersey = jersey }).walkSpeedMps).to.equal(base)
+			end
+		end)
+
+		it("carries the pods the harness says it carries", function()
+			expect(kitFor({ marker = "mechanical", pods = "twoPack" }).podCount).to.equal(2)
+			expect(kitFor({ marker = "mechanical", pods = "sixPack" }).podCount).to.equal(6)
+		end)
+
+		--[[
+			A reload was free and infinite, so the four-pack and the six-pack
+			were the same item at different prices.
+		]]
+		it("runs out of paint when the pods run out", function()
+			local marker = Config.require("markers", "markers.mechanical")
+			local state = MarkerState.new(marker, kitFor({ marker = "mechanical", pods = "twoPack" }))
+			local now = 0
+			local refills = 0
+			for _ = 1, 10 do
+				state.ammo = 0
+				if state:reload(now) then
+					refills += 1
+					now += state.reloadSeconds + 0.01
+					state:update(now)
+				end
+			end
+			expect(refills).to.equal(2)
+			state.ammo = 0
+			expect(state:isDry()).to.equal(true)
+		end)
+
+		--- Unlimited when nothing says otherwise, which is what the Range wants:
+		--- a drill grades aim, not kit.
+		it("leaves pods unlimited when no kit is supplied", function()
+			local marker = Config.require("markers", "markers.mechanical")
+			local state = MarkerState.new(marker)
+			expect(state.pods).to.equal(nil)
+			expect(state:isDry()).to.equal(false)
+		end)
+
+		it("gives a fed hopper more paint and a faster feed", function()
+			local plain = kitFor({ marker = "electronic", hopper = "gravity" })
+			local fed = kitFor({ marker = "electronic", hopper = "forceFed" })
+			expect(fed.hopperCapacity > plain.hopperCapacity).to.equal(true)
+			expect(fed.roundsPerMinute > plain.roundsPerMinute).to.equal(true)
+			--- And it is louder for it. Every one of these is a cost somewhere.
+			expect(fed.loudnessMultiplier > plain.loudnessMultiplier).to.equal(true)
+		end)
+
+		it("lets a carbon tank reload faster", function()
+			expect(kitFor({ marker = "mechanical", tank = "carbon" }).reloadSeconds
+				< kitFor({ marker = "mechanical", tank = "steel" }).reloadSeconds).to.equal(true)
+		end)
+
+		--[[
+			The monetization rule, as a property of the resolved result rather
+			than of the data. Nothing purchasable may improve accuracy, reduce
+			recoil, increase velocity or otherwise substitute for aim -- so no
+			spread, velocity or damage term may appear here at all, whatever the
+			attachments happen to declare.
+		]]
+		it("never resolves a spread, velocity or damage term", function()
+			local resolved = kitFor({ marker = "mechanical", barrel = "freakBore", tank = "carbon", hopper = "forceFed" })
+			for field in pairs(resolved) do
+				expect(string.find(string.lower(field), "spread")).to.equal(nil)
+				expect(string.find(string.lower(field), "velocit")).to.equal(nil)
+				expect(string.find(string.lower(field), "damage")).to.equal(nil)
+			end
+		end)
+
+		--- A marker's own loudness was equally disconnected: the pump declares
+		--- 0.3 and the electro 1.0, and nothing read either.
+		it("makes a quiet marker quieter than a loud one", function()
+			expect(kitFor({ marker = "pump" }).loudnessMultiplier
+				< kitFor({ marker = "electronic" }).loudnessMultiplier).to.equal(true)
+		end)
+	end)
 end

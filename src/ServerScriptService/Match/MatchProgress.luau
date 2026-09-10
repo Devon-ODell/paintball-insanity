@@ -5,14 +5,51 @@ local Server = game:GetService("ServerScriptService").Server
 local Profile = require(Server.Economy.Profile)
 local SeasonPass = require(Server.Progression.SeasonPass)
 local Campaign = require(Server.Progression.Campaign)
+local Loadout = require(RS.Shared.Loadout)
 local Remotes = require(RS.Net.Remotes)
 local Log = require(RS.Shared.Log)
 local log = Log.scope("LiveRound.Match")
 local MatchProgress = {}
 
+--[[
+	What a horde run leaves behind.
+
+	`Campaign.recordFromProfile` has read `hordeBest.wave` and `bossesBeaten`
+	since the campaign was written, and NO production writer ever set either
+	one. So The Long Afternoon's own chapter goals -- reach a depth, beat a
+	marshal -- could not be met by playing it. The mode ran, the waves escalated,
+	the bosses showed up, and the profile recorded that none of it had happened.
+
+	Depth is a personal best: it only ever goes up. Bosses are a set of ids,
+	because a chapter asks WHICH marshal you beat, not how many.
+]]
+local function recordHorde(handle: any, summary: any, breakdown: any)
+	local depth = breakdown.wavesSurvived or 0
+	local best = handle.data.hordeBest or {}
+	handle.data.hordeBest = best
+	if depth > (best.wave or 0) then
+		best.wave = depth
+		best.bossesBeaten = breakdown.bossesBeaten or 0
+		best.marker = summary.marker
+		best.map = summary.map
+	end
+	--- Always kept, even on a run that did not go as deep as a previous one:
+	--- beating a marshal is a thing you have done, not a high score.
+	local beaten = handle.data.bossesBeaten or {}
+	handle.data.bossesBeaten = beaten
+	for _, id in ipairs(summary.bossesBeaten or {}) do
+		if not table.find(beaten, id) then
+			table.insert(beaten, id)
+		end
+	end
+end
+
 function MatchProgress.record(handle: any, player: Player, summary: any, breakdown: any, mapName: string, tier: string, deaths: number, isGauntlet: boolean, grantGear: (any, string) -> ())
 	if handle:isActive() then
 		Profile.recordMatch(handle, summary)
+		if breakdown.wavesSurvived ~= nil then
+			recordHorde(handle, summary, breakdown)
+		end
 
 		--[[
 			Season marks, off the same summary the payout used. Awarded from
@@ -24,7 +61,7 @@ function MatchProgress.record(handle: any, player: Player, summary: any, breakdo
 		SeasonPass.award(handle, summary)
 		local seasonRewards = SeasonPass.grantDue(handle)
 		if #seasonRewards > 0 then
-			Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout)
+			Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout, Loadout.resolve(handle.data))
 		end
 
 		--[[
@@ -32,18 +69,16 @@ function MatchProgress.record(handle: any, player: Player, summary: any, breakdo
 			that just finished. Written server-side off numbers the server
 			counted -- a chapter is never completed because a client said so.
 		]]
-		-- A course clear is emphatically NOT a gauntlet clear: the campaign
-		-- chapters gate on five rounds against a squad, not on a timed run.
-		if breakdown.cleared and isGauntlet then
-			handle.data.gauntletClears = handle.data.gauntletClears or {}
-			local byTier = handle.data.gauntletClears[mapName] or {}
-			local previous = byTier[tier]
-			if previous == nil or deaths < previous then
-				byTier[tier] = deaths
-			end
-			handle.data.gauntletClears[mapName] = byTier
-		end
+		--[[
+			A course clear is emphatically NOT a gauntlet clear: the campaign
+			chapters gate on five rounds against a squad, not on a timed run.
 
+			The write itself moved into `Profile.recordMatch`, called above,
+			because `gauntletClears` is also what decides whether the next field
+			is open -- and an authority with two writers is two authorities. It
+			was written here off `isGauntlet` and read by `hasUnlocked` from a
+			DIFFERENT field, which is how a Shoothouse run came to open a map.
+		]]
 		local record = Campaign.recordFromProfile(handle.data)
 		local finished = Campaign.newlyCompleted(record)
 		if #finished > 0 then

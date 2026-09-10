@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local Units = require(ReplicatedStorage.Shared.Units)
+local Loadout = require(ReplicatedStorage.Shared.Loadout)
 local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
 local Spread = require(ReplicatedStorage.Shared.Spread)
 local Melee = require(ReplicatedStorage.Shared.Melee)
@@ -49,7 +50,15 @@ local loadout = { marker = "mechanical", paintColor = "yellow", camo = "factory"
 local markerData = Config.require("markers", "markers." .. loadout.marker)
 local spec = Ballistics.specFromMarker(markerData, ballisticsData)
 
-local markerState = MarkerState.new(markerData)
+--[[
+	The resolved kit: reload time, pod budget and movement speeds.
+
+	Neutral until the server sends one, which is what every caller had before
+	gear reached anything. `GearStats.resolve` was written, priced, advertised in
+	the shop and had no production caller at all.
+]]
+local kit = Loadout.neutral(markerData)
+local markerState = MarkerState.new(markerData, kit)
 local phase = "hub"
 local respawning = false
 local sustainedSpread = 0
@@ -144,9 +153,17 @@ local function muzzleMetres(): Vector3
 end
 
 local function requestReload()
-	if phase == "live" and not respawning and markerState:reload(os.clock()) then
+	if phase ~= "live" or respawning then
+		return
+	end
+	if markerState:reload(os.clock()) then
 		Audio.play("reloadStart")
 		Remotes.event("RequestReload"):FireServer()
+	elseif markerState:isDry() then
+		--- Out of paint for this round. Reloads are finite now, so "nothing
+		--- happened" needs to be a sentence rather than a dead key.
+		Audio.play("dryFire")
+		Hud.showBanner("OUT OF PAINT · FINISH THE ROUND", 2)
 	end
 end
 
@@ -443,6 +460,11 @@ Remotes.event("DrillCue").OnClientEvent:Connect(function(cue)
 end)
 
 Remotes.event("CurrencyChanged").OnClientEvent:Connect(Hud.setCurrency)
+Remotes.event("Notice").OnClientEvent:Connect(function(payload)
+	if type(payload) == "table" and type(payload.text) == "string" then
+		Hud.showBanner(payload.text, payload.seconds)
+	end
+end)
 Remotes.event("ShopOpened").OnClientEvent:Connect(function(snapshot)
 	if not snapshot or not snapshot.ok then return end
 	DialogueUi.close()
@@ -450,7 +472,7 @@ Remotes.event("ShopOpened").OnClientEvent:Connect(function(snapshot)
 	syncPointer()
 end)
 
-local function applyLoadout(newLoadout: any)
+local function applyLoadout(newLoadout: any, resolvedKit: any)
 	local markerChanged = loadout.marker ~= newLoadout.marker
 	loadout = newLoadout
 	ViewMarker.equip(loadout.marker, loadout.camo)
@@ -458,8 +480,20 @@ local function applyLoadout(newLoadout: any)
 	Hud.setMarker(loadout.marker)
 	markerData = Config.require("markers", "markers." .. loadout.marker)
 	spec = Ballistics.specFromMarker(markerData, ballisticsData)
+	--[[
+		What the kit does, resolved by the SERVER and applied here.
+
+		Resolved server-side rather than recomputed from the loadout, so the
+		client predicts against the same numbers the authority will validate --
+		and so there is one place to audit against the monetization rule rather
+		than two implementations that can drift.
+	]]
+	if resolvedKit then
+		kit = resolvedKit
+		Input.setSpeeds(kit)
+	end
 	-- Earning an auto-equipped camo mid-round must not refill the local hopper.
-	if markerChanged then markerState = MarkerState.new(markerData) end
+	if markerChanged or phase ~= "live" then markerState = MarkerState.new(markerData, kit) end
 	local palette = Config.get("venue").paintColors
 	local rgb = palette[loadout.paintColor] or palette.yellow
 	Tracers.setPaintColour(Color3.fromRGB(rgb[1], rgb[2], rgb[3]))
@@ -544,7 +578,7 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 		roundBotCount = payload.botCount or roundBotCount
 		remaining = roundBotCount
 		currentRoundIndex, currentRoundCount = payload.round or 1, payload.roundCount or currentRoundCount
-		markerState = MarkerState.new(markerData)
+		markerState = MarkerState.new(markerData, kit)
 		Hud.setDeaths(0, 1)
 		if not flagSnapshot then Hud.setRemaining(remaining, roundBotCount) end
 	elseif phase == "live" and payload.mode == "range" then
@@ -560,7 +594,7 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 		courseStageIndex, courseElapsed = nil, 0
 		coursePar = nil
 		flagSnapshot = nil
-		markerState = MarkerState.new(markerData)
+		markerState = MarkerState.new(markerData, kit)
 		Hud.setClock(nil)
 		Hud.setDrill(payload.drillName or "Drill", payload.fundamental)
 	elseif phase == "live" and (payload.round or previousPhase == "warmup") then
@@ -574,7 +608,7 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 		roundBotCount = payload.botCount or roundBotCount
 		remaining = roundBotCount
 		currentRoundIndex, currentRoundCount = payload.round or currentRoundIndex, payload.roundCount or currentRoundCount
-		markerState = MarkerState.new(markerData)
+		markerState = MarkerState.new(markerData, kit)
 		--[[
 			A course reports where you are on the field, not which round you are
 			on. Stage four of a Shoothouse is "THE BACK CORNERS", and the run-up
@@ -582,6 +616,14 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 		]]
 		if flagSnapshot or payload.ctf then
 			Hud.showBanner("CAPTURE THE FLAG", 2)
+		elseif payload.mode == "horde" then
+			--- A depth, not a fraction whose denominator grows to meet its
+			--- numerator every wave.
+			Hud.setWave(currentRoundIndex, roundBotCount, payload.isBoss, payload.isBreather)
+			Hud.showBanner(
+				if payload.isBoss then string.format("WAVE %d  ·  FIELD MARSHAL", currentRoundIndex)
+				else string.format("WAVE %d", currentRoundIndex), 2
+			)
 		elseif payload.mode == "shoothouse" and payload.stage then
 			courseMode = true
 			coursePar = payload.par or coursePar
@@ -713,7 +755,8 @@ RunService:BindToRenderStep("LR_Presentation", Enum.RenderPriority.Camera.Value 
 		readoutElapsed = 0
 		Hud.setRange(if phase == "live" or phase == "warmup" then lookedAtRange() else nil, spec, camera.FieldOfView, viewport)
 	end
-	Hud.setHopper(markerState.ammo, markerData.hopperCapacity, markerState.reloadUntil ~= nil)
+	--- The kit's capacity, not the bare marker's: a force-fed hopper carries more.
+	Hud.setHopper(markerState.ammo, markerState.capacity, markerState.reloadUntil ~= nil, markerState.pods)
 end)
 
 -- Pump markers fire once per click; they do not repeat while held.
@@ -766,7 +809,7 @@ task.spawn(function()
 		warn("LiveRound session loading failed", result)
 		return
 	end
-	if result.loadout then applyLoadout(result.loadout) end
+	if result.loadout and phaseRevision == requestedRevision then applyLoadout(result.loadout, result.kit) end
 	if result.balance then Hud.setCurrency(result.balance) end
 	if result.camoProgress then Hud.setCamoProgress(result.camoProgress) end
 	if phaseRevision == requestedRevision then

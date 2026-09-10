@@ -134,5 +134,77 @@ return function()
 		it("pays nothing for a run that reached nowhere", function()
 			expect(Endless.payoutFor(0, 0)).to.equal(0)
 		end)
+
+		--[[
+			`bossBonus` was authored, tuned, and multiplied by a literal zero.
+
+			`Settlement.payout` called `Endless.payoutFor(depth, 0)`, so the
+			hardest thing in the mode paid exactly what an ordinary wave of the
+			same depth paid. A number in the data that nothing can move is worse
+			than no number, because it reads as a decision somebody made.
+		]]
+		it("pays a boss bonus that is actually worth something", function()
+			expect(Config.require("endless", "payout.bossBonus") > 0).to.equal(true)
+			expect(Endless.payoutFor(10, 1) > Endless.payoutFor(10, 0)).to.equal(true)
+			expect(Endless.payoutFor(10, 2) - Endless.payoutFor(10, 1))
+				.to.equal(Endless.payoutFor(10, 1) - Endless.payoutFor(10, 0))
+		end)
+	end)
+
+	--[[
+		Settlement is where the boss bonus and the depth actually reach a player,
+		and where every one of them used to be dropped.
+	]]
+	describe("what a horde run settles to", function()
+		local Settlement = require(Server.Match.Settlement)
+		local Payout = require(Server.Economy.Payout)
+
+		local function reports(waves: { { cleared: boolean, isBoss: boolean? } })
+			local out = {}
+			for index, wave in ipairs(waves) do
+				table.insert(out, {
+					index = index, tier = "rec", botCount = 4, payoutMultiplier = 0,
+					cleared = wave.cleared, isBoss = wave.isBoss, deaths = 0,
+					eliminations = 0, shots = 0, hits = 0,
+				})
+			end
+			return out
+		end
+		local function settle(waves: any, deaths: number)
+			return (Settlement.payout({ isActive = function() return true end, data = {} }, {
+				isCourse = false, isHorde = true, mapName = "speedball", markerName = "mechanical",
+				reports = reports(waves), schedule = {}, deaths = deaths, shots = 10, hits = 5,
+				longestStreak = 1, liveSeconds = 60, cleared = false,
+			}))
+		end
+
+		it("counts the marshals that actually fell, and pays for them", function()
+			local plain = settle({ { cleared = true }, { cleared = true }, { cleared = false } }, 0)
+			local withBoss = settle({ { cleared = true }, { cleared = true, isBoss = true }, { cleared = false } }, 0)
+			expect(plain.bossesBeaten).to.equal(0)
+			expect(withBoss.bossesBeaten).to.equal(1)
+			expect(withBoss.total > plain.total).to.equal(true)
+		end)
+
+		--- The wave you died on does not pay, including if it was the boss.
+		it("does not pay for a marshal who was still standing", function()
+			local died = settle({ { cleared = true }, { cleared = false, isBoss = true } }, 0)
+			expect(died.bossesBeaten).to.equal(0)
+			expect(died.wavesSurvived).to.equal(1)
+		end)
+
+		--[[
+			The summary panel reads `deathPenalty` and shows x1 when it is
+			absent, so a horde run that lost half its payout to respawns
+			reported a full one.
+		]]
+		it("states the death penalty it actually applied", function()
+			local clean = settle({ { cleared = true }, { cleared = true } }, 0)
+			local costly = settle({ { cleared = true }, { cleared = true } }, 6)
+			expect(clean.deathPenalty).to.equal(1)
+			expect(costly.deathPenalty).to.equal(Payout.deathPenalty(6))
+			expect(costly.deathPenalty < 1).to.equal(true)
+			expect(costly.total < clean.total).to.equal(true)
+		end)
 	end)
 end

@@ -9,6 +9,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Loadout = require(ReplicatedStorage.Shared.Loadout)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Config = require(ReplicatedStorage.Shared.Config)
 local Log = require(ReplicatedStorage.Shared.Log)
@@ -159,7 +160,7 @@ DialogueService.onAction = function(player: Player, action: string, arg: string?
 				table.insert(handle.data.ownedMarkers, "aurumKompressor")
 			end
 			handle.data.loadout.marker = "aurumKompressor"
-			Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout)
+			Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout, Loadout.resolve(handle.data))
 			log.info(`{player.Name} claimed the Aurum Kompressor`)
 		else
 			log.warn(`{player.Name} asked for the Aurum without meeting the goal`)
@@ -176,13 +177,18 @@ DialogueService.onAction = function(player: Player, action: string, arg: string?
 			anyone who has swept the pro circuit, and tells everyone else what
 			they are missing.
 		]]
-		local record = Campaign.recordFromProfile(handle.data)
-		if Campaign.hordeUnlocked(record) then
-			requestMatch(player, { map = DEFAULT_MAP, tier = DEFAULT_TIER, mode = "horde" })
-		else
+		--[[
+			The gate is `requestMatch`, not a second copy of it here.
+
+			This branch checked `Campaign.hordeUnlocked` and the public remote
+			did not, so the NPC was stricter than the wire -- which is the wrong
+			way round. It also threw away the result, so a busy field or any
+			other refusal closed the dialogue in silence.
+		]]
+		local result = requestMatch(player, { map = DEFAULT_MAP, tier = DEFAULT_TIER, mode = "horde" })
+		if not result.ok then
 			Remotes.event("MatchStateChanged"):FireClient(player, {
-				phase = "hub",
-				notice = "The Long Afternoon opens when you have swept the pro circuit.",
+				phase = "hub", notice = result.reason,
 			})
 		end
 
@@ -247,10 +253,9 @@ Commerce.onPassResolved = function(player: Player)
 	end
 	local granted = SeasonPass.grantDue(handle)
 	if #granted > 0 and player.Parent == Players then
-		Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout)
-		Remotes.event("MatchStateChanged"):FireClient(player, {
-			phase = "hub",
-			notice = `Season rewards unlocked: {#granted}`,
+		Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout, Loadout.resolve(handle.data))
+		Remotes.event("Notice"):FireClient(player, {
+			text = `Season rewards unlocked: {#granted}`,
 		})
 	end
 end
@@ -297,6 +302,43 @@ local function asMode(value: any): string?
 		return nil
 	end
 	return value
+end
+
+--[[
+	Why this player may not start this mode on this map, or nil.
+
+	Returns the SENTENCE, not a boolean: every refusal in this game is something
+	the player is told, and a gate whose message lives at the call site is a gate
+	that gets copied without its message. The Horde dialogue action and
+	`Hub.onCourseEntered` both used to discard the reason.
+]]
+local function modeRefusal(player: Player, mode: string, mapName: string): string?
+	local modes = Config.get("gamemodes").modes
+	local rules = modes[mode]
+	if not rules or rules.integrated ~= true then
+		return "This mode is still in field preparation."
+	end
+	--- `maps` is authored per mode and was enforced nowhere.
+	if type(rules.maps) == "table" and not table.find(rules.maps, mapName) then
+		return `That field does not run {mode}.`
+	end
+	local handle = Profile.load(player.UserId)
+	if not handle then
+		return "Field pass unavailable."
+	end
+	if mode == "captureTheFlag" and not FlagMatch.canStart(mapName, handle.data) then
+		return "Capture the Flag opens on Holdfast after the Back Forty chapter."
+	end
+	if mode == "horde" and not Campaign.hordeUnlocked(Campaign.recordFromProfile(handle.data)) then
+		return "The Long Afternoon opens when you have swept the pro circuit."
+	end
+	if mode == "shoothouse" and not Course.hasCourse(mapName) then
+		return "That field has no Shoothouse course."
+	end
+	if not Profile.hasUnlocked(handle, mapName) then
+		return "That field is not open to you yet."
+	end
+	return nil
 end
 
 local function startMatch(player: Player, mapName: string, tier: Types.BotTier, mode: string?): boolean
@@ -362,16 +404,25 @@ requestMatch = function(player: Player, payload: any): any
 		mapName = asMap(payload.map) or DEFAULT_MAP
 		tier = asTier(payload.tier) or DEFAULT_TIER
 	end
-	if mode == "captureTheFlag" then
-		local handle = Profile.load(player.UserId)
-		if not handle or not FlagMatch.canStart(mapName, handle.data) then
-			starting[player] = nil
-			return { ok = false, reason = "Capture the Flag opens on Holdfast after the Back Forty chapter." }
-		end
-	end
-	if mode == "shoothouse" and not Course.hasCourse(mapName) then
+	--[[
+		One place that decides whether a mode may be started on a map.
+
+		There were three, and they disagreed. The NPC who starts The Long
+		Afternoon checked `Campaign.hordeUnlocked`; the public
+		`RequestMatchStart` remote did not, so an empty chapter record reached
+		the horde start call by simply asking for it. `asMode` checked only
+		`integrated`, and only Capture the Flag had an explicit unlock check --
+		so `modes[mode].maps` was authored and never enforced, and a direct
+		request could run a mode on a field it was never designed for.
+
+		Every route -- the gate, the NPC, the summary's Play again, the remote
+		-- goes through this. A gate that one caller can walk around is not a
+		gate.
+	]]
+	local refusal = modeRefusal(player, mode, mapName)
+	if refusal then
 		starting[player] = nil
-		return { ok = false, reason = "That field has no Shoothouse course." }
+		return { ok = false, reason = refusal }
 	end
 	--[[
 		One field at a time. The place is MaxPlayers = 2 so a course can take a
@@ -597,7 +648,12 @@ Hub.onCourseEntered = function(player: Player, mapName: string)
 	local handle = Profile.load(player.UserId)
 	if not handle or player.Parent ~= Players then return end
 	local tier = Campaign.recommendedTier(Campaign.recordFromProfile(handle.data))
-	requestMatch(player, { map = mapName, tier = tier, mode = "shoothouse" })
+	--- The result was discarded, so a refused course closed the prompt and said
+	--- nothing at all. Every refusal in this game is something the player is told.
+	local result = requestMatch(player, { map = mapName, tier = tier, mode = "shoothouse" })
+	if not result.ok then
+		Remotes.event("MatchStateChanged"):FireClient(player, { phase = "hub", notice = result.reason })
+	end
 end
 
 --[[
@@ -745,7 +801,7 @@ Remotes.fn("RequestEquip").OnServerInvoke = function(player: Player, category: a
 	end
 	local result = Shop.equip(handle, category :: Shop.Category, id)
 	if result.ok then
-		Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout)
+		Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout, Loadout.resolve(handle.data))
 	end
 	return result
 end
@@ -756,6 +812,7 @@ Remotes.fn("RequestSessionState").OnServerInvoke = function(player: Player): any
 	local rules = require(ReplicatedStorage.Shared.Camos)
 	return {
 		ok = true, loadout = handle.data.loadout, balance = handle.data.currency,
+		kit = if RangeService.isActive(player) then Loadout.forRange(handle.data) else Loadout.resolve(handle.data),
 		phase = if MatchService.isActive(player) then "live" else "hub",
 		camoProgress = { headshots = rules.headshots(handle.data), unlockedCamos = {},
 			equippedCamo = handle.data.loadout.camo, nextUnlock = rules.nextUnlock(handle.data) },
@@ -899,14 +956,16 @@ local function onPlayer(player: Player)
 		character back before this fires.
 	]]
 	local reloading = false
-	local function recoverCharacter()
+	local function recoverCharacter(lostCharacter: Model?)
 		if reloading or player.Parent ~= Players or starting[player] then
 			return
 		end
 		reloading = true
 		task.delay(Config.require("match", "recoveryDelaySeconds"), function()
 			reloading = false
-			if player.Parent ~= Players or player.Character then
+			-- Died leaves Character assigned. Only a replacement character, not
+			-- the existence of the old model, cancels this recovery.
+			if player.Parent ~= Players or (player.Character and player.Character ~= lostCharacter) then
 				return
 			end
 			--[[
@@ -933,7 +992,7 @@ local function onPlayer(player: Player)
 				unrecoverable.
 			]]
 			local ok, err = pcall(function()
-				player:LoadCharacter()
+				player:LoadCharacterAsync()
 			end)
 			if not ok then
 				log.warn(`could not reload a character for {player.Name}: {err}`)
@@ -945,7 +1004,7 @@ local function onPlayer(player: Player)
 	player.CharacterAdded:Connect(function(character)
 		local humanoid = character:WaitForChild("Humanoid", 10)
 		if humanoid and humanoid:IsA("Humanoid") then
-			humanoid.Died:Connect(recoverCharacter)
+			humanoid.Died:Connect(function() recoverCharacter(character) end)
 		end
 	end)
 
@@ -963,6 +1022,7 @@ Players.PlayerRemoving:Connect(function(player)
 	Activity.releaseFor(player)
 	MatchService.stop(player)
 	commerce:forget(player.UserId)
+	Hub.forgetPersonal(player.UserId)
 	Profile.release(player.UserId)
 end)
 

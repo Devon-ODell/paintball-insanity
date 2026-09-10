@@ -1,6 +1,197 @@
 # LiveRound — consolidated change report
 
-Updated 2026-09-09. This is the single current update list and AI handoff. It supersedes the previous world-pass, publish-prep, Shoothouse, agent, progress and debug handoffs, including the historical paintball-insanity review. Older narratives and their superseded numbers remain in Git history; they are not current instructions.
+Updated 2026-09-10. This is the single current update list and AI handoff. It supersedes the previous world-pass, publish-prep, Shoothouse, agent, progress and debug handoffs, including the historical paintball-insanity review. Older narratives and their superseded numbers remain in Git history; they are not current instructions.
+
+## Tenth pass, 2026-09-10 — Handoff 003 repairs
+
+Working against `Claude Handoff 003.md`, which found that the gates were green
+and the game was not. Everything below is fixed, with a gate that fails on the
+old behaviour. Findings still open are listed at the end; nothing here is
+reported as done that was not run.
+
+### The Range was pointing at the wrong place (findings 03, 04, 05)
+
+`Drills` authors targets relative to the firing line with -Z forward, and the
+live Range used those numbers as WORLD coordinates while standing the player at
+z=-40 facing +Z. Holdover's 50 m target sat ten metres BEHIND the shooter; the
+far Strafe lane was outside the floor. `check-range` solved its shots against
+the same wrong numbers, hit 22 of 74, and passed.
+
+There is now one local-to-world boundary, built from explicit basis vectors --
+Lune's `CFrame.lookAt` returns an identity rotation for this very firing line,
+and a transform the gates cannot check is one that will be wrong again.
+
+Found while making the gate real:
+
+| What was wrong | Now |
+| --- | --- |
+| The Range fired through `Spread` and never called `Spread.step`, so the cone grew on every trigger pull and never decayed. Within ten shots every drill was pegged at `sustainedSpreadDeg`. | Stepped every frame, as `MatchService` and `SimMatch` both do. Pop-Up went 19/48 -> 47/48. |
+| Targets were spheres tested as capsules rooted at their centre: the hittable column ran from y-r to y+3r. | Zero-height capsule about the centre, which is a sphere. Grazing shots outside the visible ball now miss. |
+| Switch's "three simultaneous targets" was three per lane with nothing expiring: **54 alive at 59 s**. | Each target expires when its lane's replacement appears. Bounded at three by construction. |
+| `MarkerFired` from the Range carried no `spec`, and the client indexed `spec.muzzleVelocity` on every accepted shot. | A self event is an acknowledgement that reconciles the hopper. Only the squad's shots render. |
+| `onFire` accepted shots past the deadline, so firing upward held a 60 s drill open past 80 s. | Deadline plus a bounded `shotDrainSeconds` window. |
+| Switch graded time-since-reveal on a drill whose subject is the swing between targets. | `timeBetweenEliminationsMs`, measured from the previous elimination. |
+| Expired targets counted as shots, making "accuracy" the fraction of opportunities taken. | Separate `shots` and `missedOpportunities`. |
+| Pop-Up and Strafe declared a `secondaryFundamental` nothing measured. | Measured, on the same curve. |
+| Peek's `announcedBearingDeg` was never sent, and placement was inferred from the previous SHOT -- on three angles sixty degrees apart, a perfectly parked player scored **zero**. | Clients stream aim (`ReportAim`), `Shared/AimHistory` answers reveal-time placement, and the cue arrives `cueLeadSeconds` ahead. Parked on the cue rates **99**; ignoring it rates **20**. |
+| `DrillScore` had no client listener and nothing persisted a drill result. | A result panel, and a `practice` record kept deliberately apart from the match estimate. |
+| The Range gate started `drillOrder[1]`, always. Holdover and Peek were reachable only by being told to practise them. | All five offered, with what each trains and what this player has managed on it. |
+
+`RangeService.start` was a 600-line closure; it is a session context with named
+phases, re-frozen at 138 lines. `check-range` now drives all five drills,
+asserts announced range, forward hemisphere and berm containment for every
+target position, and includes a control case proving crosshair placement
+discriminates.
+
+### One owner of the world at the origin (findings 01, 02, 10, part of 11)
+
+Every scene is built at the world origin and `Hub.park`/`restore` are global.
+Nothing owned that. Three partial guards existed and none covered a Range
+session, a venue retained after the whistle, or the window while a character
+load was yielding.
+
+`World/Activity` is a lease over the origin, claimed before anything is
+allocated and before anything yields, spanning preparation, play, the retained
+venue and teardown, with cleanups registered at allocation time.
+
+- A character load during a drill no longer restores The Landing on top of the
+  firing line; routing dispatches to the **owner** rather than inferring hub
+  eligibility from "no match".
+- A second player joining mid-match is told who has the field instead of having
+  the hub rebuilt around them.
+- A match and a drill can no longer run at once for one player, both consuming
+  `FireMarker`.
+- `finish` kept the venue so the player could shop, and kept the **map root**
+  too. Nothing destroyed it, and The Landing was restored at the same origin 2.5
+  s later, on top of it. `MatchService.disposeVenue` is the boundary now.
+- `returnTokens` incremented at the top of `requestMatch`, before validation, so
+  a **rejected** replay invalidated a pending return. Lease identity replaces it.
+- `CharacterAutoLoads` is off and only paint elimination reloaded a character,
+  so native reset and falling out of the world left the player with none,
+  indefinitely. Recovery routes through the activity owner: a match charges the
+  out, the Range puts them back on the line.
+- The results panel was destroyed 2.5 s after appearing. It survives the walk
+  home now (`keepResults`).
+
+**`tools/check-activity` drives `Bootstrap.server.luau` itself** against a
+scheduler this repo controls, character loads it can interleave, and signals
+that really disconnect. Fourteen transitions, asserting world parentage,
+ownership, listener counts and where each player ends up. Reverting the routing
+fix fails it on the exact symptom the audit reproduced.
+
+### Season pass, audio, Horde and records (findings 07, 08, 12, 13)
+
+- **`Commerce.owns` looped over an offer's grants**, and `seasonPassS1` grants
+  nothing on purpose -- it unlocks a track. Zero iterations, returns true. Every
+  fresh player was told they had already collected it while `SeasonPass.ownsPass`
+  said false. Ownership is split by kind; both sides read the same field; a free
+  claim writes the entitlement, requires it in its own save confirmation, and
+  announces through `onPassResolved` as a purchase does.
+- **`MatchSummary` played `matchCleared` then called `Audio.clear()`** on the
+  same frame, which destroys the folder every voice is parented to. The one cue
+  that says you won was silenced the instant it started, on every clear, without
+  an error or a bad id. `check-client-ui` now asserts the sequence and fails on
+  the old ordering.
+- **Horde**: `Endless.payoutFor(depth, 0)` meant `bossBonus` was multiplied by a
+  literal zero; no writer ever set `hordeBest` or `bossesBeaten`, so The Long
+  Afternoon's own chapter goals could not be met by playing it; settlement
+  omitted `deathPenalty`, so a run that lost half its payout reported x1; and the
+  declared wave leaderboard was gated on `cleared`, which horde never is. All
+  four fixed, with a **depth board** that ranks deepest-first and has its own
+  validation. The HUD says WAVE n rather than a fraction whose denominator grew
+  to meet its numerator.
+- **Entry authorization** was three disagreeing checks: the NPC checked
+  `hordeUnlocked` and the public remote did not, `modes[mode].maps` was authored
+  and enforced nowhere. One `modeRefusal` path now, returning the sentence rather
+  than a boolean, and the gate and NPC both show it instead of closing in silence.
+- **Records leaked across modes**: leaderboard metadata was keyed `{map}_{userId}`
+  so a course best overwrote a gauntlet best's tier and marker; `bestTimes[map]`
+  was written by whichever mode posted last and stored the raw clock even for a
+  course ranked on the death-penalised time; the notice board read every page
+  with no mode, so course boards had no browsing route; and the personal page was
+  one shared closure replaced by whoever refreshed last. All separated.
+- **A Shoothouse clear opened the next map.** `hasUnlocked` read `bestClears`
+  (which keeps the cleanest clear whatever produced it) while the campaign
+  chapter gating the same progression read `gauntletClears`. `gauntletClears` has
+  one writer now and is the single unlock authority; clears recorded before they
+  named their mode still count.
+
+### The kit does something now (finding 06)
+
+`GearStats.resolve` had specs, a shop, prices, chapter rewards -- and **no
+production caller.** `Shared/Loadout` is the snapshot both the server and the
+client's prediction consume: loudness, sprint, crouch, slide duration and
+cooldown, reload, pod count, hopper capacity and feed rate.
+
+- **A reload was free and infinite**, so the four-pack and the six-pack were the
+  same item at different prices. `podCount` is a finite per-round budget now, and
+  the HUD shows it.
+- **Ordinary marker loudness was disconnected.** `playerLoudness` was set only
+  for a CTF flag carrier, and `BotController` enters its hearing branch only when
+  it has a value -- so a squad could not hear an ordinary player at all, and
+  every quiet/loud tradeoff in the barn bought nothing.
+- **The carrier movement cost was a "sprint multiplier" applied to every kind of
+  locomotion**, including crouching. It applies to sprinting.
+- **Barrels, hoppers and tanks** now reach loudness, reload, capacity and feed
+  rate. `spreadMultiplier`, `velocityMultiplier` and `velocityConsistency` are
+  deliberately **not** read, and `ship-check` asserts `Loadout.resolve` does not
+  consume them: a flatter, more consistent arc is less lead to work out, which is
+  substituting for aim.
+
+**This changed the difficulty, and the change is real.** Connecting the squad's
+hearing makes the game harder. Measured on `probe-difficulty`, Speedball, six
+seeds, mean outs:
+
+| Tier | Before | After |
+| --- | --- | --- |
+| rec | 0.83 | 1.00 |
+| amateur | 2.17 | 2.33 |
+| semipro | 7.17 (6/6 clears) | 9.33 (5/6 clears) |
+| pro | 11.50 | 12.67 |
+
+That is the consequence of a feature that was advertised and dead becoming
+live, not a tuning change. **It is the user's call whether to retune against it.**
+`SimMatch` was connected at the same time and by the same function, so the
+simulator and the live game cannot describe different games.
+
+### Where the gates stand, 2026-09-10
+
+`lune run tools/check-all`: **21 of 23 gates pass.** The spec suite is
+**555 passed, 1 failed, 0 skipped across 24 spec files** (the audit measured 526
+passed / 2 failed across 24).
+
+The two failures are both known and neither is new:
+
+- **`ship-check`** — `Data/dev.json` still has invulnerability, infinite currency
+  and `unlockEverything` on. This is the release blocker the audit named and it
+  is deliberately still on for playtesting. Every other ship-check item passes,
+  including the new "no purchasable attachment reaches spread or velocity".
+- **`run-tests`** — `the difficulty curve > punishes trading harder than holding
+  angles` still fails, exactly as it did at the audit. The other balance failure
+  the audit reported, `orders Speedball below Woods by a wide margin`, now
+  passes. No assertion was weakened; the difference is the squad being able to
+  hear the player, which is measured above.
+
+### Still open from Handoff 003
+
+- **Finding 06, appearance half.** Purchased jerseys, helmets, shoulders and
+  masks still do not appear on the player's own avatar. `Wardrobe` dresses
+  authored NPC and bot outfits; a composable per-slot system attached to a real
+  Roblox character is a separate piece of work and cannot be verified headlessly.
+- **Finding 09, stance and muzzle coherence.** Crouch, slide and lean still move
+  the camera while the server uses a standing capsule and a chest muzzle, no
+  lean intent is transmitted, and crouch is partly inferred from a client
+  boolean. Movement and CTF capture positions are still taken from the replicated
+  root without displacement validation.
+- **Finding 11, delayed commerce notices** can still put the client into hub
+  phase while server combat is live.
+- **The two balance acceptance specs** (`punishes trading harder than holding
+  angles`, `orders Speedball below Woods by a wide margin`) still fail, as they
+  did at the audit. They were not touched, and the difficulty change above is
+  measured separately rather than being used to explain them away.
+- **Rendered validation remains open** exactly as the audit left it: meshes,
+  audio delivery, first-person sight picture, frame time, safe areas, real
+  DataStore persistence.
 
 ## Capture the Flag integration, 2026-09-09
 
@@ -400,7 +591,7 @@ Other current limitations:
 
 - Target history is captured, but projectile rewind/lag compensation is not integrated. High-latency hit registration needs real testing and a travelling-projectile time policy.
 - Co-op needs a shared match/player-target architecture. SimMatch still lacks Shoothouse scheduling and does not fan repeated spawns exactly like live play. Bots follow navigation without a full character-collision controller.
-- Bot avatars rebuild each round/wave. Course wave transitions may hitch; measure before choosing reuse/reset or client interpolation. Server fixed-step catch-up is not currently capped.
+- Bot avatars rebuild each round/wave. Course wave transitions may hitch; measure before choosing reuse/reset or client interpolation. (Corrected 2026-09-10: server fixed-step catch-up **is** capped, at `ballistics.simulation.maxStepsPerFrame` = 5, with the surplus dropped rather than carried. This line previously said it was uncapped.)
 - Paint tracer matching still uses proximity rather than a shared predicted-shot ID. Splats retain their simple geometry; exact surface attachment/orientation is not implemented.
 - Several non-fire remotes have correctness guards but no shared per-player rate limiter. Add one before expanding multiplayer/co-op load.
 - Live consumable effects remain unimplemented. The earlier deferred-mode statement is superseded by the Horde and CTF passes above; see the sound passes for current audio status.

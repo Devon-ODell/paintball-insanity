@@ -215,6 +215,39 @@ for _, group in ipairs({ "barrels", "hoppers", "tanks" }) do
 end
 check(not payToWin, "no purchasable attachment improves accuracy")
 
+--[[
+	The axes that must stay inert, asserted against the source that would read
+	them.
+
+	The tolerance above accepts small authored velocity differences that nothing
+	consumes. That was safe while NOTHING consumed any attachment stat; now that
+	`Shared/Loadout` resolves the equipped kit into numbers the match actually
+	runs on, "authored but unread" has to be a checked property rather than a
+	fact about the day it was written. A flatter, more consistent arc is less
+	lead to work out, which is substituting for aim.
+
+	Read from the source of the one function that resolves a loadout, because
+	that is the only place these could reach gameplay from.
+]]
+do
+	local fs = require("@lune/fs")
+	local source = fs.readFile("src/ReplicatedStorage/Shared/Loadout.luau")
+	--- Strip comments first: this file NAMES these axes to explain why it does
+	--- not read them, and a bare search would match the explanation.
+	local code = source:gsub("%-%-%[%[.-%]%]", ""):gsub("%-%-[^\n]*", "")
+	local forbidden = { "spreadMultiplier", "velocityMultiplier", "velocityConsistency" }
+	local consumed = {}
+	for _, field in ipairs(forbidden) do
+		if string.find(code, field, 1, true) then
+			table.insert(consumed, field)
+		end
+	end
+	if #consumed > 0 then
+		print(`          Loadout.resolve reads {table.concat(consumed, ", ")}`)
+	end
+	check(#consumed == 0, "no purchasable attachment reaches spread or velocity")
+end
+
 local robuxClean = true
 for id, product in pairs(Config.require("economy", "shop.robux.products")) do
 	if product.affectsAccuracy ~= false or product.grants.markers or product.grants.barrels then

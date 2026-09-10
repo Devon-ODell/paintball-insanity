@@ -120,10 +120,16 @@ local MAX_FUNCTION_LINES = 150
 	already relaxed for.
 ]]
 local KNOWN_LONG: { [string]: number } = {
-	["MatchService.start"] = 1133,
+	--- 1133 -> 1143 when the resolved loadout reached the match. Gear stats had
+	--- specs, a shop and prices and no production caller at all; sprint, reload,
+	--- loudness and pod count reached nothing.
+	["MatchService.start"] = 1143,
 	["PoleBarn.build"] = 742,
 	["Overworld.build"] = 546,
-	["runRound"] = 413,
+	--- 413 -> 435 for the same reason, and it HAS to happen here too: a gear stat
+	--- connected live and not in the simulator leaves every difficulty number in
+	--- docs/PUBLISH_READINESS.md describing a different game.
+	["runRound"] = 435,
 	--- Was 407 and is now 138: the drill loop was one closure holding every
 	--- piece of its own state in upvalues, and the Range's bugs lived at the
 	--- edges of exactly that. Re-frozen at what it measures, not at what it was
@@ -142,7 +148,10 @@ local KNOWN_LONG: { [string]: number } = {
 	["SimMatch.run"] = 166,
 	["BotAvatar.new"] = 162,
 	["ShopUi.open"] = 158,
-	["NoticeBoard.build"] = 157,
+	--- 157 -> 197 when the board stopped having exactly one personal page and
+	--- exactly one board per map. Times were separated by mode when WRITTEN and
+	--- read back with no mode at all, so every page was the gauntlet one.
+	["NoticeBoard.build"] = 197,
 }
 
 local ADVISORY_FUNCTION_LINES = 60

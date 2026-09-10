@@ -124,18 +124,43 @@ function NoticeBoard.build(cfg: any, palette: { [string]: Color3 }, parent: Inst
 
 	local board: Board
 	local currentPage = "speedball"
-	local personalBests: { [string]: number } = {}
-	local personalName = ""
+	--[[
+		One personal page per player, not one shared page.
+
+		This board is a server SurfaceGui, so everyone standing at it sees the
+		same pixels -- and the personal page was one closure whose name and times
+		were replaced by whichever player refreshed most recently. With two seats
+		on the field that means the second player's record silently became the
+		first player's. Keyed by user id, the cycle shows each present player
+		their own page in turn, with the name on it, which is the honest thing a
+		shared surface can do.
+	]]
+	local personal: { [number]: { name: string, bests: { [string]: number } } } = {}
 
 	local function draw(pageId: string)
 		canvas:ClearAllChildren()
 
 		local maps: { string } = Config.mapNames()
-		local isPersonal = pageId == "personal"
+		--[[
+			A page is `personal:<userId>` or `<map>` or `<map>|<mode>`.
+
+			`Leaderboard.top(pageId)` was called with the raw page id and no
+			mode, so it always read the GAUNTLET board -- the course boards were
+			being written and had no route to being looked at.
+		]]
+		local personalId = tonumber(string.match(pageId, "^personal:(%d+)$"))
+		local isPersonal = personalId ~= nil
+		local pageMap, pageMode = string.match(pageId, "^([^|]+)|(.+)$")
+		pageMap = pageMap or pageId
+		local mine = if personalId then personal[personalId] else nil
+		local personalName = if mine then mine.name else ""
+		local personalBests = if mine then mine.bests else {}
 
 		local header = row(canvas, 18, 46)
 		text(header, UDim2.fromScale(0, 0), UDim2.fromScale(0.7, 1),
-			if isPersonal then "YOUR BEST TIMES" else `FASTEST FULL CLEAR  ·  {pageId:upper()}`,
+			if isPersonal then `BEST TIMES  ·  {personalName:upper()}`
+			elseif pageMode then `{pageMode:upper()}  ·  {pageMap:upper()}`
+			else `FASTEST FULL CLEAR  ·  {pageMap:upper()}`,
 			30, INK, true)
 		text(header, UDim2.new(0.7, 0, 0, 0), UDim2.fromScale(0.3, 1),
 			"ALL 5 ROUNDS", 20, INK_SOFT)
@@ -165,7 +190,7 @@ function NoticeBoard.build(cfg: any, palette: { [string]: Color3 }, parent: Inst
 			return
 		end
 
-		local entries = Leaderboard.top(pageId)
+		local entries = Leaderboard.top(pageMap, nil, pageMode)
 		if #entries == 0 then
 			text(canvas, UDim2.fromOffset(30, 120), UDim2.new(1, -60, 0, 40),
 				"No full clears recorded yet.", 26, INK_SOFT, true)
@@ -207,13 +232,28 @@ function NoticeBoard.build(cfg: any, palette: { [string]: Color3 }, parent: Inst
 		end,
 	}
 
-	--- The personal page is filled by the caller, which knows who is looking.
-	function board.setPersonal(name: string, bests: { [string]: number })
-		personalName = name
-		personalBests = bests
-		if currentPage == "personal" then
+	--- The personal pages are filled by the caller, which knows who is here.
+	function board.setPersonal(userId: number, name: string, bests: { [string]: number })
+		personal[userId] = { name = name, bests = bests }
+		if currentPage == `personal:{userId}` then
 			draw(currentPage)
 		end
+	end
+
+	--- Drops a page when its player leaves, so a board does not keep cycling
+	--- through the records of somebody who is not there.
+	function board.forgetPersonal(userId: number)
+		personal[userId] = nil
+	end
+
+	--- Which personal pages have anything on them, for the cycle.
+	function board.personalPages(): { string }
+		local out: { string } = {}
+		for userId in pairs(personal) do
+			table.insert(out, `personal:{userId}`)
+		end
+		table.sort(out)
+		return out
 	end
 
 	model.PrimaryPart = face
@@ -231,11 +271,35 @@ end
 	operate is a board nobody reads. This one is legible from the trail.
 ]]
 function NoticeBoard.startCycle(board: any): () -> ()
-	local pages: { string } = {}
-	for _, mapName in ipairs(Config.mapNames()) do
-		table.insert(pages, mapName)
+	--[[
+		A page for every board that actually exists.
+
+		Times were being separated by mode when they were WRITTEN and read back
+		with no mode at all, so every page on this board was the gauntlet one and
+		a Shoothouse record had nowhere to be seen. `modes[mode].maps` says which
+		fields run which mode, which is the same table the match gate reads.
+	]]
+	local function boardPages(): { string }
+		local pages: { string } = {}
+		local modes = Config.get("gamemodes").modes
+		for _, mapName in ipairs(Config.mapNames()) do
+			table.insert(pages, mapName)
+			for modeName, rules in pairs(modes) do
+				if modeName ~= "gauntlet" and rules.integrated == true
+					and type(rules.maps) == "table" and table.find(rules.maps, mapName)
+					--- CTF is scored in captures, not in a time. It has no board.
+					and modeName ~= "captureTheFlag"
+				then
+					table.insert(pages, `{mapName}|{modeName}`)
+				end
+			end
+		end
+		for _, page in ipairs(board.personalPages and board.personalPages() or {}) do
+			table.insert(pages, page)
+		end
+		return pages
 	end
-	table.insert(pages, "personal")
+	local pages = boardPages()
 
 	local pageSeconds = Config.require("leaderboard", "display.pageSeconds")
 	local refreshSeconds = Config.require("leaderboard", "display.refreshSeconds")
@@ -246,8 +310,11 @@ function NoticeBoard.startCycle(board: any): () -> ()
 
 	task.spawn(function()
 		while running do
-			index = (index % #pages) + 1
-			board:setPage(pages[index])
+			--- Rebuilt each lap: who is standing here changes, and their pages
+			--- with them.
+			pages = boardPages()
+			index = (index % math.max(1, #pages)) + 1
+			board:setPage(pages[index] or "personal")
 			task.wait(pageSeconds)
 			sinceRefresh += pageSeconds
 			if sinceRefresh >= refreshSeconds then

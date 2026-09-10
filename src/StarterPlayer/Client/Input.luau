@@ -94,23 +94,68 @@ end
 
 local carrierMultiplier = 1
 
+--[[
+	The speeds this player's kit actually produces.
+
+	Sent by the server as a resolved snapshot rather than derived here, so the
+	client moves at the numbers the authority is going to validate against.
+	Defaults to the tuning file's own values, which is what happens before a
+	loadout arrives and what every caller had before gear reached movement at all.
+]]
+local speeds = {
+	walkSpeedMps = Config.require("match", "player.walkSpeedMps"),
+	sprintSpeedMps = Config.require("match", "player.sprintSpeedMps"),
+	crouchSpeedMps = Config.require("match", "player.crouchSpeedMps"),
+	slideSpeedMps = Config.require("match", "player.slideSpeedMps"),
+	slideDurationSeconds = Config.require("match", "player.slideDurationSeconds"),
+	slideCooldownSeconds = Config.require("match", "player.slideCooldownSeconds"),
+}
+
 local function applySpeed()
 	local h = humanoid()
 	if not h then
 		return
 	end
-	local cfg = Config.require("match", "player")
 	local metres: number
+	--[[
+		The carrier cost applies to SPRINTING, which is what it is named for.
+
+		It was multiplied into whatever speed was selected, so carrying a flag
+		slowed walking, crouching and sliding by the same fraction as sprinting
+		-- a "sprint multiplier" that scaled every kind of locomotion. What the
+		rule is for is making a carrier unable to RUN AWAY with it; taking their
+		crouch away as well is a different, harsher rule that nobody wrote down.
+	]]
 	if state.sliding then
-		metres = cfg.slideSpeedMps
+		metres = speeds.slideSpeedMps
 	elseif state.crouching then
-		metres = cfg.crouchSpeedMps
+		metres = speeds.crouchSpeedMps
 	elseif state.sprinting then
-		metres = cfg.sprintSpeedMps
+		metres = speeds.sprintSpeedMps * carrierMultiplier
 	else
-		metres = cfg.walkSpeedMps
+		metres = speeds.walkSpeedMps
 	end
-	h.WalkSpeed = Units.metresToStuds(metres * carrierMultiplier)
+	h.WalkSpeed = Units.metresToStuds(metres)
+end
+
+--[[
+	Applies the resolved loadout's movement.
+
+	`GearStats.resolve` produced these multipliers, had specs, and had no
+	production caller -- so a jersey sold as "quieter, but you give up a step"
+	gave up nothing and bought nothing. The shop was describing mechanics that
+	did not exist.
+]]
+function Input.setSpeeds(resolved: any)
+	if type(resolved) ~= "table" then
+		return
+	end
+	for key in pairs(speeds) do
+		if type(resolved[key]) == "number" and resolved[key] > 0 then
+			speeds[key] = resolved[key]
+		end
+	end
+	applySpeed()
 end
 
 function Input.setCarrierMultiplier(multiplier: number)
@@ -172,9 +217,11 @@ function Input.bind()
 		if not h or h.MoveDirection.Magnitude == 0 or h.FloorMaterial == Enum.Material.Air or not state.sprinting or now < state.slideReadyAt then
 			return Enum.ContextActionResult.Pass
 		end
+		--- The kit's timings, not the tuning file's: pads that lengthen a slide
+		--- or shorten its cooldown were authored, priced and reached nothing.
 		state.sliding = true
-		state.slideEndsAt = now + cfg.slideDurationSeconds
-		state.slideReadyAt = now + cfg.slideDurationSeconds + cfg.slideCooldownSeconds
+		state.slideEndsAt = now + speeds.slideDurationSeconds
+		state.slideReadyAt = now + speeds.slideDurationSeconds + speeds.slideCooldownSeconds
 		applySpeed()
 
 		return Enum.ContextActionResult.Pass

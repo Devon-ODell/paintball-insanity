@@ -340,6 +340,18 @@ function Profile.recordMatch(handle: Handle, summary: any)
 		lifetime.flawless += 1
 	end
 
+	--[[
+		The cleanest clear of each field, whatever produced it.
+
+		This is a RECORD, not a gate -- what it was cleared with, at what tier,
+		with how many outs. It records the mode now, because it used to record
+		none and was simultaneously being used as the map-unlock authority: a
+		Shoothouse clear opened the next map even though the campaign chapter
+		that is supposed to open it gates on five rounds against a squad, and
+		the field was cleared with is now recorded, so `hasUnlocked` can ask.
+		`Campaign.gauntletClears` remains a different record -- per-tier out
+		counts for chapter goals -- rather than a competing unlock authority.
+	]]
 	if summary.cleared and summary.mode ~= "captureTheFlag" then
 		local best = handle.data.bestClears[summary.map]
 		if not best or summary.deaths < best.deaths then
@@ -347,9 +359,34 @@ function Profile.recordMatch(handle: Handle, summary: any)
 				deaths = summary.deaths,
 				tier = summary.tier,
 				marker = summary.marker,
+				mode = summary.mode or "gauntlet",
 				durationSeconds = summary.durationSeconds,
 			}
 		end
+	end
+
+	--[[
+		A gauntlet clear, which is the thing that opens the next field.
+
+		Written HERE, once, because it is the unlock authority and an authority
+		with two writers is two authorities. `bestClears` cannot answer this: it
+		keeps the CLEANEST clear of a field whatever produced it, so a flawless
+		Shoothouse run masks a three-out gauntlet clear of the same map -- and
+		`hasUnlocked` read it, so a timed course run through 28 defenders opened
+		the next field while the campaign chapter that announces that same
+		progression, reading `gauntletClears`, stayed shut.
+
+		Per tier, keeping the fewest outs, because that is the shape
+		`Campaign.recordFromProfile` reads for its chapter goals.
+	]]
+	if summary.cleared and (summary.mode == nil or summary.mode == "gauntlet") then
+		handle.data.gauntletClears = handle.data.gauntletClears or {}
+		local byTier = handle.data.gauntletClears[summary.map] or {}
+		local previous = byTier[summary.tier]
+		if previous == nil or summary.deaths < previous then
+			byTier[summary.tier] = summary.deaths
+		end
+		handle.data.gauntletClears[summary.map] = byTier
 	end
 
 	-- Rolling average of the six fundamentals, so the Range can show progress.
@@ -426,7 +463,18 @@ function Profile.recordDrill(handle: Handle, result: any): any?
 	return if previous then snapshot else nil
 end
 
---- Whether a map is unlocked. Progression is by skill, never by time played.
+--[[
+	Whether a map is unlocked. Progression is by skill, never by time played.
+
+	The requirement is a GAUNTLET clear of the previous field: five rounds
+	against a squad that grows every round. That is what the campaign chapter
+	gating the same progression has always asked for, and it read
+	`gauntletClears` while this read `bestClears` -- which also holds Shoothouse
+	clears. So a timed run through a course, which is 28 defenders and no
+	escalation, opened the next map while the chapter that is supposed to
+	announce it stayed shut. One authority now, and it is the stricter of the
+	two, because the easier one was the accident.
+]]
 function Profile.hasUnlocked(handle: Handle, map: string): boolean
 	if Dev.flag("unlockEverything") then
 		return true
@@ -435,7 +483,20 @@ function Profile.hasUnlocked(handle: Handle, map: string): boolean
 	if not rule then
 		return true
 	end
-	return handle.data.bestClears[rule.requiresClear] ~= nil
+	local required = rule.requiresClear
+	if (handle.data.gauntletClears or {})[required] ~= nil then
+		return true
+	end
+	--[[
+		A clear recorded before clears named their mode still counts.
+
+		Those genuinely might have been gauntlet clears and there is no way left
+		to tell; taking a field away from somebody who earned it would be worse
+		than the inconsistency this replaces. A row that DOES name its mode is
+		held to it.
+	]]
+	local best = handle.data.bestClears[required]
+	return best ~= nil and best.mode == nil
 end
 
 --- Test seam: wipes the in-memory fallback between specs.

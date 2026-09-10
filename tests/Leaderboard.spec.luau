@@ -189,6 +189,108 @@ return function()
 		end)
 	end)
 
+	--[[
+		Horde never finishes, so it could never reach a board gated on `cleared`.
+
+		The declared wave leaderboard never wrote a single row in its life. A
+		depth is not a time -- bigger is better and there is no last round to
+		have cleared -- so it is a board with its own rules rather than a special
+		case threaded through the time board's validation.
+	]]
+	describe("the wave board", function()
+		local function hordeRun(overrides: any?)
+			local submission = fullClear({
+				mode = "horde",
+				depth = 12,
+				roundsCleared = 12,
+				roundsPlayed = 13,
+				seconds = 480,
+			})
+			for k, v in pairs(overrides or {}) do submission[k] = v end
+			return submission
+		end
+
+		it("ranks horde on depth, descending", function()
+			local rules = Leaderboard.boardRules("horde")
+			expect(rules.rankBy).to.equal("depth")
+			expect(rules.ascending).to.equal(false)
+		end)
+
+		it("leaves every other mode a time board, ascending", function()
+			for _, mode in ipairs({ "gauntlet", "shoothouse" }) do
+				local rules = Leaderboard.boardRules(mode)
+				expect(rules.rankBy).to.equal("time")
+				expect(rules.ascending ~= false).to.equal(true)
+			end
+			--- Absent means gauntlet, which is what every stored row was before
+			--- there was more than one mode.
+			expect(Leaderboard.boardRules(nil).rankBy).to.equal("time")
+		end)
+
+		--[[
+			A run that never cleared a "final" round is exactly what horde IS.
+			The time board's rules cannot describe it and must not be applied.
+		]]
+		it("accepts a run that cleared no final round", function()
+			local ok, reason = Leaderboard.validate(hordeRun(), 0)
+			expect(ok).to.equal(true)
+			expect(reason).to.equal(nil)
+		end)
+
+		it("refuses a depth that is not a whole number of waves", function()
+			expect((Leaderboard.validate(hordeRun({ depth = 4.5 }), 0))).to.equal(false)
+			expect((Leaderboard.validate(hordeRun({ depth = 0 }), 0))).to.equal(false)
+			expect((Leaderboard.validate(hordeRun({ depth = 0 / 0 }), 0))).to.equal(false)
+			--- Missing entirely, which is what a caller that forgot the field
+			--- would send. `pairs` cannot express a removal, so it is built
+			--- without one.
+			local noDepth = hordeRun()
+			noDepth.depth = nil
+			expect((Leaderboard.validate(noDepth, 0))).to.equal(false)
+		end)
+
+		--- You cannot have survived more waves than you played.
+		it("refuses a depth deeper than the run", function()
+			expect((Leaderboard.validate(hordeRun({ depth = 20, roundsPlayed = 13 }), 0))).to.equal(false)
+		end)
+
+		it("puts the deepest run first, and breaks a tie on outs", function()
+			local ranked = Leaderboard.rank({
+				{ userId = 1, displayName = "Shallow", seconds = 100, depth = 8, deaths = 0 },
+				{ userId = 2, displayName = "Deep", seconds = 900, depth = 22, deaths = 9 },
+				{ userId = 3, displayName = "Tied", seconds = 800, depth = 22, deaths = 2 },
+			})
+			expect(ranked[1].displayName).to.equal("Tied")
+			expect(ranked[2].displayName).to.equal("Deep")
+			expect(ranked[3].displayName).to.equal("Shallow")
+		end)
+	end)
+
+	--[[
+		Times were already separated by mode. The DECORATION next to each name
+		was not: it was keyed on `{map}_{userId}` alone, so a Shoothouse personal
+		best overwrote the tier, marker and out count shown against that player's
+		gauntlet time on the same field.
+	]]
+	describe("record separation", function()
+		it("keys a row's metadata per board, not per map", function()
+			local gauntlet = Leaderboard.metaKey("speedball", "gauntlet", 1234)
+			local course = Leaderboard.metaKey("speedball", "shoothouse", 1234)
+			local horde = Leaderboard.metaKey("speedball", "horde", 1234)
+			expect(gauntlet).never.to.equal(course)
+			expect(course).never.to.equal(horde)
+			--- Gauntlet keeps the bare key it has always had, so no stored
+			--- decoration is orphaned by the separation.
+			expect(gauntlet).to.equal(Leaderboard.metaKey("speedball", nil, 1234))
+			expect(gauntlet).to.equal("speedball_1234")
+		end)
+
+		it("keeps two players' rows apart on the same board", function()
+			expect(Leaderboard.metaKey("woods", "shoothouse", 1))
+				.never.to.equal(Leaderboard.metaKey("woods", "shoothouse", 2))
+		end)
+	end)
+
 	describe("configuration", function()
 		it("quarantines dev runs onto separate keys", function()
 			--[[

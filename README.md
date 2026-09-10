@@ -57,7 +57,7 @@ cd paintball
 # Get Rokit itself from https://github.com/rojo-rbx/rokit
 rokit install
 
-# Everything: 13 gates, ending with the 469-spec suite. Takes ~8 minutes.
+# Everything: 23 gates, ending with the spec suite. Takes ~10 minutes.
 lune run tools/check-all
 ```
 
@@ -81,10 +81,11 @@ $env:LUNE="C:\path\to\lune.exe"; lune run tools/check-all   # Windows PowerShell
 lives. Individual gates, if you want one:
 
 ```sh
-lune run tools/run-tests          # 469 specs across 19 files
+lune run tools/run-tests          # the spec suite, 24 files
 lune run tools/ship-check         # release configuration gates
 lune run tools/check-source       # Luau syntax across every module
 lune run tools/run-live-checks    # MatchService against a mock engine
+lune run tools/check-activity     # the real Bootstrap: who owns the world at the origin
 lune run tools/run-profile-checks # persistence adapter
 lune run tools/check-budget       # part / shadow / alpha budgets per scene
 lune run tools/check-zfight       # coplanar surfaces that shimmer in motion
@@ -188,8 +189,8 @@ Whether a mode can be started is declared once, in
 | --- | --- |
 | Gauntlet | Playable — five rounds, escalating squad |
 | Shoothouse | Playable — timed course, solo |
-| Horde | **Not playable.** Rules and specs exist; nothing starts them |
-| Capture the Flag | **Not playable.** Rules and specs exist; nothing starts them |
+| Horde | Playable — endless waves, marshals every fifth, ranked on depth |
+| Capture the Flag | Playable — Holdfast only, opens after the Back Forty chapter |
 | The Range | Playable — five aim drills, free, no payout |
 
 Two-player co-op on the Shoothouse is authorized and **not yet built**. Every

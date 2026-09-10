@@ -240,16 +240,32 @@ function Hud.setRange(distanceMetres: number?, spec: Ballistics.Spec, fieldOfVie
 	end
 end
 
-function Hud.setHopper(remaining: number, capacity: number, reloading: boolean)
-	local text = if reloading then "RELOADING" else string.format("%d / %d", remaining, capacity)
+--[[
+	The hopper, and the pods behind it.
+
+	`pods` is how many refills are left this round. It used to be unlimited and
+	unshown, so `podCount` -- authored on every harness in the barn, priced, and
+	sold as the whole reason a harness exists -- was invisible and inert, and the
+	four-pack and the six-pack were the same item at different prices.
+
+	Nil pods means unlimited, which is what the Range wants: a drill grades aim,
+	and running a player dry mid-drill would grade their kit.
+]]
+function Hud.setHopper(remaining: number, capacity: number, reloading: boolean, pods: number?)
+	local dry = pods ~= nil and pods <= 0 and remaining == 0 and not reloading
+	local text = if reloading then "RELOADING"
+		elseif pods ~= nil then string.format("%d / %d  ·  %d pod%s", remaining, capacity, pods, if pods == 1 then "" else "s")
+		else string.format("%d / %d", remaining, capacity)
 	if text == lastHopper then return end
 	lastHopper = text
 	hopperLabel.Text = text
 	local low = reloading or remaining <= capacity * cfg.lowHopperFraction
-	hopperLabel.TextColor3 = if low then C.warning else C.ink
+	hopperLabel.TextColor3 = if dry then C.warning elseif low then C.warning else C.ink
 	hopperFill.BackgroundColor3 = if low then C.warning else C.accent
 	hopperFill.Size = UDim2.fromScale(math.clamp(remaining / math.max(1, capacity), 0, 1), 1)
-	markerLabel.Text = if remaining == 0 and not reloading then "EMPTY · RELOAD" else currentMarker
+	markerLabel.Text = if dry then "OUT OF PAINT"
+		elseif remaining == 0 and not reloading then "EMPTY · RELOAD"
+		else currentMarker
 end
 
 function Hud.setRound(round: number, roundCount: number, _botCount: number)
@@ -270,6 +286,21 @@ function Hud.setDrill(displayName: string, fundamental: string?)
 	deathsLabel.Text = if fundamental then "Scored on " .. fundamental else "Practice"
 	deathsLabel.TextColor3 = C.accent
 	phaseLabel.Text = "Every shot is measured · nothing is charged"
+end
+
+--[[
+	Horde reads as a depth, because that is the only number it has.
+
+	A horde run has no round count -- the schedule is written one wave at a time
+	as you survive them -- so "ROUND 7 / 7" was a fraction whose denominator grew
+	to meet its numerator every single wave, and read as being permanently on the
+	last round of a mode that has no last round. The depth is the score.
+]]
+function Hud.setWave(wave: number, botCount: number, isBoss: boolean?, isBreather: boolean?)
+	roundLabel.Text = if isBoss then string.format("WAVE %d · MARSHAL", wave) else string.format("WAVE %d", wave)
+	roundLabel.TextColor3 = if isBoss then C.gold else C.ink
+	phaseLabel.Text = if isBreather then "Breather · the next wave is coming"
+		else "It does not end · it only gets deeper"
 end
 
 --- A course reads as a place on the field, not as a round number: "STAGE 3/4 ·

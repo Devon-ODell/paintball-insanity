@@ -25,6 +25,7 @@ local Workspace = game:GetService("Workspace")
 local Types = require(ReplicatedStorage.Shared.Types)
 local Config = require(ReplicatedStorage.Shared.Config)
 local GearStats = require(ReplicatedStorage.Shared.GearStats)
+local Loadout = require(ReplicatedStorage.Shared.Loadout)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
@@ -154,6 +155,122 @@ local function updateVisibility(world: any, bots: { any }, playerPosition: Vecto
 			visibleSince[bot.id] = nil
 		end
 	end
+end
+
+--[[
+	Puts a finished run on the board it belongs to, and records the player's own
+	best against the SAME board.
+
+	Lifted out of `finish` because it now has two shapes -- a time board and a
+	depth board -- and because the personal copy of the record had a bug that was
+	invisible while it was one line in the middle of a two-hundred-line closure:
+	`bestTimes[map]` was keyed on the MAP alone, so a Shoothouse personal best
+	overwrote the gauntlet best on the same field and vice versa, and it stored
+	the raw live clock even for a course that is RANKED on the clock plus ten
+	seconds a death. The notice board then labelled that number "ALL 5 ROUNDS".
+]]
+local function submitRun(params: any)
+	local player, handle = params.player, params.handle
+	local breakdown = params.breakdown
+
+	--[[
+		A horde run is submitted on DEPTH, not on having cleared anything.
+
+		Horde never finishes, so `breakdown.cleared` is always false and the
+		submission below could never be reached by it -- the declared wave
+		leaderboard never wrote a single row in its life. It is a different
+		board with different rules, so it is a different submission rather than a
+		special case threaded through the time board's validation.
+	]]
+	if params.isHorde then
+		local depth = breakdown.wavesSurvived or 0
+		if depth <= 0 then
+			return
+		end
+		task.spawn(function()
+			local wrote, why = Leaderboard.submit({
+				userId = player.UserId,
+				displayName = player.DisplayName,
+				map = params.map,
+				tier = params.tier,
+				marker = params.marker,
+				mode = "horde",
+				seconds = params.liveSeconds,
+				depth = depth,
+				deaths = params.deaths,
+				eliminations = params.eliminations,
+				roundsCleared = breakdown.roundsCleared,
+				roundsPlayed = breakdown.roundsPlayed,
+			}, params.eliminations)
+			if wrote then
+				Remotes.event("LeaderboardUpdated"):FireClient(player, {
+					map = params.map, mode = "horde", depth = depth, personalBest = true,
+				})
+			elseif why and why ~= "not a personal best" then
+				log.warn(`the wave board refused {player.Name}'s {params.map} run: {why}`)
+			end
+		end)
+		return
+	end
+
+	if not breakdown.cleared or params.isCtf then
+		return
+	end
+
+	--[[
+		Leaderboard submission. A time means all five rounds cleared in one
+		match, timed by the server's own round clock -- so it is gated on
+		breakdown.cleared, not on the player having survived, and the
+		elimination count is checked against what the schedule should have
+		produced. Leaderboard.validate does the refusing; this only supplies
+		numbers the server counted itself.
+	]]
+	local expected = 0
+	for _, round in ipairs(params.schedule) do
+		expected += round.botCount
+	end
+	--[[
+		A course is ranked on the time it is JUDGED on -- the clock plus ten
+		seconds a death. Submitting the raw clock would put a six-death run above
+		a clean one, and storing the raw clock as the personal best would show
+		the player a number no board agrees with.
+	]]
+	local ranked = if params.courseOutcome then params.courseOutcome.seconds else params.liveSeconds
+	task.spawn(function()
+		local wrote, why = Leaderboard.submit({
+			userId = player.UserId,
+			displayName = player.DisplayName,
+			map = params.map,
+			tier = params.tier,
+			marker = params.marker,
+			--- Its own board. A course is 28 defenders and a gauntlet is 40 over
+			--- five rounds; ranked together the course time would erase the
+			--- gauntlet best on the same field.
+			mode = params.mode,
+			seconds = ranked,
+			deaths = params.deaths,
+			eliminations = params.eliminations,
+			roundsCleared = breakdown.roundsCleared,
+			roundsPlayed = breakdown.roundsPlayed,
+		}, expected)
+		if wrote then
+			Remotes.event("LeaderboardUpdated"):FireClient(player, {
+				map = params.map, mode = params.mode, seconds = ranked, personalBest = true,
+			})
+			if handle:isActive() then
+				--- Per MODE, and the ranked time. Keyed on the map alone it was
+				--- one number for two boards, whichever posted last.
+				handle.data.bestTimes = handle.data.bestTimes or {}
+				handle.data.bestTimes[params.map] = if params.mode == "gauntlet" then ranked else handle.data.bestTimes[params.map]
+				handle.data.bestTimesByMode = handle.data.bestTimesByMode or {}
+				local byMode = handle.data.bestTimesByMode[params.mode] or {}
+				byMode[params.map] = ranked
+				handle.data.bestTimesByMode[params.mode] = byMode
+			end
+		elseif why and why ~= "not a personal best" then
+			log.warn(`leaderboard refused {player.Name}'s {params.map} run: {why}`)
+		end
+	end)
 end
 
 function MatchService.start(player: Player, mapName: string, tier: Types.BotTier, seed: number?, mode: string?): Match?
@@ -375,7 +492,32 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	local deaths, eliminations, hits, shots = 0, 0, 0, 0
 	local headshots = 0
 	local totalLiveElapsed = 0
-	local markerState = MarkerState.new(markerData)
+	--[[
+		What the player's kit actually does, resolved once for the whole match.
+
+		`GearStats.resolve` had specs and no production caller: sprint, crouch,
+		slide, reload, loudness and pod count were authored per item, priced,
+		advertised in the shop as tradeoffs and granted as chapter rewards, and
+		reached nothing. Resolved here, held for the run, and sent to the client
+		so its prediction agrees with this rather than guessing.
+
+		Resolved ONCE rather than per round on purpose: a player who buys a
+		jersey at the mid-match supply counter gets it on their next match, not
+		half way through the round they are standing in.
+	]]
+	local kit = Loadout.resolve(handle.data, markerData)
+	--[[
+		How loud this player is, which nothing used to ask.
+
+		`playerLoudness` was set for a CTF flag carrier and nil for everybody
+		else, and `BotController` enters its hearing branch only when it HAS a
+		value -- so a squad could not hear an ordinary player move at all. Every
+		marker in the shop declares a loudness (0.3 for the pump, 1.0 for the
+		electro) and it is the headline tradeoff on the quiet ones; combined
+		with the kit's, that whole axis bought exactly nothing.
+	]]
+	local markerLoudness = markerData.loudness or 1
+	local markerState = MarkerState.new(markerData, kit)
 	local respawning = false
 	--- Last time the invulnerability override told the player it had eaten a
 	--- hit. Only read when that dev flag is on.
@@ -472,7 +614,9 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	]]
 	function beginRound(index: number, warmup: boolean?)
 		spread:reset()
-		markerState = MarkerState.new(markerData)
+		--- A fresh hopper AND a fresh set of pods every round: the paint budget
+		--- is a round's budget, not a match's.
+		markerState = MarkerState.new(markerData, kit)
 		roundIndex = index
 		currentRound = schedule[index]
 		roundDeaths, roundElims, roundShots, roundHits = 0, 0, 0, 0
@@ -492,8 +636,21 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			tier = currentRound.tier,
 			marker = markerName,
 			round = currentRound.index,
-			roundCount = #schedule,
+			--[[
+				A horde run has no round count, only the depth so far.
+
+				`#schedule` grows by one every time a wave is cleared, so it was
+				a fraction whose denominator chased its numerator -- the HUD read
+				"ROUND 7 / 7" forever, which says you are on the last round of a
+				mode that does not have one. The intermission message has always
+				sent nil here; the round message did not.
+			]]
+			roundCount = if isHorde then nil else #schedule,
 			botCount = currentRound.botCount,
+			--- What kind of wave this is, so the HUD can say "MARSHAL" and
+			--- "breather" rather than inventing round wording for them.
+			isBoss = if isHorde then currentRound.endless ~= nil and currentRound.endless.isBoss == true else nil,
+			isBreather = if isHorde then currentRound.endless ~= nil and currentRound.endless.isBreather == true else nil,
 			-- The course HUD wants the stage, not the round: "Their Half, 3 of
 			-- 4" reads as a place on the field, "round 6 of 8" does not.
 			mode = mode or "gauntlet",
@@ -535,6 +692,12 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			eliminations = roundElims,
 			shots = roundShots,
 			hits = roundHits,
+			--- Whether this wave fielded a marshal. Settlement counts the ones
+			--- that were actually beaten, so `endless.payout.bossBonus` is
+			--- multiplied by a real number rather than the literal zero the
+			--- only caller used to pass.
+			isBoss = currentRound.endless ~= nil and currentRound.endless.isBoss == true,
+			boss = currentRound.endless and currentRound.endless.boss,
 		})
 
 		if not cleared then
@@ -895,7 +1058,11 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				chatter = say,
 				meleeRules = meleeRules,
 				navigate = if ctf then ctf:navigator(bot, index, bots, t) else nil,
-				playerLoudness = if ctf and ctf.rules.flags.enemy.carrier == "player" then ctf.rules:carrierModifiers("player").loudness else nil,
+				--- Always, not only for a flag carrier -- see `markerLoudness`.
+				--- A carrier's cost still applies on top.
+				playerLoudness = kit.loudnessMultiplier * markerLoudness
+					* (if ctf and ctf.rules.flags.enemy.carrier == "player"
+						then ctf.rules:carrierModifiers("player").loudness else 1),
 				meleePlayer = function(swinger: any)
 					eliminatePlayer(swinger.position)
 				end,
@@ -942,7 +1109,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 						headshots += 1
 						camoProgress = Camos.recordHeadshot(handle)
 						if camoProgress and #camoProgress.unlockedCamos > 0 then
-							Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout)
+							Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout, Loadout.resolve(handle.data))
 						end
 					end
 					local avatar = avatars[bot.id]
@@ -1059,55 +1226,40 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		summary.mode = mode or "gauntlet"
 		summary.ctf = if ctf then ctf.rules:summary() else nil
 		summary.headshots = headshots
-
 		--[[
-			Leaderboard submission. A time means all five rounds cleared in one
-			match, timed by the server's own round clock -- so it is gated on
-			breakdown.cleared, not on the player having survived, and the
-			elimination count is checked against what the schedule should have
-			produced. Leaderboard.validate does the refusing; this only supplies
-			numbers the server counted itself.
+			Which marshals actually fell.
+
+			A chapter goal asks WHICH boss you beat, not how many, and nothing
+			ever told the profile. Read off the cleared reports rather than kept
+			as a running list, so a wave the player died on does not count the
+			marshal standing in it.
 		]]
-		if breakdown.cleared and not ctf then
-			local expected = 0
-			for _, round in ipairs(schedule) do
-				expected += round.botCount
-			end
-			task.spawn(function()
-				local wrote, why = Leaderboard.submit({
-					userId = player.UserId,
-					displayName = player.DisplayName,
-					map = mapName,
-					tier = tier,
-					marker = markerName,
-					-- Its own board. A course is 28 defenders and a gauntlet is
-					-- 40 over five rounds; ranked together the course time would
-					-- erase the gauntlet best on the same field.
-					mode = mode or "gauntlet",
-					-- A course is ranked on the time it is JUDGED on, which is the
-					-- clock plus ten seconds a death. Submitting the raw clock
-					-- would put a six-death run above a clean one.
-					seconds = if courseOutcome then courseOutcome.seconds else outcome.durationSeconds,
-					deaths = deaths,
-					eliminations = eliminations,
-					roundsCleared = breakdown.roundsCleared,
-					roundsPlayed = breakdown.roundsPlayed,
-				}, expected)
-				if wrote then
-					Remotes.event("LeaderboardUpdated"):FireClient(player, {
-						map = mapName,
-						seconds = outcome.durationSeconds,
-						personalBest = true,
-					})
-					if handle:isActive() then
-						handle.data.bestTimes = handle.data.bestTimes or {}
-						handle.data.bestTimes[mapName] = outcome.durationSeconds
-					end
-				elseif why and why ~= "not a personal best" then
-					log.warn(`leaderboard refused {player.Name}'s {mapName} run: {why}`)
+		if isHorde then
+			local beaten: { string } = {}
+			for _, report in ipairs(reports) do
+				if report.cleared and report.boss then
+					table.insert(beaten, report.boss)
 				end
-			end)
+			end
+			summary.bossesBeaten = beaten
 		end
+
+		submitRun({
+			player = player,
+			handle = handle,
+			map = mapName,
+			tier = tier,
+			marker = markerName,
+			mode = mode or "gauntlet",
+			isHorde = isHorde,
+			isCtf = ctf ~= nil,
+			schedule = schedule,
+			breakdown = breakdown,
+			courseOutcome = courseOutcome,
+			liveSeconds = outcome.durationSeconds,
+			deaths = deaths,
+			eliminations = eliminations,
+		})
 
 		if breakdown.total > 0 and handle:isActive() then
 			Profile.credit(handle, breakdown.total, `match {mapName}/{tier}`)
@@ -1185,7 +1337,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		})
 	end)
 
-	Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout)
+	Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout, Loadout.resolve(handle.data))
 	Remotes.event("CurrencyChanged"):FireClient(player, handle.data.currency)
 
 	local match: Match = {

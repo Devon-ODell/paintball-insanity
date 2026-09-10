@@ -268,12 +268,14 @@ local function newPlayer(userId: number, name: string)
 		]]
 		local died = signal()
 		local humanoid = {
+			Health = 100,
 			HipHeight = 1.5,
 			ClassName = "Humanoid",
 			Died = died,
 			IsA = function(_, className) return className == "Humanoid" end,
 		}
 		player.died = died
+		player.humanoid = humanoid
 		character.FindFirstChild = function(_, childName)
 			if childName == "HumanoidRootPart" then return hrp end
 			return nil
@@ -434,6 +436,7 @@ replace(env.Server.World.Hub, {
 	gateReturnPosition = function() return V3.new(1, 0, 1) end,
 	refreshBoard = function() end,
 	refreshPersonal = function() end,
+	forgetPersonal = function() end,
 	allowedCategories = function() return {} end,
 	onGateEntered = nil,
 	onCourseEntered = nil,
@@ -469,6 +472,28 @@ assert(#placements > 0 and placements[#placements].player == alice,
 assert(hubOpen, "The Landing must be standing for a player who is only standing in it")
 assert(Activity.kindFor(alice) == nil, "standing in the hub is not an activity")
 print("  join            Alice is in The Landing, nothing owns the origin")
+
+-- The session snapshot must recover equipment even when the join-time event
+-- reached the client before it subscribed.
+do
+ local handle = Profile.load(alice.UserId)
+ handle.data.loadout.pods = "sixPack"
+ local snapshot = fn("RequestSessionState").OnServerInvoke(alice)
+ assert(snapshot.kit and snapshot.kit.podCount == 6, "session snapshot lost the equipped pod budget")
+ handle.data.loadout.pods = "twoPack"
+end
+
+-- Died does not imply Player.Character is nil. Retain the old model exactly
+-- as the engine can with CharacterAutoLoads disabled.
+do
+ local old = alice.Character
+ alice.humanoid.Health = 0
+ alice.died:fire()
+ advance(10)
+ assert(alice.Character ~= old, "a dead but still assigned character must be replaced")
+ advance(1)
+end
+
 
 --------------------------------------------------------------------------------
 -- A drill takes the lease, and the hub comes down
@@ -543,6 +568,20 @@ assert(Activity.kindFor(alice) == "match", "the match must own the origin now")
 assert(totalStanding() >= 1, "the match must have built something")
 assert(standing()["TheLanding"] == nil, "The Landing must be parked during a match")
 print("  handover        Alice's match stops her own drill and takes the lease")
+
+-- An asynchronously resolved entitlement must not manufacture a hub phase.
+do
+ local SeasonPass = env.require(env.Server.Progression.SeasonPass)
+ local Commerce = env.require(env.Server.Economy.Commerce)
+ local original = SeasonPass.grantDue
+ SeasonPass.grantDue = function() return { { id = "testReward" } } end
+ local before = #sentTo("MatchStateChanged", alice)
+ Commerce.onPassResolved(alice)
+ SeasonPass.grantDue = original
+ assert(#sentTo("MatchStateChanged", alice) == before, "season rewards changed the live activity phase")
+ assert(lastTo("Notice", alice).text ~= nil, "season rewards need visible feedback")
+end
+
 
 --------------------------------------------------------------------------------
 -- Finishing: the field comes DOWN before The Landing goes back up

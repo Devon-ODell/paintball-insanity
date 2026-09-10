@@ -296,7 +296,17 @@ function Hub.refreshPersonal(player: Player)
 		end
 	end
 
-	hub.board.setPersonal(player.DisplayName, bests)
+	--- Keyed by user, so a second player at the same board gets their own page
+	--- rather than replacing the first player's.
+	hub.board.setPersonal(player.UserId, player.DisplayName, bests)
+end
+
+--- Drops a player's page when they leave, so the board stops cycling through
+--- the records of somebody who is not standing at it.
+function Hub.forgetPersonal(userId: number)
+	if hub and hub.board and hub.board.forgetPersonal then
+		hub.board.forgetPersonal(userId)
+	end
 end
 
 --- Forces the board to re-read the live boards. Called after a submission, so a

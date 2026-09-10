@@ -49,6 +49,16 @@ export type Submission = {
 	eliminations: number,
 	roundsCleared: number,
 	roundsPlayed: number,
+	--[[
+		Waves survived, on a board that ranks on depth rather than time.
+
+		Horde never finishes, so `breakdown.cleared` is always false and the
+		submission was gated on it -- the declared wave leaderboard never wrote a
+		single row in its life. A depth is not a time and cannot share a board
+		with one: bigger is better, and the five-round validation below describes
+		a gauntlet.
+	]]
+	depth: number?,
 }
 
 export type Entry = {
@@ -56,6 +66,8 @@ export type Entry = {
 	userId: number,
 	displayName: string,
 	seconds: number,
+	--- Waves survived, on a depth board. Absent on a time board.
+	depth: number?,
 	tier: Types.BotTier?,
 	marker: string?,
 	deaths: number?,
@@ -72,8 +84,41 @@ export type Entry = {
 	rather than a silent false, because the only way to find out that a legitimate
 	run was being refused is to have logged why.
 ]]
+--- How a mode's board is ranked. Absent means a time board, which is what every
+--- stored row was before there was more than one mode.
+function Leaderboard.boardRules(mode: string?): any
+	local boards = Config.get("leaderboard").boards or {}
+	return boards[mode or "gauntlet"] or { rankBy = "time", ascending = true }
+end
+
 function Leaderboard.validate(submission: Submission, expectedEliminations: number): (boolean, string?)
 	local rules = Config.require("leaderboard", "validation")
+
+	--[[
+		A depth board has its own rules, because the time board's cannot apply.
+
+		"All rounds cleared" is meaningless in a mode with no last round, and
+		"eliminations match the schedule" is meaningless when the schedule is
+		written one wave at a time as the player survives them. What IS checkable
+		is that the depth is a real, positive, whole number of waves that were
+		actually played.
+	]]
+	if Leaderboard.boardRules(submission.mode).rankBy == "depth" then
+		local depth = submission.depth
+		if type(depth) ~= "number" or depth ~= depth then
+			return false, "depth is not a number"
+		end
+		if depth <= 0 then
+			return false, "no waves were survived"
+		end
+		if depth ~= math.floor(depth) then
+			return false, "depth is not a whole number of waves"
+		end
+		if depth > submission.roundsPlayed then
+			return false, `survived {depth} of {submission.roundsPlayed} waves played`
+		end
+		return true, nil
+	end
 
 	if rules.requireAllRoundsCleared and submission.roundsCleared < submission.roundsPlayed then
 		return false, `only cleared {submission.roundsCleared} of {submission.roundsPlayed} rounds`
@@ -126,7 +171,17 @@ end
 --- with fewer deaths ahead, which is the tiebreak the rest of the game uses.
 function Leaderboard.rank(entries: { any }): { Entry }
 	local sorted = table.clone(entries)
+	--- A depth board ranks on waves, deepest first. Ties go to the run that
+	--- spent fewer respawns getting there, which is the same tiebreak a time
+	--- board uses and the same rule the whole game is balanced on.
+	local byDepth = #sorted > 0 and sorted[1].depth ~= nil
 	table.sort(sorted, function(a, b)
+		if byDepth then
+			if (a.depth or 0) ~= (b.depth or 0) then
+				return (a.depth or 0) > (b.depth or 0)
+			end
+			return (a.deaths or 0) < (b.deaths or 0)
+		end
 		if math.abs(a.seconds - b.seconds) > 1e-9 then
 			return a.seconds < b.seconds
 		end
@@ -140,6 +195,7 @@ function Leaderboard.rank(entries: { any }): { Entry }
 			userId = entry.userId,
 			displayName = entry.displayName,
 			seconds = entry.seconds,
+			depth = entry.depth,
 			tier = entry.tier,
 			marker = entry.marker,
 			deaths = entry.deaths,
@@ -181,6 +237,20 @@ local function timesFor(map: string, mode: string?): OrderedDataStore
 	return store
 end
 
+--[[
+	The metadata key for one player's row on one board.
+
+	Gauntlet keeps the bare `{map}_{userId}` key it has always had, so no stored
+	decoration is orphaned; every other mode gets its own, which is what stops a
+	course best from overwriting a gauntlet best's tier and marker.
+]]
+function Leaderboard.metaKey(map: string, mode: string?, userId: number): string
+	if mode == nil or mode == "gauntlet" then
+		return `{map}_{userId}`
+	end
+	return `{map}_{mode}_{userId}`
+end
+
 local function meta(): DataStore
 	if metaStore then
 		return metaStore :: DataStore
@@ -211,14 +281,29 @@ function Leaderboard.submit(submission: Submission, expectedEliminations: number
 		log.warn(`dev mode: {submission.map} time written to the quarantined board only`)
 	end
 
-	local value = Leaderboard.toCentiseconds(submission.seconds)
+	--[[
+		What this board stores, and which direction is better.
+
+		A time board keeps centiseconds and small wins. A depth board keeps
+		whole waves and BIG wins, so the improvement test flips -- writing the
+		time comparison against a depth would have kept the shallowest run
+		anybody ever managed.
+	]]
+	local board = Leaderboard.boardRules(submission.mode)
+	local depthBoard = board.rankBy == "depth"
+	local value = if depthBoard
+		then math.floor(submission.depth :: number)
+		else Leaderboard.toCentiseconds(submission.seconds)
 	local key = tostring(submission.userId)
 
 	local wrote = false
 	local success, err = pcall(function()
 		timesFor(submission.map, submission.mode):UpdateAsync(key, function(existing: number?)
-			if existing and existing <= value then
-				return nil
+			if existing then
+				local better = if depthBoard then value > existing else value < existing
+				if not better then
+					return nil
+				end
 			end
 			wrote = true
 			return value
@@ -233,13 +318,24 @@ function Leaderboard.submit(submission: Submission, expectedEliminations: number
 		return false, "not a personal best"
 	end
 
+	--[[
+		Metadata is per BOARD, not per map.
+
+		The times themselves were already separated by mode -- `timesFor` scopes
+		the store by `{map}_{mode}` -- but the decoration next to each name was
+		keyed on `{map}_{userId}` alone. So a Shoothouse personal best
+		overwrote the tier, marker and out count shown against that player's
+		gauntlet time on the same field, and vice versa: two boards, one row of
+		metadata, whichever mode posted last.
+	]]
 	local metaSuccess, metaErr = pcall(function()
-		meta():SetAsync(`{submission.map}_{key}`, {
+		meta():SetAsync(Leaderboard.metaKey(submission.map, submission.mode, submission.userId), {
 			displayName = submission.displayName,
 			tier = submission.tier,
 			marker = submission.marker,
 			deaths = submission.deaths,
 			seconds = submission.seconds,
+			depth = submission.depth,
 			at = os.time(),
 		})
 	end)
@@ -249,7 +345,11 @@ function Leaderboard.submit(submission: Submission, expectedEliminations: number
 		log.warn(`meta store write failed for {submission.map}: {metaErr}`)
 	end
 
-	log.info(`{submission.displayName} set {Leaderboard.formatTime(submission.seconds)} on {submission.map}`)
+	if depthBoard then
+		log.info(`{submission.displayName} reached wave {value} on {submission.map}`)
+	else
+		log.info(`{submission.displayName} set {Leaderboard.formatTime(submission.seconds)} on {submission.map}`)
+	end
 	return true, nil
 end
 
@@ -261,10 +361,12 @@ end
 function Leaderboard.top(map: string, count: number?, mode: string?): { Entry }
 	local limit = count or Config.require("leaderboard", "display.topCount")
 
+	--- Ascending on a time board, where small is good; descending on a depth
+	--- board, where the deepest run is the one anybody wants to see.
+	local board = Leaderboard.boardRules(mode)
 	local rows: { any } = {}
 	local success, err = pcall(function()
-		-- Ascending: on a time board, small is good.
-		local pages = timesFor(map, mode):GetSortedAsync(true, limit)
+		local pages = timesFor(map, mode):GetSortedAsync(board.ascending ~= false, limit)
 		for _, row in ipairs(pages:GetCurrentPage()) do
 			table.insert(rows, row)
 		end
@@ -289,17 +391,20 @@ function Leaderboard.top(map: string, count: number?, mode: string?): { Entry }
 		readFailed[map] = nil
 	end
 
+	local depthBoard = board.rankBy == "depth"
 	local entries: { any } = {}
 	for _, row in ipairs(rows) do
-		local seconds = Leaderboard.fromCentiseconds(row.value)
 		local detail: any = nil
 		pcall(function()
-			detail = meta():GetAsync(`{map}_{row.key}`)
+			--- Per board, so a course best cannot overwrite the tier and marker
+			--- shown against a gauntlet best on the same field.
+			detail = meta():GetAsync(Leaderboard.metaKey(map, mode, tonumber(row.key) or 0))
 		end)
 		table.insert(entries, {
 			userId = tonumber(row.key) or 0,
 			displayName = (detail and detail.displayName) or `Player {row.key}`,
-			seconds = seconds,
+			seconds = if depthBoard then (detail and detail.seconds) or 0 else Leaderboard.fromCentiseconds(row.value),
+			depth = if depthBoard then row.value else nil,
 			tier = detail and detail.tier,
 			marker = detail and detail.marker,
 			deaths = detail and detail.deaths,

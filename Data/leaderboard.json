@@ -15,6 +15,15 @@
     "_pages": "The board cycles: one page per map, then a personal-bests page. Cycling rather than paging by input means the board is readable while you walk past it, which is the only way anyone will ever read it."
   },
 
+  "_boards": "What a board RANKS on, per mode. Everything here was a time board because the gauntlet was the only mode; horde is not a time, it is a depth, and bigger is better. A mode absent from this table is a time board, which is what every stored row was before this existed.",
+  "boards": {
+    "horde": {
+      "rankBy": "depth",
+      "ascending": false,
+      "_note": "Waves survived. Horde never finishes, so `cleared` is always false and gating submission on it meant the declared wave leaderboard never wrote a single row. It is ranked on how deep you got, descending, with its own validation -- the five-round rules below describe a gauntlet and cannot describe a mode with no last round."
+    }
+  },
+
   "validation": {
     "_note": "A leaderboard is the one place in this game where a bad number is permanent, so submissions are gated hard. Anything rejected is logged with its reason rather than silently dropped.",
     "minimumSecondsPerRound": 4.0,

@@ -54,6 +54,27 @@ export type Params = {
 }
 
 --[[
+	Boss waves actually beaten.
+
+	`Endless.payoutFor` has taken a boss count since it was written and the only
+	caller passed a literal zero, so `endless.payout.bossBonus` was authored,
+	tuned and multiplied by nothing on every run. A boss is the hardest thing in
+	the mode and it paid exactly what an ordinary wave of the same depth paid.
+
+	Counted from cleared reports the same way depth is, so the wave you died on
+	does not pay -- including if it was the boss.
+]]
+local function bossesBeaten(reports: { any }): number
+	local count = 0
+	for _, report in ipairs(reports) do
+		if report.cleared and report.isBoss then
+			count += 1
+		end
+	end
+	return count
+end
+
+--[[
 	Returns the payout breakdown, and the course record when there is one.
 
 	The course branch writes the run's record as a side effect --
@@ -80,7 +101,8 @@ end
 function Settlement.payout(handle: any, params: Params): (any, any)
 	if params.isHorde then
 		local depth = wavesSurvived(params.reports)
-		local total = Endless.payoutFor(depth, 0)
+		local bosses = bossesBeaten(params.reports)
+		local total = Endless.payoutFor(depth, bosses)
 		--[[
 			Depth is charged for deaths the same way a gauntlet is. Payout.apply
 			owns that curve, so horde cannot drift from the rule the rest of the
@@ -92,6 +114,16 @@ function Settlement.payout(handle: any, params: Params): (any, any)
 			roundsCleared = depth,
 			roundsPlayed = #params.reports,
 			wavesSurvived = depth,
+			bossesBeaten = bosses,
+			--[[
+				The death penalty, stated rather than left to a default.
+
+				The summary panel reads `deathPenalty` and shows x1 when it is
+				absent, so a horde run that lost half its payout to respawns
+				reported a full one. The number below is the number that was
+				actually applied.
+			]]
+			deathPenalty = Payout.deathPenalty(params.deaths),
 		}, nil
 	end
 	if not params.isCourse then
