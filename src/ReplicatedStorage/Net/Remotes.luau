@@ -85,6 +85,21 @@ local DEFINITIONS = {
 		is only lying to its own coach.
 	]]
 	ReportAim = "Event",
+	--[[
+		Crouch and lean, as INTENT rather than as a field on a fire request.
+
+		Crouch reached `Spread` as a boolean on the shot itself, so a client
+		could claim to be crouched while standing still and collect the tighter
+		cone without ever crouching. Lean was not transmitted at all: the camera
+		moved half a metre around a corner and the authoritative muzzle stayed in
+		the middle of the body, so the player saw a clear shot and the ball hit
+		the wall.
+
+		Still not trusted as fact. `Match/PlayerState` holds it as a state,
+		checks the crouch against the speed it actually observes, and clamps the
+		lean to the offset the tuning file allows.
+	]]
+	ReportStance = "Event",
 
 	-- Server -> client results and state.
 	ShotResolved = "Event",

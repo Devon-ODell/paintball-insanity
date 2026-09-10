@@ -167,7 +167,7 @@ local function runRound(ctx: RoundContext): RoundReport
 		tuned build measurable at all.
 	]]
 	local kit = Loadout.resolve(nil, markerData)
-	local playerLoudness = kit.loudnessMultiplier * (markerData.loudness or 1)
+	local playerLoudness = kit.loudnessMultiplier
 	local spec = ctx.spec
 	local round = ctx.round
 	local log = ctx.log

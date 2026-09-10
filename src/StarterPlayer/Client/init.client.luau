@@ -502,6 +502,8 @@ end
 Remotes.event("LoadoutChanged").OnClientEvent:Connect(applyLoadout)
 
 Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
+	-- Range entry transports its loadout and unlimited-refill snapshot together.
+	if payload.loadout and payload.kit then applyLoadout(payload.loadout, payload.kit) end
 	if payload.ctf and payload.phase == phase and not payload.mode and not payload.round then
 		applyFlags(payload.ctf)
 		return
@@ -686,6 +688,38 @@ task.spawn(function()
 		task.wait(uiCfg.aimReportSeconds)
 		if (phase == "live" or phase == "warmup") and not respawning then
 			Remotes.event("ReportAim"):FireServer(camera.CFrame.LookVector)
+		end
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- Stance, so the server's muzzle and cone match what the player can see
+--------------------------------------------------------------------------------
+
+--[[
+	Crouch and lean, sent when they CHANGE.
+
+	Crouch used to ride on the fire request, which made it something a client
+	could assert one shot at a time -- claim a crouch while standing still and
+	collect the tighter cone without ever crouching. Lean was never sent at all,
+	so the camera moved half a metre around a corner while the authoritative
+	muzzle stayed in the middle of the body: the player saw a clear shot and the
+	ball hit the wall.
+
+	On change rather than on a timer, because a stance is something you are IN,
+	and a player crouched behind cover for a minute should not be spending a
+	packet a frame to say so.
+]]
+task.spawn(function()
+	local lastCrouch, lastLean = false, 0
+	while true do
+		task.wait(uiCfg.aimReportSeconds)
+		local inputState = Input.state()
+		local crouching = inputState.crouching == true or inputState.sliding == true
+		local lean = inputState.lean or 0
+		if crouching ~= lastCrouch or lean ~= lastLean then
+			lastCrouch, lastLean = crouching, lean
+			Remotes.event("ReportStance"):FireServer(crouching, lean)
 		end
 	end
 end)

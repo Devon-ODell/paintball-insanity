@@ -120,10 +120,17 @@ local MAX_FUNCTION_LINES = 150
 	already relaxed for.
 ]]
 local KNOWN_LONG: { [string]: number } = {
-	--- 1133 -> 1143 when the resolved loadout reached the match. Gear stats had
-	--- specs, a shop and prices and no production caller at all; sprint, reload,
-	--- loudness and pod count reached nothing.
-	["MatchService.start"] = 1143,
+	--[[
+		1133 -> 1188 across two connections that had to happen inside the match.
+
+		The resolved loadout: gear stats had specs, a shop and prices and no
+		production caller at all, so sprint, reload, loudness and pod count
+		reached nothing. And the server's own view of the player: position
+		bounded by the speed their kit allows, crouch held as a state rather than
+		asserted per shot, and a muzzle that follows the stance the server
+		believes rather than standing chest height regardless.
+	]]
+	["MatchService.start"] = 1188,
 	["PoleBarn.build"] = 742,
 	["Overworld.build"] = 546,
 	--- 413 -> 435 for the same reason, and it HAS to happen here too: a gear stat

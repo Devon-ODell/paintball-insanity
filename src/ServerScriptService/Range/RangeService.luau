@@ -33,6 +33,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Log = require(ReplicatedStorage.Shared.Log)
 local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
 local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
+local Loadout = require(ReplicatedStorage.Shared.Loadout)
 local Remotes = require(ReplicatedStorage.Net.Remotes)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local Spread = require(ReplicatedStorage.Shared.Spread)
@@ -867,6 +868,7 @@ function RangeService.start(player: Player, drillId: string, seed: number?): boo
 	local cfg = Config.get("range")
 	local ballisticsData = Config.get("ballistics")
 	local markerData = Config.require("markers", "markers." .. handle.data.loadout.marker)
+	local kit = Loadout.forRange(handle.data)
 	local rootSeed = seed or math.floor(os.clock() * 1000) % 2147483647
 	local rng = Rng.new(rootSeed)
 
@@ -898,7 +900,7 @@ function RangeService.start(player: Player, drillId: string, seed: number?): boo
 		targetFolder = targetFolder,
 		targetColour = Color3.fromRGB(targetRgb[1], targetRgb[2], targetRgb[3]),
 		projectiles = ProjectileSim.new(collisionWorld(cfg), ballisticsData),
-		markerState = MarkerState.new(markerData),
+		markerState = MarkerState.new(markerData, kit),
 		spread = Spread.new(markerData, Config.get("match").player, rng:fork(500)),
 		--[[
 			Where the crosshair has been, on the drill's own clock.
@@ -963,6 +965,8 @@ function RangeService.start(player: Player, drillId: string, seed: number?): boo
 		phase = "live",
 		map = "range",
 		mode = "range",
+		loadout = handle.data.loadout,
+		kit = kit,
 		drill = drillId,
 		drillName = drillCfg.displayName,
 		fundamental = drillCfg.fundamental,

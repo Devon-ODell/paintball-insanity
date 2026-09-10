@@ -157,7 +157,7 @@ simulator and the live game cannot describe different games.
 ### Where the gates stand, 2026-09-10
 
 `lune run tools/check-all`: **21 of 23 gates pass.** The spec suite is
-**555 passed, 1 failed, 0 skipped across 24 spec files** (the audit measured 526
+**569 passed, 1 failed, 0 skipped across 25 spec files** (the audit measured 526
 passed / 2 failed across 24).
 
 The two failures are both known and neither is new:
@@ -172,23 +172,62 @@ The two failures are both known and neither is new:
   passes. No assertion was weakened; the difference is the squad being able to
   hear the player, which is measured above.
 
+### Stance, muzzle and objective movement (finding 09)
+
+The server already owned the thing that matters most: a hit is decided by its
+own swept simulation against its own view of the field, and there is no
+client-reported-hit remote anywhere in this project. Two things it did **not**
+own:
+
+- **Position.** It took the character's replicated root position as fact. That
+  is fine for a hit test -- a player who teleports still has to aim -- and it is
+  not fine for **Capture the Flag**, which scores on proximity to a flag and to
+  a home base. Forging a hit and forging a position are different problems and
+  only the first was solved. `Match/PlayerState` bounds movement by the top
+  speed the player's own kit allows; a refused sample leaves them at the last
+  place they could actually have been, so refused steps cannot accumulate into a
+  walk across the map. A respawn is announced as legitimate rather than inferred.
+- **Stance.** Crouch reached `Spread` as a **boolean on the fire request**, so a
+  client standing still could claim a crouch and collect the 0.72x cone without
+  ever crouching. Lean was not transmitted at all: the camera moved half a metre
+  around a corner while the authoritative muzzle stayed in the middle of the
+  body, so the player saw a clear shot and the ball hit the wall. And crouching
+  lowered the camera while the muzzle stayed at standing chest height, so
+  shooting over low cover cleared the lip on screen and hit it authoritatively.
+
+Stance is now a state the server holds (`ReportStance`, sent on change), granted
+only when the observed speed is slow enough to be a crouch, with the lean clamped
+to the authored offset -- and the muzzle follows it. 14 specs in
+`tests/PlayerState.spec.luau`.
+
+This is a **bound, not a proof.** Roblox's character controller is
+client-authoritative and a replicated position cannot be proven. The tolerance is
+deliberately generous because replication arrives late and in bursts; catching a
+teleport across the map is worth more than fighting ordinary jitter.
+
+### A note on concurrent work
+
+`CLAUDE.md` says Horde is owned by another agent's pass. During this session that
+agent added a `Notice` remote -- a presentation-only event that cannot change
+activity -- which is the correct fix for the delayed-commerce half of finding 11
+and better than replacing the phase on a `MatchStateChanged`. It was preserved
+rather than duplicated. Their changes were swept into this pass's commits by
+`git add -A`; nothing of theirs was reverted.
+
 ### Still open from Handoff 003
 
 - **Finding 06, appearance half.** Purchased jerseys, helmets, shoulders and
   masks still do not appear on the player's own avatar. `Wardrobe` dresses
   authored NPC and bot outfits; a composable per-slot system attached to a real
   Roblox character is a separate piece of work and cannot be verified headlessly.
-- **Finding 09, stance and muzzle coherence.** Crouch, slide and lean still move
-  the camera while the server uses a standing capsule and a chest muzzle, no
-  lean intent is transmitted, and crouch is partly inferred from a client
-  boolean. Movement and CTF capture positions are still taken from the replicated
-  root without displacement validation.
-- **Finding 11, delayed commerce notices** can still put the client into hub
-  phase while server combat is live.
-- **The two balance acceptance specs** (`punishes trading harder than holding
-  angles`, `orders Speedball below Woods by a wide margin`) still fail, as they
-  did at the audit. They were not touched, and the difficulty change above is
-  measured separately rather than being used to explain them away.
+- **Finding 09, the hitbox half.** Crouching now lowers the muzzle and the cone,
+  but it does not shrink the target the squad aims at: `AimModel` still aims at a
+  standing capsule, so crouching behind low cover does not make you harder to
+  hit. That is a promised cover mechanic and it is not implemented.
+- **One balance acceptance spec** still fails: `punishes trading harder than
+  holding angles`. The other one the audit reported, `orders Speedball below
+  Woods by a wide margin`, now passes. No assertion was weakened; the difference
+  is the squad being able to hear the player, which is measured above.
 - **Rendered validation remains open** exactly as the audit left it: meshes,
   audio delivery, first-person sight picture, frame time, safe areas, real
   DataStore persistence.

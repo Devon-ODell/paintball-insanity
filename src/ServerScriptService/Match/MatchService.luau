@@ -41,6 +41,7 @@ local Server = script.Parent.Parent
 local ProjectileSim = require(Server.Ballistics.ProjectileSim)
 local LagCompensation = require(Server.Ballistics.LagCompensation)
 local BotController = require(Server.Bots.BotController)
+local PlayerState = require(Server.Match.PlayerState)
 local SquadCoordinator = require(Server.Bots.SquadCoordinator)
 local Chatter = require(Server.Bots.Chatter)
 local Course = require(Server.Match.Course)
@@ -507,6 +508,17 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	]]
 	local kit = Loadout.resolve(handle.data, markerData)
 	--[[
+		What the server believes about where this player is and what they are
+		doing, as opposed to what their client says.
+
+		Position matters because Capture the Flag scores on proximity to a flag
+		and to a home base -- forging a hit and forging a position are different
+		problems, and only the first one was solved. Stance matters because the
+		crouch cone and the leaning muzzle were both decided by the client. See
+		`Match/PlayerState` for what is bounded and what cannot be.
+	]]
+	local playerState = PlayerState.new(kit)
+	--[[
 		How loud this player is, which nothing used to ask.
 
 		`playerLoudness` was set for a CTF flag carrier and nil for everybody
@@ -516,7 +528,6 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		electro) and it is the headline tradeoff on the quiet ones; combined
 		with the kit's, that whole axis bought exactly nothing.
 	]]
-	local markerLoudness = markerData.loudness or 1
 	local markerState = MarkerState.new(markerData, kit)
 	local respawning = false
 	--- Last time the invulnerability override told the player it had eaten a
@@ -772,7 +783,6 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		if not ground then
 			return
 		end
-		local muzzle = (ground :: Vector3) + Vector3.new(0, hitbox.chestHeightMetres, 0)
 
 		-- Client origin is prediction metadata only. Always fire from the server's
 		-- own muzzle; replication lag must not discard a legitimate trigger pull.
@@ -785,7 +795,26 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		end
 
 		local velocity = playerVelocity(player)
-		local stance = spread:stance(velocity, request.stance == "crouching") :: Types.Stance
+		--[[
+			The stance the SERVER believes, not the one the packet claims.
+
+			`request.stance == "crouching"` was passed straight into `Spread`, so
+			a client standing still could claim a crouch and collect the 0.72x
+			cone without ever crouching. `PlayerState` holds the crouch as a
+			state it was told about separately, and grants it only when the speed
+			it actually observed is slow enough to be one.
+		]]
+		local stance = PlayerState.stanceFor(playerState, velocity, player)
+		--[[
+			And the muzzle follows that stance, including the lean.
+
+			Crouching lowers the camera and the muzzle stayed at standing chest
+			height, so shooting over low cover cleared the lip on screen and hit
+			it authoritatively. Leaning moved the camera half a metre around a
+			corner and the muzzle stayed in the middle of the body, so the player
+			saw an angle the server did not have.
+		]]
+		local muzzle = PlayerState.muzzle(playerState, ground :: Vector3, request.direction, stance)
 		local shotDirection = spread:fire(request.direction, t, stance)
 
 		local candidates: { ShotMeasure.Candidate } = {}
@@ -832,6 +861,18 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		end
 	end)
 
+	--[[
+		Crouch and lean, as a state the server holds.
+
+		Separate from the fire request on purpose: a stance is something you are
+		IN, and putting it on the shot made it something you could assert one
+		shot at a time. See `Match/PlayerState`.
+	]]
+	local stanceConnection = Remotes.event("ReportStance").OnServerEvent:Connect(function(who, crouching, lean)
+		if who == player and not finished then
+			PlayerState.setIntent(playerState, crouching, lean)
+		end
+	end)
 	local reloadConnection = Remotes.event("RequestReload").OnServerEvent:Connect(function(reloadingPlayer)
 		if reloadingPlayer == player and not finished and not respawning and intermissionUntil == nil and RoundState.shotsCount(state) then
 			markerState:reload(t)
@@ -1030,7 +1071,12 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 
 		local ground = playerGroundPosition(player)
 		if not ground and not ctf then return end
-		local playerPosition = ground or ctf.lastPosition
+		--- The position the SERVER is willing to believe -- see `PlayerState`.
+		--- A respawn is announced as legitimate: the server does those itself.
+		if ground then
+			PlayerState.observe(playerState, ground :: Vector3, t, respawning)
+		end
+		local playerPosition = (ground and PlayerState.believedPosition(playerState)) or ground or ctf.lastPosition
 		local velocity = playerVelocity(player)
 		spread:step(dt, t, velocity)
 		local playerAlive = ground ~= nil and not respawning and t >= invulnerableUntil
@@ -1058,9 +1104,8 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				chatter = say,
 				meleeRules = meleeRules,
 				navigate = if ctf then ctf:navigator(bot, index, bots, t) else nil,
-				--- Always, not only for a flag carrier -- see `markerLoudness`.
-				--- A carrier's cost still applies on top.
-				playerLoudness = kit.loudnessMultiplier * markerLoudness
+				--- Loadout already includes the marker and attachment loudness.
+				playerLoudness = kit.loudnessMultiplier
 					* (if ctf and ctf.rules.flags.enemy.carrier == "player"
 						then ctf.rules:carrierModifiers("player").loudness else 1),
 				meleePlayer = function(swinger: any)
@@ -1284,6 +1329,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		end
 		fireConnection:Disconnect()
 		reloadConnection:Disconnect()
+		stanceConnection:Disconnect()
 		swingConnection:Disconnect()
 		active[player] = nil
 		if ctf then ctf:destroy(); clearSquad(); projectiles:clear() end

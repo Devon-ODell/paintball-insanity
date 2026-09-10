@@ -627,4 +627,43 @@ for _, sent in ipairs(event("MatchSummary").sent) do
 	assert((sent.payout or 0) == 0, "a drill must never pay out")
 end
 
+-- Practice must agree with the equipped marker's handling without a pod cap.
+do
+ local Profile = env.require(env.Server.Economy.Profile)
+ local MarkerState = env.require(env.Shared.MarkerState)
+ local handle = Profile.load(player.UserId)
+ local saved = handle.data.loadout
+ handle.data.loadout = table.clone(saved)
+ handle.data.loadout.hopper = "forceFed"
+ handle.data.loadout.tank = "carbon"
+ resetEvents()
+ assert(RangeService.start(player, "popup", 99))
+ local entry = event("MatchStateChanged").sent[1]
+ assert(entry.kit and entry.loadout, "Range entry must include its resolved kit")
+ assert(entry.kit.podCount == nil, "practice refills must be unlimited")
+ local predicted = MarkerState.new(markerData, entry.kit)
+ assert(predicted.capacity > markerData.hopperCapacity, "equipped hopper did not reach practice")
+ assert(predicted.reloadSeconds < markerData.reloadSeconds, "equipped tank did not reach practice")
+ local fire = { origin = Units.vectorToStuds(muzzle), direction = V3.yAxis, stance = "standing", clientTime = 0 }
+ assert(predicted:fire(0))
+ event("FireMarker").OnServerEvent:fire(player, fire)
+ assert(event("MarkerFired").sent[1].ammo == predicted.ammo, "Range server and prediction disagree on hopper capacity")
+ event("RequestReload").OnServerEvent:fire(player)
+ assert(predicted:reload(0))
+ heartbeat:fire(predicted.reloadSeconds + 0.01)
+ assert(predicted:fire(predicted.reloadSeconds + 0.01))
+ event("FireMarker").OnServerEvent:fire(player, fire)
+ assert(#event("MarkerFired").sent == 2, "Range server did not complete the equipped reload on time")
+ assert(event("MarkerFired").sent[2].ammo == predicted.ammo, "Range reload refilled to a different capacity")
+ -- More refills than any finite stock must stay available in the prediction.
+ for i = 1, 12 do
+  local now = i * (predicted.reloadSeconds + 1)
+  predicted:update(now)
+  predicted:fire(now)
+  assert(predicted:reload(now), "practice prediction ran out of pods")
+ end
+ RangeService.stop(player)
+ handle.data.loadout = saved
+end
+
 print(string.format("Range checks passed: all %d drills ran end to end.", #Drills.list()))
