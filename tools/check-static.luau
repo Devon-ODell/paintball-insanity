@@ -156,10 +156,13 @@ local KNOWN_LONG: { [string]: number } = {
 	["SimMatch.run"] = 166,
 	["BotAvatar.new"] = 162,
 	["ShopUi.open"] = 158,
-	--- 157 -> 197 when the board stopped having exactly one personal page and
+	--- 157 -> 217 when the board stopped having exactly one personal page and
 	--- exactly one board per map. Times were separated by mode when WRITTEN and
-	--- read back with no mode at all, so every page was the gauntlet one.
-	["NoticeBoard.build"] = 197,
+	--- read back with no mode at all, so every page was the gauntlet one -- and
+	--- once there were other pages, every caption on them had to stop saying
+	--- "ALL 5 ROUNDS" and every row had to stop printing a time on a board
+	--- that ranks on depth.
+	["NoticeBoard.build"] = 217,
 }
 
 local ADVISORY_FUNCTION_LINES = 60

@@ -627,7 +627,15 @@ RangeService.onFinished = function(player: Player, _result)
 		now carries the whole result and the client renders it; the player walks
 		back to The Landing either way.
 	]]
-	returnToHub(player, Hub.gateReturnPosition("range"))
+	--[[
+		`keepResults`, for the same reason a match keeps them.
+
+		`Hud.showDrillResult` builds the same "Summary" layer the match report
+		does, and the client's hub branch calls `Hud.hideSummary` -- so returning
+		without this destroyed the drill panel a frame after `DrillScore` created
+		it, which is exactly the failure this whole path was rewritten to stop.
+	]]
+	returnToHub(player, Hub.gateReturnPosition("range"), true)
 end
 
 --- Walking into a trailhead and holding the key starts that map's five rounds.

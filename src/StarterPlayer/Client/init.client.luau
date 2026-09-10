@@ -712,13 +712,23 @@ end)
 ]]
 task.spawn(function()
 	local lastCrouch, lastLean = false, 0
+	--[[
+		Re-sent whenever the phase changes, not only when the stance does.
+
+		The server builds a fresh `PlayerState` for every match and drill, so its
+		idea of the stance starts at "standing" each time -- while this loop's
+		memory of what it last sent lives for the whole session. A player who
+		walked to a gate already crouched would never re-report it, and the crouch
+		would be inert for that entire match.
+	]]
+	local lastRevision = -1
 	while true do
 		task.wait(uiCfg.aimReportSeconds)
 		local inputState = Input.state()
 		local crouching = inputState.crouching == true or inputState.sliding == true
 		local lean = inputState.lean or 0
-		if crouching ~= lastCrouch or lean ~= lastLean then
-			lastCrouch, lastLean = crouching, lean
+		if crouching ~= lastCrouch or lean ~= lastLean or phaseRevision ~= lastRevision then
+			lastCrouch, lastLean, lastRevision = crouching, lean, phaseRevision
 			Remotes.event("ReportStance"):FireServer(crouching, lean)
 		end
 	end

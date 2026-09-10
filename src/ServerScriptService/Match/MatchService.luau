@@ -575,6 +575,17 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	local finished = false
 
 	local function spawnPlayer(at: Vector3)
+		--[[
+			The server is about to move the player, on purpose.
+
+			Declared before the move rather than inferred after it: the
+			`respawning` flag is cleared synchronously once the character is
+			placed, so no heartbeat ever saw it set at the new position, and the
+			jump from the death site to the spawn was refused as a teleport --
+			pinning the believed position, and therefore the squad's aim, at the
+			place the player had just died.
+		]]
+		PlayerState.teleported(playerState)
 		player:LoadCharacterAsync()
 		if finished or player.Parent ~= Players then return end
 		local character = player.Character

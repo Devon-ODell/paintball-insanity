@@ -122,6 +122,58 @@ env.globals.task = {
     delay = function(_, fn, ...) return runTask(fn, ...) end,
     wait = function(seconds) if coroutine.isyieldable() then coroutine.yield() end; return seconds or 0 end,
 }
+--[[
+	An ordered DataStore that actually stores things.
+
+	The harness hands back an inert service stub, so every leaderboard write in
+	this gate failed with "attempt to call missing method 'GetOrderedDataStore'"
+	-- and `Leaderboard.submit` handles that gracefully, returns "datastore
+	error", and the gate carried on. Which means the horde depth submission this
+	pass added was never exercised at all: it logged a warning nobody read and
+	proved nothing.
+
+	Only the two methods the leaderboard actually calls, backed by a table.
+]]
+local orderedStores: { [string]: any } = {}
+local plainStores: { [string]: any } = {}
+local dataStoreService = env.game:GetService("DataStoreService")
+dataStoreService.GetOrderedDataStore = function(_, name)
+	if not orderedStores[name] then
+		local rows: { [string]: number } = {}
+		orderedStores[name] = {
+			rows = rows,
+			UpdateAsync = function(_, key, transform)
+				local next_ = transform(rows[key])
+				if next_ ~= nil then rows[key] = next_ end
+				return rows[key]
+			end,
+			GetAsync = function(_, key) return rows[key] end,
+			GetSortedAsync = function(_, ascending, limit)
+				local page = {}
+				for key, value in pairs(rows) do table.insert(page, { key = key, value = value }) end
+				table.sort(page, function(a, b)
+					if ascending then return a.value < b.value end
+					return a.value > b.value
+				end)
+				while #page > limit do table.remove(page) end
+				return { GetCurrentPage = function() return page end }
+			end,
+		}
+	end
+	return orderedStores[name]
+end
+dataStoreService.GetDataStore = function(_, name)
+	if not plainStores[name] then
+		local rows: { [string]: any } = {}
+		plainStores[name] = {
+			rows = rows,
+			SetAsync = function(_, key, value) rows[key] = value end,
+			GetAsync = function(_, key) return rows[key] end,
+		}
+	end
+	return plainStores[name]
+end
+
 local service = env.require(env.Server.Match.MatchService)
 assert(service.start(player, "speedball", "rec", 123))
 assert(event("MatchStateChanged").sent[1].phase == "warmup")
@@ -388,6 +440,8 @@ do
     local hordePlayer = { UserId = 777, Name = "HordeProbe", DisplayName = "HordeProbe",
         Character = character, Parent = env.game:GetService("Players"),
         LoadCharacterAsync = function() end }
+    local hordeProfile = env.require(env.Server.Economy.Profile).load(hordePlayer.UserId)
+    assert(hordeProfile, "the horde probe needs a profile")
     assert(service.start(hordePlayer, "speedball", "rec", 99, "horde"), "horde must start")
 
     advance(matchData.warmupSeconds + 0.1)
@@ -418,7 +472,37 @@ do
     assert(Endless.round(4).intermissionSeconds == 0, "wave 4 should run straight on")
 
     service.stop(hordePlayer)
-    print(`Horde checks passed: six waves appended and cleared through the ordinary loop, {bodies} bodies fielded including reinforcements.`)
+
+    --[[
+        A horde run leaves something behind.
+
+        None of this used to happen. `Endless.payoutFor(depth, 0)` meant the
+        authored boss bonus was multiplied by a literal zero; no writer ever set
+        `hordeBest` or `bossesBeaten`, so The Long Afternoon's own chapter goals
+        could not be met by playing it; and the declared wave leaderboard was
+        gated on `breakdown.cleared`, which horde never is, so it never wrote a
+        single row in its life.
+    ]]
+    local hordeSummary = event("MatchSummary").sent[#event("MatchSummary").sent]
+    assert(hordeSummary and hordeSummary.breakdown.wavesSurvived == 6,
+        "the horde settlement must report the depth reached")
+    assert(hordeSummary.breakdown.deathPenalty ~= nil,
+        "horde settlement must state the death penalty it applied, or the summary shows x1")
+    assert(hordeProfile.data.hordeBest and hordeProfile.data.hordeBest.wave == 6,
+        `hordeBest was not written; Campaign reads it and nothing set it (got {tostring(hordeProfile.data.hordeBest and hordeProfile.data.hordeBest.wave)})`)
+
+    --- And it is on the board, which ranks on depth rather than on a time.
+    local prefix = env.require(env.Data.leaderboard).store.timesPrefix
+    local waveBoard = orderedStores[prefix .. "speedball_horde"]
+    assert(waveBoard, "the horde run never reached a wave board")
+    assert(waveBoard.rows[tostring(hordePlayer.UserId)] == 6,
+        `the wave board stored {tostring(waveBoard.rows[tostring(hordePlayer.UserId)])}, expected the depth 6`)
+    --- Its own board: a depth must never land on the gauntlet time board.
+    assert(orderedStores[prefix .. "speedball"] == nil
+            or orderedStores[prefix .. "speedball"].rows[tostring(hordePlayer.UserId)] == nil,
+        "a horde depth was written onto the gauntlet time board")
+
+    print(`Horde checks passed: six waves appended and cleared through the ordinary loop, {bodies} bodies fielded including reinforcements, depth 6 recorded and on its own board.`)
 end
 
 require("./CtfLiveChecks")({ env = env, service = service, event = event, advance = advance,

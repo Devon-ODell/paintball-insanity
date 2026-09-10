@@ -21,7 +21,18 @@ return function(ctx: any)
 		for i = #sent, 1, -1 do if sent[i].ctf then return sent[i].ctf end end
 		error("CTF never sent its HUD state")
 	end
-	profile.data.bestClears.woods = { deaths = 0 }
+	--[[
+		A player who has cleared Woods -- as a GAUNTLET.
+
+		This seeded `bestClears`, which used to be the map-unlock authority and
+		is not any more: it keeps the cleanest clear of a field whatever produced
+		it, so a flawless Shoothouse run masked a three-out gauntlet clear and
+		opened the next map on a mode the chapter gate does not accept.
+		`gauntletClears` is the one authority now, and this fixture asks for the
+		thing it is actually pretending to have.
+	]]
+	profile.data.bestClears.woods = { deaths = 0, tier = "rec", mode = "gauntlet" }
+	profile.data.gauntletClears = { woods = { rec = 0 } }
 	assert(not service.start(player, "holdfast", "rec", 54, "captureTheFlag"), "CTF chapter gate was bypassed")
 	table.insert(profile.data.chaptersCompleted, "backForty")
 	assert(not service.start(player, "speedball", "rec", 54, "captureTheFlag"), "CTF accepted an unsupported map")

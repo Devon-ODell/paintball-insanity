@@ -162,8 +162,22 @@ function NoticeBoard.build(cfg: any, palette: { [string]: Color3 }, parent: Inst
 			elseif pageMode then `{pageMode:upper()}  ·  {pageMap:upper()}`
 			else `FASTEST FULL CLEAR  ·  {pageMap:upper()}`,
 			30, INK, true)
+		--[[
+			What this page is ranked ON.
+
+			"ALL 5 ROUNDS" was hardcoded here and printed on every page,
+			including the personal page and -- once the boards were separated by
+			mode -- on the Shoothouse and Horde pages, neither of which is five
+			rounds of anything. A caption that is wrong on most of the pages it
+			appears on is worse than no caption.
+		]]
+		local depthPage = pageMode ~= nil and Leaderboard.boardRules(pageMode).rankBy == "depth"
 		text(header, UDim2.new(0.7, 0, 0, 0), UDim2.fromScale(0.3, 1),
-			"ALL 5 ROUNDS", 20, INK_SOFT)
+			if isPersonal then "YOUR GAUNTLET"
+			elseif depthPage then "DEEPEST RUN"
+			elseif pageMode then "FASTEST RUN"
+			else "ALL 5 ROUNDS",
+			20, INK_SOFT)
 
 		local rule = Instance.new("Frame")
 		rule.Size = UDim2.new(1, -60, 0, 2)
@@ -193,9 +207,12 @@ function NoticeBoard.build(cfg: any, palette: { [string]: Color3 }, parent: Inst
 		local entries = Leaderboard.top(pageMap, nil, pageMode)
 		if #entries == 0 then
 			text(canvas, UDim2.fromOffset(30, 120), UDim2.new(1, -60, 0, 40),
-				"No full clears recorded yet.", 26, INK_SOFT, true)
+				if depthPage then "No runs recorded yet." else "No full clears recorded yet.", 26, INK_SOFT, true)
 			text(canvas, UDim2.fromOffset(30, 162), UDim2.new(1, -60, 0, 30),
-				"Clear all five rounds and your name goes up here.", 20, INK_SOFT)
+				if depthPage then "Survive a wave and your name goes up here."
+				elseif pageMode then "Finish the course and your name goes up here."
+				else "Clear all five rounds and your name goes up here.",
+				20, INK_SOFT)
 			return
 		end
 
@@ -204,8 +221,11 @@ function NoticeBoard.build(cfg: any, palette: { [string]: Color3 }, parent: Inst
 			local line = row(canvas, y, 36)
 			text(line, UDim2.fromScale(0, 0), UDim2.fromScale(0.08, 1), `{entry.rank}.`, 22, INK_SOFT, true)
 			text(line, UDim2.fromScale(0.08, 0), UDim2.fromScale(0.42, 1), entry.displayName, 22, INK, entry.rank <= 3)
+			--- A depth board ranks on waves, and printing its metadata run length
+			--- as if it were the score would show a time nobody was ranked on --
+			--- or a bare 0:00 whenever the metadata read failed.
 			text(line, UDim2.fromScale(0.5, 0), UDim2.fromScale(0.22, 1),
-				Leaderboard.formatTime(entry.seconds), 22,
+				if depthPage then `wave {entry.depth or 0}` else Leaderboard.formatTime(entry.seconds), 22,
 				if entry.rank == 1 then HIGHLIGHT else INK, entry.rank == 1, "tabular")
 			text(line, UDim2.fromScale(0.72, 0), UDim2.fromScale(0.16, 1), entry.tier or "-", 19, INK_SOFT)
 			text(line, UDim2.fromScale(0.88, 0), UDim2.fromScale(0.12, 1),

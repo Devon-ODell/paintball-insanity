@@ -148,6 +148,24 @@ function PlayerState.believedPosition(self: State): Vector3?
 end
 
 --[[
+	Declares that the server itself just moved the player.
+
+	A respawn, a round change and a course checkpoint all move the player
+	instantly and on purpose. Passing `respawned` to the next `observe` cannot
+	express that reliably, because the flag that describes it is cleared
+	synchronously the moment the character is placed -- before any heartbeat runs
+	-- so the enormous jump from the death site to the spawn arrived looking
+	exactly like a teleport and was refused. The believed position then stayed
+	pinned at the death site for seconds, which is where the squad would have
+	been shooting.
+
+	Whoever does the moving says so, at the moment they do it.
+]]
+function PlayerState.teleported(self: State)
+	self.position = nil
+end
+
+--[[
 	The stance the server will grade this shot at.
 
 	Movement wins over crouch, because you cannot crouch-walk at sprint speed --
@@ -222,9 +240,16 @@ function PlayerState.muzzle(self: State, ground: Vector3, aim: Vector3, stance: 
 		local flat = Vector3.new(aim.X, 0, aim.Z)
 		if flat.Magnitude > 1e-6 then
 			local right = flat.Unit:Cross(Vector3.new(0, 1, 0))
-			--- The lean is to the player's right for +1, and `right` above is
-			--- Roblox's own object-space right for a forward vector.
-			muzzle -= right * (self.lean * player.leanOffsetMetres)
+			--[[
+				`forward x up` is Roblox's own RightVector: the identity CFrame
+				looks down -Z with +X to the right, and (0,0,-1) x (0,1,0) is
+				(1,0,0). The client sets `Humanoid.CameraOffset.X` to
+				`+leanOffset` for `lean = 1`, and CameraOffset is in the
+				character's local space where +X is its right -- so a positive
+				lean moves the camera to the player's right and the muzzle has
+				to follow it there.
+			]]
+			muzzle += right * (self.lean * player.leanOffsetMetres)
 		end
 	end
 	return muzzle

@@ -381,14 +381,18 @@ function Leaderboard.top(map: string, count: number?, mode: string?): { Entry }
 			679MB of it before anyone noticed. A failure is worth saying; saying
 			it a thousand times buries everything else in the log.
 		]]
-		if not readFailed[map] then
-			readFailed[map] = true
-			log.warn(`could not read the {map} board: {err}`)
+		--- Keyed per BOARD, not per map: a map has up to three of them now, and
+		--- keying on the map alone let one board's success clear another's
+		--- suppression flag, which put the warning back to once a cycle forever.
+		local boardKey = `{map}|{mode or "gauntlet"}`
+		if not readFailed[boardKey] then
+			readFailed[boardKey] = true
+			log.warn(`could not read the {boardKey} board: {err}`)
 		end
 		return {}
 	else
 		-- Recovered: allow the next failure to be reported.
-		readFailed[map] = nil
+		readFailed[`{map}|{mode or "gauntlet"}`] = nil
 	end
 
 	local depthBoard = board.rankBy == "depth"

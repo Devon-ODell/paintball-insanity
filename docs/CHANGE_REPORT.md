@@ -177,8 +177,28 @@ changes, so the simulator and the live game cannot describe different games.
 ### Where the gates stand, 2026-09-10
 
 `lune run tools/check-all`: **22 of 23 gates pass.** The spec suite is
-**572 passed, 0 failed, 0 skipped across 25 spec files.** The audit measured
+**574 passed, 0 failed, 0 skipped across 25 spec files.** The audit measured
 **526 passed / 2 failed across 24**, with 20 of 22 gates.
+
+A `/code-review` pass over this work's own diff found eight defects, all fixed
+and all now covered: an inverted lean offset that moved the muzzle to the wrong
+side (worse than not leaning at all, and the first version of the spec could not
+see it because it only checked magnitudes); the drill result panel being
+destroyed by the very return that was rewritten to preserve it; a legacy clear
+being lost to a later cleaner run in another mode, now migrated once on load
+rather than read as a fallback; every respawn being refused as a teleport because
+the flag describing it clears before any heartbeat sees it; a depth board
+printing times; "ALL 5 ROUNDS" captioning pages that are not; a stance held
+across a match boundary never being re-reported to a server that starts each
+match at "standing"; and one board's success clearing another's warning
+suppression.
+
+`run-live-checks` also got a **working ordered DataStore**. Every leaderboard
+write in that gate had been failing on the harness's inert service stub, which
+`Leaderboard.submit` handles gracefully -- so the horde depth submission added in
+this pass was never exercised at all. It now asserts the depth reached the wave
+board, that it did not land on the gauntlet time board, and that `hordeBest` and
+the death penalty were actually written.
 
 The one remaining failure is **`ship-check`**: `Data/dev.json` still has
 invulnerability, infinite currency and `unlockEverything` on. That is the release

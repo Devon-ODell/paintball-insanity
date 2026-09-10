@@ -130,6 +130,37 @@ function Profile.reconcile(data: Data)
 		end
 	end
 	merge(data, Config.require("economy", "profile.template"))
+
+	--[[
+		Clears recorded before a clear said which mode produced it.
+
+		`bestClears` used to be the map-unlock authority and holds the CLEANEST
+		clear of a field whatever produced it, so it could not answer "did you
+		clear this as a gauntlet" -- and a flawless Shoothouse run masked a
+		three-out gauntlet clear of the same map. `gauntletClears` is the
+		authority now.
+
+		Migrated once, here, rather than read as a fallback at unlock time. A
+		fallback would have been lost the moment a course run overwrote the
+		legacy row with a cleaner time, which would take a field away from
+		somebody who had earned it. These rows genuinely might have been gauntlet
+		clears and there is no way left to tell; the generous reading is the only
+		fair one, and doing it once means it cannot be undone by later play.
+	]]
+	data.gauntletClears = data.gauntletClears or {}
+	for map, best in pairs(data.bestClears or {}) do
+		if type(best) == "table" and best.mode == nil then
+			local tier = best.tier or "rec"
+			local byTier = data.gauntletClears[map] or {}
+			if byTier[tier] == nil then
+				byTier[tier] = best.deaths or 0
+			end
+			data.gauntletClears[map] = byTier
+			--- Stamped so the migration runs exactly once per row.
+			best.mode = "gauntlet"
+		end
+	end
+
 	data.version = Config.require("economy", "profile.template.version")
 end
 
@@ -483,20 +514,11 @@ function Profile.hasUnlocked(handle: Handle, map: string): boolean
 	if not rule then
 		return true
 	end
-	local required = rule.requiresClear
-	if (handle.data.gauntletClears or {})[required] ~= nil then
-		return true
-	end
-	--[[
-		A clear recorded before clears named their mode still counts.
-
-		Those genuinely might have been gauntlet clears and there is no way left
-		to tell; taking a field away from somebody who earned it would be worse
-		than the inconsistency this replaces. A row that DOES name its mode is
-		held to it.
-	]]
-	local best = handle.data.bestClears[required]
-	return best ~= nil and best.mode == nil
+	--- One authority. Clears recorded before they named their mode were migrated
+	--- into it once, by `Profile.reconcile`, rather than being read as a
+	--- fallback here -- a fallback would be lost the moment a course run
+	--- overwrote the legacy row with a cleaner time.
+	return (handle.data.gauntletClears or {})[rule.requiresClear] ~= nil
 end
 
 --- Test seam: wipes the in-memory fallback between specs.

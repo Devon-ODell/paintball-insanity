@@ -79,6 +79,28 @@ return function()
 			expect(state.rejections).to.equal(0)
 		end)
 
+		--[[
+			The server moving the player is not a teleport, and it has to SAY so.
+
+			`observe(..., respawned)` cannot carry this on its own: the flag that
+			describes a respawn is cleared synchronously the moment the character
+			is placed, before any heartbeat runs, so the jump from the death site
+			to the spawn arrived looking exactly like a teleport and was refused.
+			The believed position -- and therefore the squad's aim and line of
+			sight -- then stayed pinned where the player had just died.
+		]]
+		it("accepts wherever the server itself just put the player", function()
+			PlayerState.observe(state, Vector3.zero, 0)
+			PlayerState.teleported(state)
+			local believed, accepted = PlayerState.observe(state, Vector3.new(0, 0, 400), 0.1)
+			expect(accepted).to.equal(true)
+			expect(believed).to.equal(Vector3.new(0, 0, 400))
+			expect(state.rejections).to.equal(0)
+			--- And it does not disable the bound afterwards.
+			local _, second = PlayerState.observe(state, Vector3.new(0, 0, 900), 0.2)
+			expect(second).to.equal(false)
+		end)
+
 		--- Replication arrives late and in bursts, so a legitimate player's
 		--- apparent speed over one short sample is routinely above their real
 		--- one. The tolerance is for that, and catching a teleport across the
@@ -155,17 +177,37 @@ return function()
 			stayed in the middle of the body, so the player saw a clear angle on
 			somebody who was, authoritatively, still behind a wall.
 		]]
-		it("fires from where the lean put the camera", function()
+		--[[
+			And to the correct SIDE.
+
+			An earlier version of this had the sign inverted, which is worse than
+			not leaning at all: the camera went one way and the authoritative
+			muzzle went the other, so a right lean fired from 1.1 m to the LEFT
+			of where the player was looking from. A test that only checked
+			magnitudes and opposite signs could not see it, so this one names the
+			direction.
+
+			`forward x up` is Roblox's RightVector -- the identity CFrame looks
+			down -Z with +X right -- so a player facing +Z has their right at -X,
+			and `CameraOffset.X = +offset` for a right lean puts the camera
+			there.
+		]]
+		it("fires from where the lean put the camera, on the correct side", function()
 			local offset = Config.require("match", "player.leanOffsetMetres")
+			local expectedRight = aim.Unit:Cross(Vector3.new(0, 1, 0))
+
 			PlayerState.setIntent(state, false, 1)
 			local right = PlayerState.muzzle(state, ground, aim, "standing")
 			PlayerState.setIntent(state, false, -1)
 			local left = PlayerState.muzzle(state, ground, aim, "standing")
-			expect(math.abs(math.abs(right.X) - offset) < 1e-6).to.equal(true)
-			expect(math.abs(math.abs(left.X) - offset) < 1e-6).to.equal(true)
-			--- Opposite sides, and the lean does not change the height.
-			expect(right.X * left.X < 0).to.equal(true)
+			PlayerState.setIntent(state, false, 0)
+			local centred = PlayerState.muzzle(state, ground, aim, "standing")
+
+			expect(((right - centred) - expectedRight * offset).Magnitude < 1e-6).to.equal(true)
+			expect(((left - centred) + expectedRight * offset).Magnitude < 1e-6).to.equal(true)
+			--- And the lean does not change the height.
 			expect(math.abs(right.Y - left.Y) < 1e-6).to.equal(true)
+			expect(math.abs(right.Y - centred.Y) < 1e-6).to.equal(true)
 		end)
 
 		--[[

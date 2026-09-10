@@ -442,11 +442,42 @@ return function()
 			expect(Profile.hasUnlocked(handle, "dustline")).to.equal(true)
 		end)
 
-		--- A clear recorded before the mode was written down still counts:
-		--- taking a field away from somebody who earned it would be worse.
+		--[[
+			A clear recorded before the mode was written down still counts.
+
+			Those rows genuinely might have been gauntlet clears and there is no
+			way left to tell; taking a field away from somebody who earned it
+			would be worse than the inconsistency this replaces. Migrated on
+			load, which is where a returning player's save is reconciled.
+		]]
 		it("honours a clear recorded before clears named their mode", function()
 			local handle = freshProfile()
 			handle.data.bestClears.speedball = { deaths = 2, tier = "rec", marker = "mechanical", durationSeconds = 200 }
+			Profile.reconcile(handle.data)
+			expect(Profile.hasUnlocked(handle, "dustline")).to.equal(true)
+		end)
+
+		--[[
+			And keeps honouring it after a cleaner run in another mode.
+
+			`bestClears` keeps the CLEANEST clear whatever produced it, so a
+			flawless Shoothouse run overwrites a three-out legacy row -- and if
+			the legacy row were read as a fallback at unlock time rather than
+			migrated once, that overwrite would silently take the next field away
+			from a player who had already earned it.
+		]]
+		it("does not lose a migrated clear to a cleaner run in another mode", function()
+			local handle = freshProfile()
+			handle.data.bestClears.speedball = { deaths = 5, tier = "rec", marker = "mechanical", durationSeconds = 200 }
+			Profile.reconcile(handle.data)
+			expect(Profile.hasUnlocked(handle, "dustline")).to.equal(true)
+
+			Profile.recordMatch(handle, {
+				map = "speedball", tier = "rec", marker = "mechanical", mode = "shoothouse",
+				shots = 40, hits = 20, eliminations = 28, deaths = 0,
+				cleared = true, durationSeconds = 88, scores = {},
+			})
+			expect(handle.data.bestClears.speedball.mode).to.equal("shoothouse")
 			expect(Profile.hasUnlocked(handle, "dustline")).to.equal(true)
 		end)
 	end)
