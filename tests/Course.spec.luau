@@ -401,13 +401,12 @@ return function()
 			is left to pin is the rule rather than the list: a mode is offered
 			only if something actually starts it.
 
-			Capture the Flag is still the example of the opposite. Its rules
-			module is pure and spec-covered and nothing runs it, so it must stay
-			out of `order` and out of `integrated`.
+			Capture the Flag now has a live adapter too. The menu and dispatcher
+			must agree with that integration.
 		]]
-		it("does not pretend Capture the Flag is playable", function()
-			expect(modes.modes.captureTheFlag.integrated).to.equal(false)
-			expect(table.find(modes.order, "captureTheFlag")).to.equal(nil)
+		it("offers the integrated Capture the Flag match", function()
+			expect(modes.modes.captureTheFlag.integrated).to.equal(true)
+			expect(table.find(modes.order, "captureTheFlag") ~= nil).to.equal(true)
 		end)
 
 		it("offers exactly the modes something can start", function()

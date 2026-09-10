@@ -1,5 +1,5 @@
 {
-  "_comment": "Release: solo Gauntlet. Horde and Capture the Flag are deferred; their tuning is retained for future integration.",
+  "_comment": "Integrated modes are declared below; default entry is Gauntlet and the Holdfast gate starts solo Capture the Flag.",
   "order": [
     "gauntlet",
     "shoothouse",
@@ -130,7 +130,11 @@
       "arrivalMetres": 0.3,
       "combatHoldSeconds": 1.5,
       "combatMoveSeconds": 2.5,
-      "escortOffsetMetres": 2.5
+      "escortOffsetMetres": 2.5,
+      "maxSlope": 0.7,
+      "stepToleranceMetres": 0.25,
+      "supportSampleMetres": 0.5,
+      "nodeEverySteps": 5
     },
     "presentation": {
       "playerColor": [
@@ -194,7 +198,7 @@
           0
         ]
       ],
-      "stairsStartMetres": 33,
+      "stairsStartMetres": 29,
       "stairsStepMetres": 0.2,
       "stairsTreadMetres": 0.4,
       "stairsWidthMetres": 7,
@@ -218,9 +222,11 @@
           -6,
           -2
         ]
-      ]
+      ],
+      "bridgeHeightMetres": 1.9,
+      "bridgeEndMetres": 11.44
     }
   },
-  "_default": "Gauntlet is the first-release default. Shoothouse is deferred until live co-op integration is complete.",
+  "_default": "Gauntlet is the default. Shoothouse, Horde and Capture the Flag have live solo match integrations.",
   "_integrated": "`integrated` is the single source of truth for whether a mode can actually be started. Bootstrap.asMode refuses anything that is not integrated, ship-check refuses to publish an `order` that lists one, and this file is the only place the answer lives. The Shoothouse shipped once as a fully specced rules module that no match loop referenced -- 30 green assertions and no way for a player to reach it -- and a boolean nobody can forget to update is the cheapest guard against a repeat."
 }

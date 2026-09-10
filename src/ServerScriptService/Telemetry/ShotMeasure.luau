@@ -38,6 +38,12 @@ export type Input = {
 	candidates: { Candidate },
 	--- Chest offset used to aim at a target's centre of mass.
 	aimHeight: number,
+	--[[
+		Where the crosshair actually pointed at a given time, if the caller
+		keeps that history. Supplying it is what turns crosshair placement from
+		an inference into a measurement -- see `crosshairOffsetApproximated`.
+	]]
+	aimAt: ((number) -> Vector3?)?,
 }
 
 --[[
@@ -78,6 +84,17 @@ export type Measurement = {
 	timeToAcquireMs: number?,
 	targetVisibleMsBeforeShot: number?,
 	crosshairOffsetDegAtReveal: number?,
+	--[[
+		True when the offset above came from the previous shot's direction
+		rather than from where the crosshair really was at reveal.
+
+		It carries a lot: on a drill whose angles are sixty degrees apart, the
+		approximation reports roughly the swing between shots no matter how well
+		the player was parked. Anything that reports a crosshair-placement
+		rating to a player, or prescribes a drill from one, should say so or
+		decline to score it.
+	]]
+	crosshairOffsetApproximated: boolean?,
 	priorAimSwingDeg: number?,
 }
 
@@ -134,14 +151,32 @@ function ShotMeasure.measure(input: Input): Measurement?
 	end
 
 	--[[
-		Crosshair placement is measured only on shots taken very soon after the
-		target appeared: how far off was the crosshair at the moment it became
-		visible? Approximated by where the crosshair was on the previous shot,
-		which is where the player had actually parked it.
+		Crosshair placement: how far off was the crosshair at the moment the
+		target became visible?
+
+		Answered from real aim history where the caller keeps it, which is the
+		only spelling that measures the question being asked. The previous
+		shot's direction is the fallback, and it is a poor one -- it reports
+		roughly the swing between two shots, so a player parked exactly on a
+		known reveal angle still reads as far off if their last shot went
+		somewhere else. Flagged, rather than quietly presented as the same
+		number, because the post-match prescription reads it.
 	]]
 	local crosshairOffset: number? = nil
-	if visibleMs and input.previousDirection then
-		crosshairOffset = Ballistics.angularErrorDeg(input.previousDirection :: Vector3, toTarget)
+	local crosshairApproximated: boolean? = nil
+	if visibleMs then
+		local revealAim: Vector3? = nil
+		if input.aimAt then
+			local revealAt = input.t - (visibleMs :: number) / 1000
+			revealAim = (input.aimAt :: (number) -> Vector3?)(revealAt)
+		end
+		if revealAim then
+			crosshairOffset = Ballistics.angularErrorDeg(revealAim :: Vector3, toTarget)
+			crosshairApproximated = false
+		elseif input.previousDirection then
+			crosshairOffset = Ballistics.angularErrorDeg(input.previousDirection :: Vector3, toTarget)
+			crosshairApproximated = true
+		end
 	end
 
 	return {
@@ -154,6 +189,7 @@ function ShotMeasure.measure(input: Input): Measurement?
 		timeToAcquireMs = visibleMs,
 		targetVisibleMsBeforeShot = visibleMs,
 		crosshairOffsetDegAtReveal = crosshairOffset,
+		crosshairOffsetApproximated = crosshairApproximated,
 		priorAimSwingDeg = swing,
 	}
 end

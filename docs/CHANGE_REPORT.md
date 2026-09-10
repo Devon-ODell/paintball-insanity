@@ -2,6 +2,25 @@
 
 Updated 2026-09-09. This is the single current update list and AI handoff. It supersedes the previous world-pass, publish-prep, Shoothouse, agent, progress and debug handoffs, including the historical paintball-insanity review. Older narratives and their superseded numbers remain in Git history; they are not current instructions.
 
+## Capture the Flag integration, 2026-09-09
+
+**CTF now runs through the live MatchService.** Enter **THE VALLEY / Holdfast** at the hub's primary prompt; the other prompt remains Shoothouse. The production gate requires the Back Forty chapter. The existing dev `unlockEverything` setting permits temporary playtesting without writing chapter progress or cosmetic ownership.
+
+| Area | Implemented behavior | Verification |
+| --- | --- | --- |
+| Entry and replay | Holdfast gate dispatches CTF, rejects unsupported maps/locked profiles on the server, preserves the selected mode on Play Again. One field remains active at a time. | Live service gate checks; client replay payload includes mode. |
+| Flag rules | Touch pickup, exact-position drops on elimination/disconnect, friendly touch return, 22-second idle return, own-flag-home capture requirement, first to three, ten-minute score/draw limit. | 36 CTF specs; live pickup/capture/denial/recovery/victory/timeout checks. |
+| Opponents | Six bots split between defense and attack, change the split with the score, pursue a stolen flag, return home as carriers and escort runners. Existing sight, reaction, melee and stop-to-shoot rules remain in BotController. | **Actual bot controllers completed three autonomous captures in 153.2 seconds of simulated match time**, with no player target. This proves objective routing; it is not a difficulty or FPS measurement. |
+| Arena access | CTF-only prepared map data puts flags/spawns on supported keep decks and adds 152 physical stair/landing parts at both keeps and the bridge. Navigation checks body clearance, slope and support, and finishes at the flag rather than stopping at the nearest nav node. Terrain solids also block authoritative paint in CTF. Original Shoothouse data is unchanged. | Full route traversed in both directions; real WorldBuilder built all 152 collidable approach pieces; static `build/ctf-review.rbxlx` available. |
+| Respawn and cleanup | Players return after four seconds; tagged bots return after nine, in their own keep with fresh IDs. Wiping the squad does not end CTF. Pending player respawns cannot revive a stopped match; objective visuals and bots are removed on finish. | Live service tests include timed delayed callbacks, whole-squad replacement, carrier elimination and stopping during a pending respawn. |
+| Feedback | Blue/orange flags and world labels, score, countdown, flag state, capture instructions and event banners. Carrying slows movement and makes movement audible to nearby bots. Objective snapshots avoid restarting music/round effects. | UI construction, blocked-capture explanation, countdown, result display and slowdown/restore checks. |
+| Results and progression | Captures/returns/win bonus use server counters with the configured death and accuracy multipliers. Summary distinguishes player win, bot win and draw. Settlement happens once; CTF cannot write Gauntlet/campaign clear records or enter the time leaderboard. | Live objective payout and repeated-stop checks, zero-pay idle draw and bot win, clear-table isolation. |
+| Shared code | Persistent match rewards moved to `MatchProgress`; visibility bookkeeping extracted from the step. Function-length limits were retained, and Gauntlet/Shoothouse/Horde smoke flows still pass. | Static gate and existing live smoke tests. |
+
+**Validation:** CTF-specific specs, live lifecycle tests, autonomous navigation, client UI, source/static/config checks and Rojo playtest build pass. The full 22-gate debug run is recorded below once complete. Studio's actual rendered gameplay and handling still need the user's playtest; automated engine-boundary checks do not establish visual approval.
+
+**Builds:** `build/paintball-ctf-playtest.rbxlx` is the playable project build. `build/ctf-review.rbxlx` is a static inspection scene. The current `Data/dev.json` master override is **on**, as left by the earlier playtest pass; this intentionally fails the release gate and allows invulnerability/free-wallet behavior. It was not disabled or published by this CTF pass. Automated checks explicitly run with overrides off.
+
 ## Ninth pass, 2026-09-09 — Horde runs
 
 Horde did not work. Its rules were complete and spec-covered from the start --
@@ -270,7 +289,7 @@ The current environment review was opened in Studio, but the captured viewport r
 ## Current game and release decisions
 
 - **Paintball throughout:** one mark is out, no health/damage/armour system, no realistic injury. Server code decides hits, ammo, rewards and progression. Cosmetics cannot improve accuracy.
-- **Gauntlet and Shoothouse are integrated.** `Data/gamemodes.json` is authoritative; the default is Gauntlet. Horde, Capture the Flag and marshal/boss encounters have rules/data but remain deferred from live play. Old handoffs saying Shoothouse is unreachable are obsolete.
+- **Gauntlet, Shoothouse, Horde and Capture the Flag have live solo integrations.** `Data/gamemodes.json` is authoritative; the default is Gauntlet, while Holdfast's primary gate starts CTF. See the two newest passes for current mode behavior and validation.
 - **Five Gauntlet rounds:** 4, 6, 8, 10 and 12 bots; the final two raise tier by one, capped at pro. Outs accumulate across the match. A partial clear earns only its ordinary round share; it cannot earn full-match/flawless progression.
 - **Shoothouse:** four stages, two waves per stage, checkpoint respawns, one run clock, medal records and a time penalty for getting marked. The live-service check drives its entry point through completion and confirms the profile record.
 - **Two-player co-op is authorized but not implemented.** The intended place setting is MaxPlayers=2; the server currently refuses a second simultaneous match. A second seat is not a shared course. Do not describe co-op as playable.
@@ -384,7 +403,7 @@ Other current limitations:
 - Bot avatars rebuild each round/wave. Course wave transitions may hitch; measure before choosing reuse/reset or client interpolation. Server fixed-step catch-up is not currently capped.
 - Paint tracer matching still uses proximity rather than a shared predicted-shot ID. Splats retain their simple geometry; exact surface attachment/orientation is not implemented.
 - Several non-fire remotes have correctness guards but no shared per-player rate limiter. Add one before expanding multiplayer/co-op load.
-- No live consumable effects, Horde/CTF/boss dispatch, or supplied ambience audio IDs. These must not be advertised as implemented.
+- Live consumable effects remain unimplemented. The earlier deferred-mode statement is superseded by the Horde and CTF passes above; see the sound passes for current audio status.
 - `tests.project.json` is an old, incomplete Studio test setup; use the Lune checks. Source syntax checks are not a full Roblox engine type analysis.
 
 ## Playtest and release

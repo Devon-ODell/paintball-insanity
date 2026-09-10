@@ -18,8 +18,14 @@
   "scrollbarPixels": 4,
   "hudReadoutIntervalSeconds": 0.1,
   "latencyReportSeconds": 2,
+
+  "_aimReportSeconds": "How often the client streams its aim direction for crosshair-placement telemetry. Fast enough that a target's reveal lands within one sample of the truth on a drill whose targets live under a second, slow enough to be a rounding error next to the movement replication already going up the same wire.",
+  "aimReportSeconds": 0.1,
   "rangeRayStuds": 500,
   "chatterSeconds": 5.5,
+
+  "_drillCueSeconds": "How long Peek's bearing cue stays on screen. Shorter than range.cueLeadSeconds would leave the player without it at the moment it matters; much longer and it is still up when the target is already gone.",
+  "drillCueSeconds": 1.1,
   "bannerSeconds": 3,
   "headshotBannerSeconds": 4,
   "hitFlashSeconds": 0.16,

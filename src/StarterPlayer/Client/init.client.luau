@@ -226,8 +226,31 @@ end
 -- Server results
 --------------------------------------------------------------------------------
 
+--[[
+	One remote, two meanings, and only one of them is a tracer to draw.
+
+	MatchService fires this for the SQUAD's shots, which the client has never
+	seen and must render. The Range fires it for the player's OWN accepted shot,
+	which `tryFire` already drew a predicted tracer for -- drawing it again would
+	put two balls in the air for one trigger pull. So a self event is an
+	acknowledgement: it reconciles the predicted hopper against the count the
+	server actually charged, and draws nothing.
+
+	It also carries no `spec`, which is what used to make this handler throw on
+	every accepted Range shot -- `Tracers.fire` indexes `spec.muzzleVelocity`.
+	Rendering is gated on the spec being present rather than on the source
+	string, so a future sender that forgets one cannot resurrect the crash.
+]]
 Remotes.event("MarkerFired").OnClientEvent:Connect(function(payload)
-	Tracers.fire(payload.origin, payload.direction, payload.spec)
+	if payload.source == "self" then
+		if type(payload.ammo) == "number" then
+			markerState.ammo = math.clamp(payload.ammo, 0, markerState.capacity)
+		end
+		return
+	end
+	if payload.spec then
+		Tracers.fire(payload.origin, payload.direction, payload.spec)
+	end
 	--[[
 		The squad, made audible.
 
@@ -263,9 +286,26 @@ Remotes.event("ShotResolved").OnClientEvent:Connect(function(result)
 	end
 end)
 
+local flagSnapshot: any = nil
+
+local function applyFlags(snapshot: any)
+	if not flagSnapshot or snapshot.sprintMultiplier ~= flagSnapshot.sprintMultiplier then Input.setCarrierMultiplier(snapshot.sprintMultiplier) end
+	flagSnapshot = snapshot
+	Hud.setFlags(snapshot)
+	for _, event in ipairs(snapshot.events or {}) do
+		if event.kind == "captured" then
+			Hud.showBanner(if event.actor == "player" then "FLAG CAPTURED!" else "SQUAD CAPTURE", 2)
+		elseif event.kind == "flagTaken" then
+			Hud.showBanner(if event.flag == "enemy" then "YOU HAVE THEIR FLAG" else "YOUR FLAG IS TAKEN", 2)
+		elseif (event.kind == "flagRecovered" or event.kind == "flagReturned") and event.flag == "player" then
+			Hud.showBanner("YOUR FLAG IS HOME", 2)
+		end
+	end
+end
+
 Remotes.event("BotEliminated").OnClientEvent:Connect(function(payload)
 	remaining = payload.remaining
-	Hud.setRemaining(remaining, roundBotCount)
+	if not flagSnapshot then Hud.setRemaining(remaining, roundBotCount) end
 	--[[
 		A shove gets its hit marker here rather than from ShotResolved, because
 		it never fires a shot to resolve. Without this the one attack that
@@ -308,7 +348,9 @@ end)
 
 Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
 	Tracers.clear()
-	if payload.cleared then
+	flagSnapshot = nil
+	Input.setCarrierMultiplier(1)
+	if payload.summary and payload.summary.cleared then
 		Audio.play("matchCleared")
 	end
 	Music.setContext(Config.get("audio").music.context.results)
@@ -346,10 +388,47 @@ Remotes.event("MatchSummary").OnClientEvent:Connect(function(payload)
 		return Remotes.fn("RequestMatchStart"):InvokeServer({
 			map = payload.summary.map,
 			tier = payload.summary.tier,
+			mode = payload.mode or payload.summary.mode,
 		})
 	end, function()
 		return Remotes.fn("RequestShopVisit"):InvokeServer()
 	end)
+end)
+
+--[[
+	The drill result, which nothing used to listen to.
+
+	`DrillScore` has been sent since the Range went live and had no consumer at
+	all, so a minute of measured practice produced a one-line banner with a hit
+	count. The rating is the number that matters: it is on the same curve the
+	match report uses, which is what makes a drill score and a match score the
+	same kind of claim.
+
+	`Run it again` re-enters the same drill rather than returning to the hub and
+	walking back to the gate, because the reason to read this panel is to decide
+	whether to repeat it.
+]]
+Remotes.event("DrillScore").OnClientEvent:Connect(function(result)
+	if type(result) ~= "table" then return end
+	Hud.showDrillResult(result, function()
+		return Remotes.fn("RequestRangeDrill"):InvokeServer(result.drill)
+	end, nil)
+end)
+
+--- The Range gate offers all five drills instead of starting the first one.
+Remotes.event("DrillCatalogue").OnClientEvent:Connect(function(catalogue)
+	if type(catalogue) ~= "table" then return end
+	Hud.showDrillPicker(catalogue, function(drillId)
+		return Remotes.fn("RequestRangeDrill"):InvokeServer(drillId)
+	end, nil)
+	syncPointer()
+end)
+
+--- Peek announces its bearing before the reveal; the drill grades whether the
+--- crosshair was already there.
+Remotes.event("DrillCue").OnClientEvent:Connect(function(cue)
+	if type(cue) ~= "table" then return end
+	Hud.showDrillCue(cue.bearingDeg, cue.distanceMetres)
 end)
 
 Remotes.event("CurrencyChanged").OnClientEvent:Connect(Hud.setCurrency)
@@ -378,11 +457,19 @@ end
 Remotes.event("LoadoutChanged").OnClientEvent:Connect(applyLoadout)
 
 Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
+	if payload.ctf and payload.phase == phase and not payload.mode and not payload.round then
+		applyFlags(payload.ctf)
+		return
+	end
 	local previousPhase = phase
 	phaseRevision += 1
 	phase = payload.phase
 	if phase ~= previousPhase then Tracers.clear() end
 	Hud.setPhase(phase)
+	if phase == "hub" or phase == "shop" or phase == "summary" or phase == "done" or (phase == "warmup" and previousPhase ~= "warmup") then
+		flagSnapshot = nil
+		Input.setCarrierMultiplier(1)
+	end
 
 	--[[
 		The server's own words to the player.
@@ -433,7 +520,23 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 		currentRoundIndex, currentRoundCount = payload.round or 1, payload.roundCount or currentRoundCount
 		markerState = MarkerState.new(markerData)
 		Hud.setDeaths(0, 1)
-		Hud.setRemaining(remaining, roundBotCount)
+		if not flagSnapshot then Hud.setRemaining(remaining, roundBotCount) end
+	elseif phase == "live" and payload.mode == "range" then
+		--[[
+			Entering a drill. The Range has no warmup and no round, so this is
+			the only place its local state gets cleared; without it a drill
+			inherited the hopper, spread and out count of whatever ran before.
+		]]
+		respawning = false
+		sustainedSpread = 0
+		deaths = 0
+		courseMode = false
+		courseStageIndex, courseElapsed = nil, 0
+		coursePar = nil
+		flagSnapshot = nil
+		markerState = MarkerState.new(markerData)
+		Hud.setClock(nil)
+		Hud.setDrill(payload.drillName or "Drill", payload.fundamental)
 	elseif phase == "live" and (payload.round or previousPhase == "warmup") then
 		--[[
 			A new round of five. The enemy team is bigger than last round and the
@@ -451,7 +554,9 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 			on. Stage four of a Shoothouse is "THE BACK CORNERS", and the run-up
 			to it is the only thing the player is actually thinking about.
 		]]
-		if payload.mode == "shoothouse" and payload.stage then
+		if flagSnapshot or payload.ctf then
+			Hud.showBanner("CAPTURE THE FLAG", 2)
+		elseif payload.mode == "shoothouse" and payload.stage then
 			courseMode = true
 			coursePar = payload.par or coursePar
 			if payload.stageIndex ~= courseStageIndex then
@@ -463,7 +568,7 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 			Hud.setRound(currentRoundIndex, currentRoundCount, roundBotCount)
 			Hud.showBanner(string.format("ROUND %d", currentRoundIndex), 2)
 		end
-		Hud.setRemaining(remaining, roundBotCount)
+		if not flagSnapshot then Hud.setRemaining(remaining, roundBotCount) end
 	elseif phase == "intermission" then
 		-- The course clock never stops, so it has no intermission to announce.
 		if not courseMode then
@@ -473,6 +578,8 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 			)
 		end
 	end
+	if payload.ctf then applyFlags(payload.ctf)
+	elseif flagSnapshot and (phase == "warmup" or phase == "live") then Hud.setFlags(flagSnapshot) end
 end)
 
 --------------------------------------------------------------------------------
@@ -484,6 +591,34 @@ task.spawn(function()
 		task.wait(uiCfg.latencyReportSeconds)
 		local ping = player:GetNetworkPing()
 		Remotes.event("ReportLatency"):FireServer(ping)
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- Aim reporting, so crosshair placement can be measured rather than inferred
+--------------------------------------------------------------------------------
+
+--[[
+	Where the crosshair is, streamed while there is something to aim at.
+
+	Crosshair placement is the one fundamental the shot cannot reveal: it asks
+	where the player was ALREADY looking at the instant the target appeared,
+	which is a moment nobody pulled a trigger at. The server used to answer it
+	with the direction of the previous shot -- so on Peek, whose three known
+	angles are sixty degrees apart, a player parked perfectly on the reveal
+	angle read as sixty degrees off, and the coach prescribed a drill for a
+	weakness they did not have.
+
+	Only while `live` or `warmup`: outside a field or the firing line there is
+	no measurement to feed, and a hub that streams aim is a wire that costs
+	something for nothing.
+]]
+task.spawn(function()
+	while true do
+		task.wait(uiCfg.aimReportSeconds)
+		if (phase == "live" or phase == "warmup") and not respawning then
+			Remotes.event("ReportAim"):FireServer(camera.CFrame.LookVector)
+		end
 	end
 end)
 
@@ -611,6 +746,10 @@ task.spawn(function()
 	if phaseRevision == requestedRevision then
 		phase = result.phase or "hub"
 		Hud.setPhase(phase)
+	if phase == "hub" or phase == "shop" or phase == "summary" or phase == "done" or (phase == "warmup" and previousPhase ~= "warmup") then
+		flagSnapshot = nil
+		Input.setCarrierMultiplier(1)
+	end
 	end
 	syncPointer()
 end)

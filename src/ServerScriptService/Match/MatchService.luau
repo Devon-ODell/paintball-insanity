@@ -49,6 +49,7 @@ local Endless = require(Server.Match.Endless)
 local Squad = require(Server.Match.Squad)
 local FlagArena = require(Server.Match.FlagArena)
 local FlagMatch = require(Server.Match.FlagMatch)
+local MatchProgress = require(Server.Match.MatchProgress)
 local ShotLog = require(Server.Telemetry.ShotLog)
 local ShotMeasure = require(Server.Telemetry.ShotMeasure)
 local Prescription = require(Server.Telemetry.Prescription)
@@ -124,6 +125,24 @@ end
 
 --------------------------------------------------------------------------------
 
+local function updateVisibility(world: any, bots: { any }, playerPosition: Vector3, visibleSince: any, t: number)
+	local eye = playerPosition + Vector3.new(0, Config.require("match", "player.eyeHeightMetres"), 0)
+	for _, bot in ipairs(bots) do
+		if not bot.alive then
+			visibleSince[bot.id] = nil
+			continue
+		end
+		local aimPoint = bot.position + Vector3.new(0, Config.require("ballistics", "hitbox.chestHeightMetres"), 0)
+		if MapGeometry.hasLineOfSight(world, eye, aimPoint) then
+			if visibleSince[bot.id] == nil then
+				visibleSince[bot.id] = t
+			end
+		else
+			visibleSince[bot.id] = nil
+		end
+	end
+end
+
 function MatchService.start(player: Player, mapName: string, tier: Types.BotTier, seed: number?, mode: string?): Match?
 	if active[player] then
 		log.warn(`{player.Name} already has a match running`)
@@ -153,7 +172,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	local paintColour = Color3.fromRGB(paintRgb[1], paintRgb[2], paintRgb[3])
 
 	local isCTF = mode == "captureTheFlag"
-	if isCTF and (not Config.map(mapName).captureTheFlag or not Campaign.unlocks(Campaign.recordFromProfile(handle.data)).captureTheFlag) then return nil end
+	if isCTF and not FlagMatch.canStart(mapName, handle.data) then return nil end
 	local mapData = if isCTF then FlagArena.prepare(Config.map(mapName)) else Config.map(mapName)
 	local world = MapGeometry.build(mapData, Config.get("maps_index"))
 	if mapWorlds[player] then mapWorlds[player]:Destroy() end
@@ -268,7 +287,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 
 	--- One bot onto the field. Placement and construction live in Match/Squad;
 	--- the roster stays here because the loop reads it from a dozen places.
-	local function spawnBot(round: any, ordinal: number)
+	local function spawnBot(round: any, ordinal: number, spawnSlot: number?)
 		local bot, avatar = Squad.spawn({
 			world = world,
 			root = root,
@@ -278,7 +297,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			coordinator = coordinator,
 			assignments = squadAssignments,
 			vecOf = vecOf,
-		}, round, ordinal)
+		}, round, ordinal, spawnSlot)
 		table.insert(bots, bot)
 		botsById[bot.id] = bot
 		avatars[bot.id] = avatar
@@ -289,7 +308,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		if avatars[old.id] then avatars[old.id]:destroy() end
 		avatars[old.id], botsById[old.id] = nil, nil
 		fielded += 1
-		spawnBot(currentRound, fielded)
+		spawnBot(currentRound, fielded, slot)
 		bots[slot] = table.remove(bots)
 	end
 
@@ -847,22 +866,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			stance = "standing" :: Types.Stance,
 		}
 
-		-- What the player can see, for the telemetry's acquisition timing.
-		local eye = playerPosition + Vector3.new(0, matchData.player.eyeHeightMetres, 0)
-		for _, bot in ipairs(bots) do
-			if not bot.alive then
-				visibleSince[bot.id] = nil
-				continue
-			end
-			local aimPoint = bot.position + Vector3.new(0, hitbox.chestHeightMetres, 0)
-			if MapGeometry.hasLineOfSight(world, eye, aimPoint) then
-				if visibleSince[bot.id] == nil then
-					visibleSince[bot.id] = t
-				end
-			else
-				visibleSince[bot.id] = nil
-			end
-		end
+		updateVisibility(world, bots, playerPosition, visibleSince, t)
 
 		local moraleMultiplier = SquadCoordinator.moraleErrorMultiplier(alive)
 		local targets: { any } = {}
@@ -878,6 +882,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 				chatter = say,
 				meleeRules = meleeRules,
 				navigate = if ctf then ctf:navigator(bot, index, bots, t) else nil,
+				playerLoudness = if ctf and ctf.rules.flags.enemy.carrier == "player" then ctf.rules:carrierModifiers("player").loudness else nil,
 				meleePlayer = function(swinger: any)
 					eliminatePlayer(swinger.position)
 				end,
@@ -1095,64 +1100,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 			Profile.credit(handle, breakdown.total, `match {mapName}/{tier}`)
 			Remotes.event("CurrencyChanged"):FireClient(player, handle.data.currency)
 		end
-		if handle:isActive() then
-			Profile.recordMatch(handle, summary)
-
-			--[[
-				Season marks, off the same summary the payout used. Awarded from
-				eliminations and the clear, never from time on the field -- see
-				Shared/Season. Granting immediately after means a player who
-				crosses a tier sees the reward on the results screen rather than
-				on next join.
-			]]
-			SeasonPass.award(handle, summary)
-			local seasonRewards = SeasonPass.grantDue(handle)
-			if #seasonRewards > 0 then
-				Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout)
-			end
-
-			--[[
-				Record the clear against the campaign, then see which chapters
-				that just finished. Written server-side off numbers the server
-				counted -- a chapter is never completed because a client said so.
-			]]
-			-- A course clear is emphatically NOT a gauntlet clear: the campaign
-			-- chapters gate on five rounds against a squad, not on a timed run.
-			if breakdown.cleared and not isCourse and not isHorde and not ctf then
-				handle.data.gauntletClears = handle.data.gauntletClears or {}
-				local byTier = handle.data.gauntletClears[mapName] or {}
-				local previous = byTier[tier]
-				if previous == nil or deaths < previous then
-					byTier[tier] = deaths
-				end
-				handle.data.gauntletClears[mapName] = byTier
-			end
-
-			local record = Campaign.recordFromProfile(handle.data)
-			local finished = Campaign.newlyCompleted(record)
-			if #finished > 0 then
-				handle.data.chaptersCompleted = handle.data.chaptersCompleted or {}
-				for _, chapter in ipairs(finished) do
-					table.insert(handle.data.chaptersCompleted, chapter.id)
-					if chapter.rewards.currency and chapter.rewards.currency > 0 then
-						Profile.credit(handle, chapter.rewards.currency, `chapter {chapter.id}`)
-					end
-					--[[
-						Chapter gear is how the unbuyable items reach the player.
-						Nothing here is for sale at any price.
-					]]
-					for _, id in ipairs(chapter.rewards.gear or {}) do
-						MatchService.grantChapterGear(handle, id)
-					end
-					log.info(`{player.Name} completed chapter {chapter.id}`)
-				end
-				Remotes.event("CurrencyChanged"):FireClient(player, handle.data.currency)
-				Remotes.event("CampaignUpdated"):FireClient(
-					player,
-					Campaign.card(Campaign.recordFromProfile(handle.data))
-				)
-			end
-		end
+		MatchProgress.record(handle, player, summary, breakdown, mapName, tier, deaths, not isCourse and not isHorde and not ctf, MatchService.grantChapterGear)
 
 		if not quiet then
 			Remotes.event("MatchSummary"):FireClient(player, {
@@ -1242,7 +1190,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 
 	-- Round 1 of five. Each subsequent round is started by closeRound after its
 	-- intermission; the squad grows every time.
-	beginRound(RoundSchedule.startIndex(), true)
+	beginRound(if ctf then 1 else RoundSchedule.startIndex(), true)
 	local accumulator = 0
 	local fixedStep = ballisticsData.simulation.fixedStep
 	--[[

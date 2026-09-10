@@ -3,12 +3,22 @@
 -- objectives, presentation and the objective payout are owned here.
 local RS = game:GetService("ReplicatedStorage")
 local Config = require(RS.Shared.Config)
+local MapGeometry = require(RS.Shared.MapGeometry)
+local Dev = require(RS.Shared.Dev)
+local Campaign = require(script.Parent.Parent.Progression.Campaign)
 local Rules = require(script.Parent.CaptureTheFlag)
 local Navigation = require(script.Parent.FlagNavigation)
 local Visuals = require(script.Parent.FlagVisuals)
 local Payout = require(script.Parent.Parent.Economy.Payout)
 local FlagMatch = {}
 FlagMatch.__index = FlagMatch
+
+function FlagMatch.canStart(mapName: string, profile: any): boolean
+	local cfg = Config.get("gamemodes").modes.captureTheFlag
+	return cfg.integrated == true and table.find(cfg.maps, mapName) ~= nil
+		and Config.map(mapName).captureTheFlag ~= nil
+		and (Dev.flag("unlockEverything") or Campaign.unlocks(Campaign.recordFromProfile(profile)).captureTheFlag == true)
+end
 
 function FlagMatch.new(data: any, world: any, parent: Instance): any
 	local rules = Rules.new(data)
@@ -65,6 +75,7 @@ function FlagMatch.navigator(self: any, bot: any, index: number, bots: { any }, 
 			destination = r.flags.player.position + Vector3.new(if index % 2 == 0 then cfg.navigation.escortOffsetMetres else -cfg.navigation.escortOffsetMetres, 0, 0)
 		end
 	end
+	destination = MapGeometry.groundPoint(self.nav, destination)
 	local speed = Config.require("bots", "movement.sprintSpeedMps")
 	if carrier then speed *= cfg.botCarrier.sprintMultiplier end
 	return function(actor: any, dt: number)
@@ -73,6 +84,10 @@ function FlagMatch.navigator(self: any, bot: any, index: number, bots: { any }, 
 			actor.velocity = Vector3.zero; return
 		end
 		Navigation.step(self.nav, actor, destination, dt, t, speed)
+		if role == "defend" and r.flags.enemy.state == "home" and actor.velocity.Magnitude == 0 and not actor.hasLineOfSight then
+			local delta = r.flags.player.home - actor.position
+			actor.facing = Vector3.new(delta.X, 0, delta.Z).Unit
+		end
 	end
 end
 

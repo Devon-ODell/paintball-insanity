@@ -69,6 +69,22 @@ local DEFINITIONS = {
 	RequestMatchStart = "Function",
 	RequestRangeDrill = "Function",
 	ReportLatency = "Event",
+	--[[
+		Where the crosshair is pointing, streamed while a player is on a field
+		or on the firing line.
+
+		Crosshair placement is one of the six fundamentals this game grades and
+		prescribes a drill for, and it is the only one that cannot be recovered
+		from the shot itself: it asks where the player was already looking when
+		the target appeared, which is a moment nobody pulled a trigger at. It
+		was inferred from the previous shot's direction, which on Peek reports
+		the swing between two known angles rather than the placement.
+
+		Purely a telemetry input. Nothing authoritative reads it -- no hit, no
+		payout and no objective depends on it -- so a client that lies about it
+		is only lying to its own coach.
+	]]
+	ReportAim = "Event",
 
 	-- Server -> client results and state.
 	ShotResolved = "Event",
@@ -81,6 +97,20 @@ local DEFINITIONS = {
 	LoadoutChanged = "Event",
 	CurrencyChanged = "Event",
 	DrillScore = "Event",
+	--- Which bearing the next Peek target will appear at. The drill's angles are
+	--- deliberately learnable; a cue nobody is told is not a cue.
+	DrillCue = "Event",
+	--[[
+		The five drills, offered as a choice.
+
+		Walking to the Range gate always started the FIRST drill in
+		`drillOrder`, and the coach started whichever one his diagnosis pointed
+		at. Holdover and Peek were therefore reachable only by being told to
+		practise them; a player who knew perfectly well that their lead was the
+		problem had no way to say so. Five authored drills with two selectable
+		is four drills of content behind a door with no handle.
+	]]
+	DrillCatalogue = "Event",
 	LeaderboardUpdated = "Event",
 	DialogueOpened = "Event",
 	DialogueChoice = "Event",

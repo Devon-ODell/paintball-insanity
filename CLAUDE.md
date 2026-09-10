@@ -116,10 +116,11 @@ can be tuned without touching logic.
 
 ### Solo PvE on a multiplayer platform
 
-The first release is solo **Gauntlet and Shoothouse**. Set the published place's
-`MaxPlayers = 2`. Horde and Capture the Flag remain deferred: their rules modules
-and specs exist but nothing starts them, they are marked `integrated: false` in
-`Data/gamemodes.json`, and they must not be advertised as playable.
+**Gauntlet, Shoothouse, Horde and Capture the Flag have live solo integrations.**
+Set the published place's `MaxPlayers = 2`. Holdfast's primary gate starts CTF;
+its other prompt still starts Shoothouse. CTF opens after Back Forty, or temporarily
+through the existing dev `unlockEverything` override. Horde is owned by the other
+agent's current pass; preserve its changes. See `docs/CHANGE_REPORT.md` for tests.
 
 Whether a mode can be started is declared once, in `gamemodes.json` as
 `integrated`. Nothing may keep a second list of playable modes.

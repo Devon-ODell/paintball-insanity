@@ -340,7 +340,7 @@ function Profile.recordMatch(handle: Handle, summary: any)
 		lifetime.flawless += 1
 	end
 
-	if summary.cleared then
+	if summary.cleared and summary.mode ~= "captureTheFlag" then
 		local best = handle.data.bestClears[summary.map]
 		if not best or summary.deaths < best.deaths then
 			handle.data.bestClears[summary.map] = {
@@ -379,6 +379,51 @@ function Profile.recordMatch(handle: Handle, summary: any)
 			drill = summary.prescription.drill,
 		}
 	end
+end
+
+--[[
+	Records a finished Range drill, and returns what the previous best was.
+
+	Kept apart from `fundamentals` on purpose. That field is the rolling
+	estimate of what the player does in a MATCH, with a squad shooting back and
+	cover to worry about; a drill is the same fundamental measured under ideal
+	conditions. Folding drill results into it would let a player practise their
+	way to a flattering diagnosis and then be prescribed the wrong drill, which
+	inverts the entire teaching loop.
+
+	Returns the previous record before the write, so the client can show "best
+	yet" rather than a bare number -- the reason to run a drill twice.
+]]
+function Profile.recordDrill(handle: Handle, result: any): any?
+	if not handle:isActive() then return nil end
+	if type(result) ~= "table" or type(result.drill) ~= "string" then return nil end
+	if handle.data.practice == nil then
+		handle.data.practice = {}
+	end
+	local previous = handle.data.practice[result.drill]
+	local record = previous
+	if record == nil then
+		record = { runs = 0, bestScore = 0, bestRating = 0 }
+		handle.data.practice[result.drill] = record
+	end
+	local snapshot = {
+		runs = record.runs,
+		bestScore = record.bestScore,
+		bestRating = record.bestRating,
+		lastScore = record.lastScore,
+		lastRating = record.lastRating,
+	}
+	record.runs += 1
+	record.lastScore = result.score
+	record.lastRating = result.rating
+	record.fundamental = result.fundamental
+	if (result.score or 0) > record.bestScore then
+		record.bestScore = result.score
+	end
+	if (result.rating or 0) > record.bestRating then
+		record.bestRating = result.rating
+	end
+	return if previous then snapshot else nil
 end
 
 --- Whether a map is unlocked. Progression is by skill, never by time played.

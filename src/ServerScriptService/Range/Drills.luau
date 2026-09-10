@@ -35,12 +35,84 @@ export type Schedule = {
 	targets: { Target },
 }
 
+--[[
+	A target position in FIRING-LINE LOCAL space.
+
+	The convention is Roblox's own object space: -Z is forward, +X is the
+	shooter's right, +Y is up. That is exactly what `CFrame.lookAt` produces, so
+	`Drills.worldFrame() * position` is the whole local-to-world transform and
+	there is nowhere else for the two spaces to drift apart.
+
+	Getting this wrong is not a cosmetic error. The live Range once used these
+	numbers as world coordinates while standing the player at z=-40 facing +Z,
+	which put the 50 m holdover target ten metres BEHIND the shooter and the
+	far strafe lane outside the floor entirely -- and a scripted shooter that
+	solves against the same wrong numbers cannot see it.
+]]
 local function bearingPosition(bearingDeg: number, distance: number, height: number): Vector3
 	local a = math.rad(bearingDeg)
 	return Vector3.new(math.sin(a) * distance, height, -math.cos(a) * distance)
 end
 
 Drills.bearingPosition = bearingPosition
+
+export type Frame = {
+	origin: Vector3,
+	--- Unit vector the shooter faces, horizontal.
+	forward: Vector3,
+	--- Unit vector to the shooter's right, horizontal.
+	right: Vector3,
+}
+
+--[[
+	The one local-to-world boundary.
+
+	Anything that places a drill target in the running world -- geometry, the
+	projectile sim, shot measurement -- goes through this. Pure consumers
+	(SimDrill, the specs) work in local space with the shooter at the origin,
+	where a target's distance from the muzzle is just its magnitude.
+
+	Spelled out as basis vectors rather than `CFrame.lookAt` on purpose. This is
+	the transform that decides whether a target is in front of the player at
+	all, and the headless harness's CFrame is not the engine's -- Lune's
+	`lookAt` returns an identity rotation for this very firing line. A
+	transform whose correctness cannot be checked by the gates is a transform
+	that will be wrong again. Basis vectors are the same arithmetic everywhere.
+
+	`right = forward x up` reproduces Roblox's own object space, where the
+	identity CFrame looks down -Z with +X to the right -- so a positive
+	`bearingDeg` is to the shooter's right, which is what the Peek cue promises.
+]]
+function Drills.worldFrame(): Frame
+	local line = Config.require("range", "firingLine")
+	local origin = Vector3.new(line.position[1], line.position[2], line.position[3])
+	local toward = Vector3.new(line.lookAt[1], line.lookAt[2], line.lookAt[3])
+	local flat = Vector3.new(toward.X - origin.X, 0, toward.Z - origin.Z)
+	if flat.Magnitude < 1e-6 then
+		error("range firingLine.lookAt is the firing line itself; there is no forward", 2)
+	end
+	local forward = flat.Unit
+	return {
+		origin = origin,
+		forward = forward,
+		right = forward:Cross(Vector3.new(0, 1, 0)),
+	}
+end
+
+--- A firing-line-local position in world metres.
+function Drills.toWorld(frame: Frame, position: Vector3): Vector3
+	return frame.origin
+		+ frame.right * position.X
+		+ Vector3.new(0, position.Y, 0)
+		- frame.forward * position.Z
+end
+
+--- A firing-line-local direction or velocity in world axes. No translation.
+function Drills.rotateToWorld(frame: Frame, direction: Vector3): Vector3
+	return frame.right * direction.X
+		+ Vector3.new(0, direction.Y, 0)
+		- frame.forward * direction.Z
+end
 
 --------------------------------------------------------------------------------
 
@@ -92,10 +164,25 @@ local function strafe(cfg: any, rng: Rng.Generator, chestHeight: number): { Targ
 	return targets
 end
 
+--[[
+	Switch -- three targets alive, always.
+
+	`simultaneousTargets` is the drill's whole premise: the player is choosing
+	which of a fixed set to shoot next, and the cost being measured is the swing
+	between them. It used to be authored as three LANES that each accumulated a
+	new target every 3.35 s and expired none of them until the drill ended, so a
+	player who fired nothing faced 54 targets at 59 s and a player who hit
+	everything got replacements unrelated to what they had just eliminated.
+
+	One lane, one live target: each target expires exactly when its lane's
+	replacement appears. The population is therefore bounded at
+	`simultaneousTargets` by construction, deterministically, and the live Range
+	needs no reactive spawner to agree with the pure schedule.
+]]
 local function switch(cfg: any, rng: Rng.Generator, chestHeight: number): { Target }
 	local targets: { Target } = {}
 	local index = 0
-	-- Three targets live at once; each is replaced shortly after its lifetime.
+	local dwell = cfg.respawnDelaySeconds + 3.0
 	for lane = 1, cfg.simultaneousTargets do
 		local t = 0
 		while t < cfg.durationSeconds do
@@ -106,12 +193,12 @@ local function switch(cfg: any, rng: Rng.Generator, chestHeight: number): { Targ
 			table.insert(targets, {
 				id = `switch{index}`,
 				spawnAt = t,
-				expiresAt = cfg.durationSeconds,
+				expiresAt = math.min(t + dwell, cfg.durationSeconds),
 				position = bearingPosition(bearing, distance, chestHeight),
 				velocity = Vector3.zero,
 				radius = 0.35,
 			})
-			t += cfg.respawnDelaySeconds + 3.0
+			t += dwell
 		end
 	end
 	table.sort(targets, function(a, b)
@@ -188,11 +275,29 @@ function Drills.schedule(drillId: string, seed: number): Schedule
 		error(`unknown drill '{drillId}'`, 2)
 	end
 	local chestHeight = Config.require("ballistics", "hitbox.chestHeightMetres")
+	--[[
+		Nothing appears after the whistle.
+
+		Peek in particular could schedule a reveal past `durationSeconds`
+		because it advances its clock by the reveal delay before placing the
+		target. A target that spawns after the drill is over can never be
+		engaged, so counting it as a missed opportunity is a lie about the
+		player; and one whose lifetime runs past the end kept the live Range
+		waiting. Both are clamped here, once, for every generator.
+	]]
+	local raw = generator(cfg, Rng.new(seed), chestHeight)
+	local targets: { Target } = {}
+	for _, target in ipairs(raw) do
+		if target.spawnAt < cfg.durationSeconds then
+			target.expiresAt = math.min(target.expiresAt, cfg.durationSeconds)
+			table.insert(targets, target)
+		end
+	end
 	return {
 		drill = drillId,
 		fundamental = cfg.fundamental,
 		durationSeconds = cfg.durationSeconds,
-		targets = generator(cfg, Rng.new(seed), chestHeight),
+		targets = targets,
 	}
 end
 

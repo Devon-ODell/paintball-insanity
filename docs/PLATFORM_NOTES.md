@@ -251,3 +251,12 @@ working out where a shot came from. Roblox replaces the camera on respawn, so
 `AudioMix.follow` re-parents it every frame and does nothing on the frames where
 nothing changed. Without that, the game would quietly lose its hearing after the
 first death.
+
+
+## 2026-09-09 — Capture the Flag integration
+
+Verified Roblox's [BillboardGui reference](https://create.roblox.com/docs/reference/engine/classes/BillboardGui): `AlwaysOnTop` keeps objective labels readable through the arena, `StudsOffsetWorldSpace` positions them above the pole, and offset `Size` components are pixels. The two flag assemblies use anchored, non-colliding/non-queryable Parts; pickup, drop, return and capture are resolved from server actor positions, not `Touched` or a client-reported score. Lune built the actual Parts and BillboardGui properties successfully.
+
+CTF adds no package, uploaded asset ID or new remote. The existing `MatchStateChanged` wire carries bounded objective snapshots; the client handles those without replaying round-start effects. Existing `Humanoid.WalkSpeed` input handling applies the server's carrier modifier and restores normal speed on drop/end.
+
+The CTF-only prepared Holdfast data is shared by `WorldBuilder` and `MapGeometry`. It adds 152 physical stair/landing parts for the keep decks and bridge and marks the terrain solids as projectile blockers. The original map data is not mutated, preserving the existing Shoothouse field.

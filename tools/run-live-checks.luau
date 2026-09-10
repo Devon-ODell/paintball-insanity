@@ -109,6 +109,19 @@ local humanoid = { HipHeight = 1.5 }
 local root = { Position = roblox.Vector3.new(0, 3, 0), Size = roblox.Vector3.new(2, 2, 1), AssemblyLinearVelocity = roblox.Vector3.zero }
 local character = { FindFirstChild = function() return root end, FindFirstChildOfClass = function() return humanoid end, WaitForChild = function(_, name) return if name == "Humanoid" then humanoid else root end }
 local player = { UserId = 123, Name = "SmokeTest", Character = character, Parent = env.game:GetService("Players"), LoadCharacterAsync = function() end }
+-- A shared task seam lets the CTF lifecycle check replace immediate delay with
+-- a controllable scheduler after the ordinary smoke checks finish.
+local function runTask(fn, ...)
+    local thread = coroutine.create(fn)
+    local ok, err = coroutine.resume(thread, ...)
+    if not ok then error(err, 2) end
+    return thread
+end
+env.globals.task = {
+    spawn = runTask, defer = runTask,
+    delay = function(_, fn, ...) return runTask(fn, ...) end,
+    wait = function(seconds) if coroutine.isyieldable() then coroutine.yield() end; return seconds or 0 end,
+}
 local service = env.require(env.Server.Match.MatchService)
 assert(service.start(player, "speedball", "rec", 123))
 assert(event("MatchStateChanged").sent[1].phase == "warmup")
@@ -407,3 +420,6 @@ do
     service.stop(hordePlayer)
     print(`Horde checks passed: six waves appended and cleared through the ordinary loop, {bodies} bodies fielded including reinforcements.`)
 end
+
+require("./CtfLiveChecks")({ env = env, service = service, event = event, advance = advance,
+    player = player, root = root, madeBots = madeBots, hit = hit, queueHits = function(hits) queued = hits end })

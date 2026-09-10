@@ -269,6 +269,8 @@
       },
       "bestClears": {},
       "bestTimes": {},
+      "_practice": "What the Range has actually recorded, per drill: best score, best rating and how many runs. The drills produced a full diagnosis and threw all of it away -- nothing listened to DrillScore and nothing persisted it, so a player could not see whether this week's Strafe was better than last week's. Deliberately SEPARATE from `fundamentals`, which is the rolling MATCH estimate: a drill is practice under ideal conditions with no squad shooting back, and it must not overwrite what the player does under fire.",
+      "practice": {},
       "consumables": {},
       "carry": [],
       "chaptersCompleted": [],

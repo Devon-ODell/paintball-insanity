@@ -6,6 +6,17 @@
   "ground": { "colorKey": "concrete", "thicknessMetres": 1 },
   "firingLine": { "position": [0, 0, -40], "lookAt": [0, 0, 0] },
 
+  "_shotDrainSeconds": "How long a drill waits after its deadline for balls already in the air to land. Shots taken in time deserve to resolve; a ball fired at the sky does not get to hold the drill open, and without this bound a player firing upward kept a 60s drill running past 80s.",
+  "shotDrainSeconds": 4,
+
+  "_aimHistory": "How much of the player's aim stream the Range keeps, so Peek can ask where the crosshair was at the instant a target appeared rather than inferring it from the previous shot. A drill is a minute long and its targets live under two seconds; the tolerance is how stale a sample may be and still answer for a given moment, and it is one client report interval plus a little slack.",
+  "aimHistorySeconds": 8,
+  "aimHistorySamples": 200,
+  "aimSampleToleranceSeconds": 0.25,
+
+  "_cueLeadSeconds": "How far ahead of a reveal the player is told which bearing it will appear at. Peek's angles are deliberately learnable and the drill grades whether the crosshair was already there, so the cue has to arrive with enough time to move the crosshair and settle. Must be below peek.revealDelaySeconds.min or the cue would arrive before the previous target is gone.",
+  "cueLeadSeconds": 0.9,
+
   "drillOrder": ["popup", "strafe", "switch", "holdover", "peek"],
 
   "drills": {

@@ -61,15 +61,20 @@ function SimDrill.run(options: Options): DrillScoring.Result
 	local origin = Vector3.new(0, hitbox.chestHeightMetres, 0)
 
 	local events: { DrillScoring.ShotEvent } = {}
+	--- Mirrors the live Range: the swing between eliminations, measured from
+	--- the start of the drill for the first one.
+	local lastEliminationAt: number? = nil
 
 	for _, target in ipairs(schedule.targets) do
 		local fireAt = target.spawnAt + reaction
 		if fireAt >= target.expiresAt then
 			-- Too slow: the target came and went. That is a miss, and it must
 			-- still be recorded or slow play would score the same as no play.
+			-- It is not a trigger pull, so it is not a shot.
 			table.insert(events, {
 				t = target.expiresAt,
 				hit = false,
+				kind = "expired",
 				targetId = target.id,
 				timeToAcquireMs = (target.expiresAt - target.spawnAt) * 1000,
 			})
@@ -111,11 +116,20 @@ function SimDrill.run(options: Options): DrillScoring.Result
 			return seg.tEnd > 2
 		end)
 
+		local hit = closest <= target.radius
+		local sinceLastElimination: number? = nil
+		if hit then
+			sinceLastElimination = (fireAt - (lastEliminationAt or 0)) * 1000
+			lastEliminationAt = fireAt
+		end
+
 		table.insert(events, {
 			t = fireAt,
-			hit = closest <= target.radius,
+			hit = hit,
+			kind = "shot",
 			targetId = target.id,
 			timeToAcquireMs = reaction * 1000,
+			timeBetweenEliminationsMs = sinceLastElimination,
 			angularErrorDeg = angularError,
 			leadErrorM = leadError,
 			holdoverErrorM = holdoverError,

@@ -15,6 +15,7 @@ local Log = require(ReplicatedStorage.Shared.Log)
 local Remotes = require(ReplicatedStorage.Net.Remotes)
 
 local Server = script.Parent
+local FlagMatch = require(script.Parent.Match.FlagMatch)
 local MatchService = require(Server.Match.MatchService)
 local Course = require(Server.Match.Course)
 local CourseProgress = require(Server.Progression.CourseProgress)
@@ -36,6 +37,7 @@ end
 local starting: { [Player]: boolean } = {}
 local returnTokens: { [Player]: number } = {}
 local startDrill: (Player, string?) -> boolean
+local offerDrills: (Player) -> ()
 
 Remotes.init()
 Dev.announce()
@@ -304,7 +306,7 @@ requestMatch = function(player: Player, payload: any): any
 	end
 	if mode == "captureTheFlag" then
 		local handle = Profile.load(player.UserId)
-		if not Config.map(mapName).captureTheFlag or not handle or not Campaign.unlocks(Campaign.recordFromProfile(handle.data)).captureTheFlag then
+		if not handle or not FlagMatch.canStart(mapName, handle.data) then
 			starting[player] = nil
 			return { ok = false, reason = "Capture the Flag opens on Holdfast after the Back Forty chapter." }
 		end
@@ -376,6 +378,51 @@ function startDrill(player: Player, drillId: string?): boolean
 	return ok
 end
 
+--[[
+	The Range gate offers all five drills.
+
+	It used to start `drillOrder[1]` -- Pop-Up, always -- and the coach started
+	whichever drill his diagnosis named. So Holdover and Peek were reachable
+	only by being TOLD to practise them, and a player who knew their lead was
+	the problem had no route to the drill for it. Five drills were authored,
+	scored and tuned; two were selectable.
+
+	Sent as a catalogue rather than started immediately, so the choice is the
+	player's. Each entry carries what the drill trains and what this player has
+	previously managed on it, because "which of these do I need" is the question
+	being asked at the gate.
+]]
+function offerDrills(player: Player)
+	if starting[player] or MatchService.isActive(player) or RangeService.isActive(player) then
+		return
+	end
+	local handle = Profile.load(player.UserId)
+	if not handle or player.Parent ~= Players then
+		return
+	end
+	local practice = handle.data.practice or {}
+	local coaching = handle.data.coaching
+	local entries = {}
+	for _, drillId in ipairs(Config.require("range", "drillOrder")) do
+		local cfg = Config.require("range", "drills." .. drillId)
+		local record = practice[drillId]
+		table.insert(entries, {
+			drill = drillId,
+			displayName = cfg.displayName,
+			fundamental = cfg.fundamental,
+			secondaryFundamental = cfg.secondaryFundamental,
+			durationSeconds = cfg.durationSeconds,
+			bestScore = record and record.bestScore,
+			bestRating = record and record.bestRating,
+			runs = record and record.runs,
+			--- The drill the last match's diagnosis pointed at, so the coach's
+			--- advice is visible here too rather than only at the barn.
+			prescribed = coaching ~= nil and coaching.drill == drillId,
+		})
+	end
+	Remotes.event("DrillCatalogue"):FireClient(player, { drills = entries })
+end
+
 RangeService.onFinished = function(player: Player, result)
 	Hub.restore()
 	if player.Parent ~= Players then
@@ -392,7 +439,7 @@ end
 --- Walking into a trailhead and holding the key starts that map's five rounds.
 Hub.onGateEntered = function(player: Player, mapName: string)
 	if mapName == "range" then
-		startDrill(player, nil)
+		offerDrills(player)
 		return
 	end
 	local handle = Profile.load(player.UserId)

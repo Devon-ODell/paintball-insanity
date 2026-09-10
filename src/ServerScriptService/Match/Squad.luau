@@ -91,8 +91,8 @@ end
 	`ordinal` is its number within the round and keeps counting through horde
 	replacements, so ids and spawn slots stay unique for a whole wave.
 ]]
-function Squad.spawn(ctx: Context, round: any, ordinal: number): (any, any)
-	local position, facing = placement(ctx, round, ordinal)
+function Squad.spawn(ctx: Context, round: any, ordinal: number, spawnSlot: number?): (any, any)
+	local position, facing = placement(ctx, round, spawnSlot or ordinal)
 
 	--- Replacements past the opening squad reuse an assignment and a name; ids
 	--- stay unique because the ordinal keeps counting.

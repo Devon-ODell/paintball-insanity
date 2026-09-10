@@ -363,7 +363,7 @@ function Harness.build(repoRoot: string?): Env
 				resumes anything, so a repeating job runs up to its first wait
 				and then stops -- exactly the amount of it a headless tool wants.
 			]]
-			task = {
+			task = sharedGlobals.task or {
 				wait = function(n: number?)
 					if coroutine.isyieldable() then
 						coroutine.yield()

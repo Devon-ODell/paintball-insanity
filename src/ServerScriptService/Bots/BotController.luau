@@ -552,6 +552,7 @@ export type TickContext = {
 	--- Contact-range rules, and what to call when the butt lands. Absent in any
 	--- caller that does not model a shovable player.
 	navigate: ((any, number) -> ())?,
+	playerLoudness: number?,
 	meleeRules: Melee.Rules?,
 	meleePlayer: ((swinger: any) -> ())?,
 }
@@ -612,6 +613,11 @@ function BotController.tick(self: Bot, dt: number, ctx: TickContext)
 		self._fireAt = nil
 		setState(self, "holding", t, "lost the player")
 		ctx.chatter("lostContact", { speaker = self.name })
+	end
+
+	if not sees and player.alive and ctx.playerLoudness and player.velocity.Magnitude > 0
+		and BotController.canHear(self, player.position, ctx.playerLoudness) then
+		self.coordinator:reportContact(self.id, player.position, player.velocity, t)
 	end
 
 	-- 2. Act on shared contact even without eyes, but only to reposition --

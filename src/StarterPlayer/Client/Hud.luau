@@ -256,6 +256,22 @@ function Hud.setRound(round: number, roundCount: number, _botCount: number)
 	roundLabel.Text = string.format("ROUND %d / %d", round, roundCount)
 end
 
+--[[
+	The Range is not a round of anything.
+
+	It has no enemy team to count down, no outs to charge and no round number,
+	so it gets its own three lines rather than borrowing a match's. Left with
+	match wording it read "ROUND 1 / 5 · 0 / 0 still in", which is three
+	statements that are all false.
+]]
+function Hud.setDrill(displayName: string, fundamental: string?)
+	roundLabel.Text = string.upper(displayName)
+	remainingLabel.Text = "Range · no payout"
+	deathsLabel.Text = if fundamental then "Scored on " .. fundamental else "Practice"
+	deathsLabel.TextColor3 = C.accent
+	phaseLabel.Text = "Every shot is measured · nothing is charged"
+end
+
 --- A course reads as a place on the field, not as a round number: "STAGE 3/4 ·
 --- THEIR HALF" tells the player where they are, "ROUND 6 / 8" does not.
 function Hud.setStage(name: string, index: number, count: number)
@@ -317,6 +333,18 @@ function Hud.showBanner(text: string, seconds: number?)
 	end)
 end
 
+function Hud.setFlags(snapshot: any)
+	roundLabel.Text = string.format("CTF · FIRST TO %d", snapshot.target)
+	remainingLabel.Text = string.format("YOU %d  :  %d SQUAD", snapshot.score.player, snapshot.score.bots)
+	local instruction = if snapshot.carrying then (if snapshot.playerFlag == "home" then "Bring their flag to your blue base" else "Recover your flag before scoring") else "Take orange · defend blue"
+	phaseLabel.Text = "YOURS " .. string.upper(snapshot.playerFlag) .. " · THEIRS " .. string.upper(snapshot.enemyFlag) .. "\n" .. instruction
+	phaseLabel.Size = UDim2.new(1, -24, 0, 42)
+	local card = roundLabel.Parent :: Frame
+	card.Size = UDim2.new(0.64, 0, 0, 130)
+	Hud.setClock(snapshot.seconds, nil)
+	clockLabel.Text = string.format("%d:%02d", math.floor(snapshot.seconds / 60), math.floor(snapshot.seconds) % 60)
+end
+
 function Hud.setRemaining(remaining: number, total: number)
 	remainingLabel.Text = string.format("%d / %d still in", remaining, total)
 end
@@ -350,6 +378,8 @@ function Hud.isSummaryOpen(): boolean
 end
 
 function Hud.setPhase(phase: string)
+	(roundLabel.Parent :: Frame).Size = UDim2.new(0.64, 0, 0, 108)
+	phaseLabel.Size = UDim2.new(1, -24, 0, 22)
 	combatVisible = phase == "live" or phase == "warmup"
 	crosshair.Visible = combatVisible
 	if not combatVisible then holdoverTick.Visible = false; rangeLabel.Text = "" end
@@ -388,6 +418,213 @@ function Hud.showChatter(line: { speaker: string, text: string })
 	end)
 end
 
+--[[
+	The drill result, which used to be thrown away.
+
+	`DrillScoring` produced a rating on the same 0-100 curve the match report
+	uses, an accuracy, a fundamental and -- for the drills that declare one -- a
+	second fundamental. None of it had a listener. The player finished a minute
+	of measured practice and got a one-line banner with a hit count and a point
+	total, which is the least informative thing in the result.
+
+	Deliberately the same shape and language as the match report's skill rows, so
+	"crosshair placement 62" on the Range and "crosshair placement 62" after a
+	match read as the same claim -- which they are, by construction. That
+	comparability is what makes the practice worth doing.
+]]
+function Hud.showDrillResult(result: any, onAgain: (() -> any)?, onDone: (() -> any)?)
+	Hud.hideSummary()
+	local layer = Theme.frame(gui, "Summary", UDim2.fromScale(1, 1), UDim2.new())
+	layer.BackgroundColor3, layer.BackgroundTransparency = C.black, 0.3
+	local panel = Theme.frame(layer, "DrillReport", UDim2.new(1, -32, 0, 420), UDim2.new(0.5, 0, 0.5, 0))
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	Theme.round(panel); Theme.outline(panel)
+	local limit = Instance.new("UISizeConstraint")
+	limit.MaxSize = Vector2.new(cfg.summary.maxWidthPixels, cfg.summary.maxHeightPixels)
+	limit.Parent = panel
+
+	local title = Theme.text(panel, "Title", string.upper(result.drillName or result.drill or "DRILL"),
+		UDim2.new(1, -36, 0, 38), UDim2.fromOffset(18, 12), cfg.titleTextPixels)
+	title.Font, title.TextColor3 = Theme.font("bold"), C.accent
+
+	--[[
+		Shots are trigger pulls; missed opportunities are targets that came and
+		went unengaged. These shared one counter, so "accuracy" was the fraction
+		of OPPORTUNITIES taken and a player who never fired read identically to
+		one who missed everything.
+	]]
+	local subtitle = Theme.text(panel, "Subtitle", string.format(
+		"%d / %d hits · %.0f%% · %d missed · %s pts",
+		result.hits or 0, result.shots or 0, (result.accuracy or 0) * 100,
+		result.missedOpportunities or 0, Theme.number(result.score or 0)
+	), UDim2.new(1, -36, 0, 32), UDim2.fromOffset(18, 49), cfg.smallTextPixels)
+	subtitle.TextColor3 = C.muted
+
+	local content = Theme.scroll(panel, UDim2.new(1, -36, 1, -162), UDim2.fromOffset(18, 87))
+	Theme.list(content, 10)
+	local pretty = { reactivity = "Reactivity", flicking = "Flicking", targetSwitching = "Target switching", tracking = "Tracking", crosshairPlacement = "Crosshair placement", leadAndDrop = "Lead & drop" }
+	local index = 0
+	local function ratingRow(name: string, rating: number, hint: string, colour: Color3)
+		index += 1
+		local row = Theme.frame(content, name, UDim2.new(1, -8, 0, 66), UDim2.new())
+		row.LayoutOrder, row.BackgroundColor3 = index, C.card
+		Theme.round(row)
+		local score = math.clamp(rating, 0, 100)
+		Theme.text(row, "Label", pretty[name] or name, UDim2.new(0.7, -12, 0, 25), UDim2.fromOffset(12, 7), cfg.bodyTextPixels)
+		local value = Theme.text(row, "Score", tostring(math.floor(score + 0.5)), UDim2.new(0.3, -12, 0, 25), UDim2.new(0.7, 0, 0, 7), cfg.bodyTextPixels)
+		value.TextXAlignment, value.TextColor3 = Enum.TextXAlignment.Right, colour
+		local track = Theme.frame(row, "Track", UDim2.new(1, -24, 0, 4), UDim2.fromOffset(12, 35))
+		track.BackgroundColor3 = C.line
+		local fill = Theme.frame(track, "Fill", UDim2.fromScale(score / 100, 1), UDim2.new())
+		fill.BackgroundColor3 = colour
+		local label = Theme.text(row, "Hint", hint, UDim2.new(1, -24, 0, 19), UDim2.fromOffset(12, 42), 11)
+		label.TextColor3 = C.muted
+	end
+
+	if result.fundamental then
+		ratingRow(result.fundamental, result.rating or 0, "Same ruler as your match report", C.gold)
+	end
+	if result.secondaryFundamental and result.secondaryRating then
+		ratingRow(result.secondaryFundamental, result.secondaryRating, "Also trained by this drill", C.accent)
+	end
+
+	--[[
+		The reason to run a drill twice.
+
+		A bare score answers nothing on its own. `previousBest` is nil on a first
+		run, and saying so is better than printing a zero the player has to
+		interpret.
+	]]
+	index += 1
+	local history = Theme.frame(content, "History", UDim2.new(1, -8, 0, 58), UDim2.new())
+	history.LayoutOrder, history.BackgroundColor3 = index, C.card
+	Theme.round(history)
+	local previous = result.previousBest
+	local historyText = if previous
+		then string.format("Best before this run: %s pts · rating %d over %d run%s",
+			Theme.number(previous.bestScore or 0), math.floor((previous.bestRating or 0) + 0.5),
+			previous.runs or 0, if (previous.runs or 0) == 1 then "" else "s")
+		else "First run on this drill. Run it again to see the trend."
+	local historyLabel = Theme.text(history, "Text", historyText, UDim2.new(1, -24, 1, -16), UDim2.fromOffset(12, 8), cfg.smallTextPixels)
+	historyLabel.TextColor3 = if previous and (result.score or 0) > (previous.bestScore or 0) then C.gold else C.muted
+
+	local busy = false
+	local function act(callback: (() -> any)?)
+		if busy or not callback then return end
+		busy = true
+		local ok = pcall(callback)
+		if not layer.Parent then return end
+		if ok then layer:Destroy() else busy = false end
+	end
+	local done = Theme.button(panel, "Back to the hub", UDim2.new(0.5, -24, 0, 38), UDim2.new(0, 18, 1, -48))
+	done.BackgroundColor3, done.TextColor3, done.Modal = C.card, C.ink, true
+	done.Activated:Connect(function() act(onDone) end)
+	local again = Theme.button(panel, "Run it again", UDim2.new(0.5, -24, 0, 38), UDim2.new(0.5, 6, 1, -48))
+	again.Modal = true
+	again.Activated:Connect(function() act(onAgain) end)
+	Navigation.bind(layer, again, nil)
+end
+
+--[[
+	The five drills, as a choice.
+
+	The Range gate started `drillOrder[1]` and the coach started whichever drill
+	his diagnosis named, so Holdover and Peek were reachable only by being told
+	to practise them. Each row says what the drill trains and what this player
+	has previously managed on it, because "which of these do I need" is the
+	question being asked while standing at the gate.
+]]
+function Hud.showDrillPicker(catalogue: any, onPick: ((string) -> any)?, onCancel: (() -> any)?)
+	Hud.hideSummary()
+	local layer = Theme.frame(gui, "Summary", UDim2.fromScale(1, 1), UDim2.new())
+	layer.BackgroundColor3, layer.BackgroundTransparency = C.black, 0.3
+	local panel = Theme.frame(layer, "DrillPicker", UDim2.new(1, -32, 1, -120), UDim2.new(0.5, 0, 0.5, 0))
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	Theme.round(panel); Theme.outline(panel)
+	local limit = Instance.new("UISizeConstraint")
+	limit.MaxSize = Vector2.new(cfg.summary.maxWidthPixels, cfg.summary.maxHeightPixels)
+	limit.Parent = panel
+
+	local title = Theme.text(panel, "Title", "THE RANGE", UDim2.new(1, -36, 0, 38), UDim2.fromOffset(18, 12), cfg.titleTextPixels)
+	title.Font, title.TextColor3 = Theme.font("bold"), C.accent
+	local subtitle = Theme.text(panel, "Subtitle", "Free · no payout · every shot measured",
+		UDim2.new(1, -36, 0, 32), UDim2.fromOffset(18, 49), cfg.smallTextPixels)
+	subtitle.TextColor3 = C.muted
+
+	local content = Theme.scroll(panel, UDim2.new(1, -36, 1, -162), UDim2.fromOffset(18, 87))
+	Theme.list(content, 10)
+	local pretty = { reactivity = "Reactivity", flicking = "Flicking", targetSwitching = "Target switching", tracking = "Tracking", crosshairPlacement = "Crosshair placement", leadAndDrop = "Lead & drop" }
+	local busy = false
+	local first: TextButton? = nil
+	for index, entry in ipairs(catalogue.drills or {}) do
+		local row = Theme.frame(content, entry.drill, UDim2.new(1, -8, 0, 88), UDim2.new())
+		row.LayoutOrder, row.BackgroundColor3 = index, C.card
+		Theme.round(row)
+		local trains = pretty[entry.fundamental] or entry.fundamental
+		if entry.secondaryFundamental then
+			trains ..= " · " .. (pretty[entry.secondaryFundamental] or entry.secondaryFundamental)
+		end
+		Theme.text(row, "Label", string.upper(entry.displayName), UDim2.new(1, -140, 0, 25), UDim2.fromOffset(12, 8), cfg.bodyTextPixels)
+		local trained = Theme.text(row, "Trains", trains, UDim2.new(1, -140, 0, 20), UDim2.fromOffset(12, 31), 11)
+		trained.TextColor3 = if entry.prescribed then C.gold else C.muted
+		--- What this player has managed before, so the choice is informed. A
+		--- first run says so rather than printing a zero to interpret.
+		local history = if entry.runs and entry.runs > 0
+			then string.format("Best %s pts · rating %d · %d run%s · %ds",
+				Theme.number(entry.bestScore or 0), math.floor((entry.bestRating or 0) + 0.5),
+				entry.runs, if entry.runs == 1 then "" else "s", math.floor(entry.durationSeconds or 0))
+			else string.format("Never run · %ds", math.floor(entry.durationSeconds or 0))
+		local historyLabel = Theme.text(row, "History", history, UDim2.new(1, -140, 0, 20), UDim2.fromOffset(12, 53), 11)
+		historyLabel.TextColor3 = C.muted
+		local start = Theme.button(row, if entry.prescribed then "Prescribed" else "Start", UDim2.new(0, 112, 0, 38), UDim2.new(1, -124, 0, 25))
+		start.Modal = true
+		if entry.prescribed then start.BackgroundColor3 = C.gold end
+		start.Activated:Connect(function()
+			if busy or not onPick then return end
+			busy = true
+			local ok, result = pcall(onPick, entry.drill)
+			if not layer.Parent then return end
+			if ok and (result == nil or (type(result) == "table" and result.ok)) then
+				layer:Destroy()
+			else
+				subtitle.Text = if ok and type(result) == "table" then result.reason or "Please try again." else "Connection interrupted."
+				subtitle.TextColor3 = C.warning
+				busy = false
+			end
+		end)
+		if index == 1 then first = start end
+	end
+
+	local back = Theme.button(panel, "Not now", UDim2.new(1, -36, 0, 38), UDim2.new(0, 18, 1, -48))
+	back.BackgroundColor3, back.TextColor3, back.Modal = C.card, C.ink, true
+	back.Activated:Connect(function()
+		layer:Destroy()
+		if onCancel then pcall(onCancel) end
+	end)
+	Navigation.bind(layer, first or back, nil)
+end
+
+--[[
+	Peek's cue: which bearing the next target will appear at.
+
+	The drill's three angles are deliberately learnable and the skill it grades
+	is having the crosshair already parked on the one that is coming. The
+	bearing was authored in the schedule from the day the drill was written and
+	nothing ever told the player, which made Peek Pop-Up with a longer wait.
+]]
+function Hud.showDrillCue(bearingDeg: number?, distanceMetres: number?)
+	if bearingDeg == nil then
+		bannerLabel.Text = ""
+		return
+	end
+	local side = if math.abs(bearingDeg) < 1 then "DEAD AHEAD"
+		elseif bearingDeg > 0 then string.format("%d° RIGHT", math.floor(math.abs(bearingDeg) + 0.5))
+		else string.format("%d° LEFT", math.floor(math.abs(bearingDeg) + 0.5))
+	Hud.showBanner(if distanceMetres
+		then string.format("%s · %dm", side, math.floor(distanceMetres + 0.5))
+		else side, cfg.drillCueSeconds)
+end
+
 function Hud.showSummary(summary: any, breakdown: any, onPlayAgain: (() -> any)?, onShop: (() -> any)?)
 	Hud.hideSummary()
 	local layer = Theme.frame(gui, "Summary", UDim2.fromScale(1, 1), UDim2.new())
@@ -398,7 +635,8 @@ function Hud.showSummary(summary: any, breakdown: any, onPlayAgain: (() -> any)?
 	local limit = Instance.new("UISizeConstraint")
 	limit.MaxSize = Vector2.new(cfg.summary.maxWidthPixels, cfg.summary.maxHeightPixels)
 	limit.Parent = panel
-	local title = Theme.text(panel, "Title", if summary.cleared then "FIELD CLEARED" else "MATCH REPORT", UDim2.new(1, -36, 0, 38), UDim2.fromOffset(18, 12), cfg.titleTextPixels)
+	local headline = if summary.ctf then (if summary.ctf.winner == "player" then "FLAG VICTORY" elseif summary.ctf.winner == "bots" then "SQUAD VICTORY" elseif summary.ctf.winner == "draw" then "CTF DRAW" else "CTF REPORT") else (if summary.cleared then "FIELD CLEARED" else "MATCH REPORT")
+	local title = Theme.text(panel, "Title", headline, UDim2.new(1, -36, 0, 38), UDim2.fromOffset(18, 12), cfg.titleTextPixels)
 	title.Font, title.TextColor3 = Theme.font("bold"), C.accent
 	local marker = Config.get("markers").markers[summary.marker]
 	local subtitle = Theme.text(panel, "Subtitle", (summary.map or "Field") .. " · " .. (marker and marker.displayName or summary.marker), UDim2.new(1, -36, 0, 32), UDim2.fromOffset(18, 49), cfg.smallTextPixels)
@@ -413,6 +651,11 @@ function Hud.showSummary(summary: any, breakdown: any, onPlayAgain: (() -> any)?
 	end
 	local stats = section("Stats", 76, 1)
 	Theme.text(stats, "Totals", string.format("%d tags · %d headshots · %d outs\n%.0f%% hits · %d / %d rounds cleared", summary.eliminations or 0, summary.headshots or 0, summary.deaths or 0, (summary.hitRate or 0) * 100, breakdown.roundsCleared or 0, breakdown.roundsPlayed or 0), UDim2.new(1, -24, 1, -16), UDim2.fromOffset(12, 8), cfg.bodyTextPixels)
+	if summary.ctf then
+		local ctf = summary.ctf
+		local totals = stats:FindFirstChild("Totals") :: TextLabel
+		totals.Text = string.format("YOU %d — %d SQUAD · %d captures · %d returns\n%d tags · %d outs · %.0f%% hits", ctf.score.player, ctf.score.bots, ctf.captures, ctf.returns, summary.eliminations or 0, summary.deaths or 0, (summary.hitRate or 0) * 100)
+	end
 	local order = { "reactivity", "flicking", "targetSwitching", "tracking", "crosshairPlacement", "leadAndDrop" }
 	local pretty = { reactivity = "Reactivity", flicking = "Flicking", targetSwitching = "Target switching", tracking = "Tracking", crosshairPlacement = "Crosshair placement", leadAndDrop = "Lead & drop" }
 	for i, name in ipairs(order) do

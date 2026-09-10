@@ -262,6 +262,24 @@ Hud.flashHit(true)
 Hud.setCamoProgress({ headshots = 12, nextUnlock = { displayName = "Tide Shift", requiredHeadshots = 35 }, unlockedCamos = { "citrusCircuit" } })
 Hud.showChatter({ speaker = "Crew", text = "See you on the field." })
 Hud.showSummary({ cleared = true, map = "speedball", marker = "mechanical", eliminations = 20, deaths = 1, headshots = 5, hitRate = 0.5, scores = {}, prescription = { line = "Track your target through the turn.", drill = "tracking" } }, { total = 420, deathPenalty = 0.8, roundsCleared = 5, roundsPlayed = 5 }, function() return { ok = true } end, function() return { ok = true } end)
+do
+	local hud = playerGui:FindFirstChild("LiveRoundHud")
+	local function label(name)
+		for _, item in ipairs(hud:GetDescendants()) do if item.Name == name and item:IsA("TextLabel") then return item end end
+		error("missing HUD label " .. name)
+	end
+	Hud.setFlags({ score = { player = 2, bots = 1 }, target = 3, seconds = 65,
+		playerFlag = "carried", enemyFlag = "carried", carrying = true })
+	assert(label("Remaining").Text:find("YOU 2", 1, true) and label("Clock").Text == "1:05", "CTF score/countdown missing")
+	assert(label("Phase").Text:find("Recover your flag", 1, true), "CTF must explain why capture is blocked")
+	Hud.showSummary({ map = "holdfast", marker = "mechanical", scores = {}, ctf = {
+		winner = "bots", score = { player = 1, bots = 3 }, captures = 1, returns = 2 } }, { total = 500 })
+	assert(label("Title").Text == "SQUAD VICTORY", "CTF defeat rendered as a generic field clear")
+	assert(label("Totals").Text:find("1 captures", 1, true), "CTF results omitted objective totals")
+	Hud.hideSummary(); Hud.setPhase("hub")
+	assert(label("Round").Text == "THE LANDING", "CTF HUD leaked into the hub")
+end
+print("CTF HUD checks passed: score, countdown, blocked capture, results and hub reset")
 print("HUD construction / combat / summary methods passed against Roblox property database")
 print("Per-frame readouts verified by counted property writes: crosshair, range and hopper all skip an unchanged value, and a rebuild comes back clean")
 local ShopUi = loaded(client.ShopUi)
@@ -310,6 +328,14 @@ do
     local h = { WalkSpeed = 0, CameraOffset = roblox.Vector3.zero, MoveDirection = roblox.Vector3.zero, FloorMaterial = roblox.Enum.Material.Grass }
     players.LocalPlayer.Character = { FindFirstChildOfClass = function() return h end }
     actions.LR_Sprint(nil, roblox.Enum.UserInputState.Begin)
+    local fullSpeed = h.WalkSpeed
+    local carry = Config.get("gamemodes").captureTheFlag.flag.carrierSprintMultiplier
+    Input.setCarrierMultiplier(carry)
+    assert(math.abs(h.WalkSpeed - fullSpeed * carry) < 1e-6, "flag did not slow sprinting")
+    Input.setCarrierMultiplier(carry)
+    assert(math.abs(h.WalkSpeed - fullSpeed * carry) < 1e-6, "repeated flag snapshots compounded slowdown")
+    Input.setCarrierMultiplier(1)
+    assert(h.WalkSpeed == fullSpeed, "dropping the flag did not restore speed")
     actions.LR_Slide(nil, roblox.Enum.UserInputState.Begin)
     assert(not Input.state().sliding, "stationary slide accepted")
     h.MoveDirection = roblox.Vector3.new(0, 0, -1)

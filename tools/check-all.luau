@@ -46,6 +46,7 @@ local GATES: { Gate } = {
 	{ id = "check-demo-world", why = "all five maps, lighting and decoration" },
 	{ id = "check-persistence", why = "profile migration, saves, session loss" },
 	{ id = "run-profile-checks", why = "persistence adapter against a mock store" },
+	{ id = "check-ctf", why = "flag arena, full bot routes and visual lifecycle" },
 	{ id = "run-live-checks", why = "MatchService against a mock engine" },
 	{ id = "run-tests", why = "the spec suite -- slowest, run last" },
 }

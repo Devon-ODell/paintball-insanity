@@ -57,7 +57,6 @@ local RECURSION_ALLOWED: { [string]: string } = {
 local UNCALLED_ALLOWED: { [string]: string } = {
 	["Boss.forChapter"] = "Horde is specced and deferred; ship-check refuses to offer it",
 	["Boss.hitTarget"] = "same deferred Horde rules module",
-	["CaptureTheFlag.roleFor"] = "CTF is specced and deferred",
 	["LagCompensation.rewind"] = "rewind is captured but not integrated; PUBLISH_READINESS says so",
 	["LagCompensation.originIsPlausible"] = "unnecessary: MatchService discards the client origin entirely",
 	["Config.clearCache"] = "test seam",
@@ -125,7 +124,11 @@ local KNOWN_LONG: { [string]: number } = {
 	["PoleBarn.build"] = 742,
 	["Overworld.build"] = 546,
 	["runRound"] = 413,
-	["RangeService.start"] = 407,
+	--- Was 407 and is now 138: the drill loop was one closure holding every
+	--- piece of its own state in upvalues, and the Range's bugs lived at the
+	--- edges of exactly that. Re-frozen at what it measures, not at what it was
+	--- allowed.
+	["RangeService.start"] = 138,
 	["bayProp"] = 270,
 	["Wardrobe.body"] = 242,
 	["finish"] = 194,

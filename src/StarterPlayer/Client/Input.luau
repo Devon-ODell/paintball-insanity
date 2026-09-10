@@ -92,6 +92,8 @@ local function humanoid(): Humanoid?
 	return character and character:FindFirstChildOfClass("Humanoid")
 end
 
+local carrierMultiplier = 1
+
 local function applySpeed()
 	local h = humanoid()
 	if not h then
@@ -108,7 +110,12 @@ local function applySpeed()
 	else
 		metres = cfg.walkSpeedMps
 	end
-	h.WalkSpeed = Units.metresToStuds(metres)
+	h.WalkSpeed = Units.metresToStuds(metres * carrierMultiplier)
+end
+
+function Input.setCarrierMultiplier(multiplier: number)
+	carrierMultiplier = math.clamp(multiplier, 0, 1)
+	applySpeed()
 end
 
 local function setSprint(active: boolean)
