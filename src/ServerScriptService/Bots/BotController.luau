@@ -250,8 +250,15 @@ end
 	sight even though it does not block paint, which is the entire lesson of
 	the Woods map.
 ]]
-function BotController.canSee(self: Bot, targetPosition: Vector3): boolean
-	local aimPoint = targetPosition + Vector3.new(0, self._aimHeight, 0)
+--[[
+	`aimHeight` is how high up the target its centre of mass is, defaulting to
+	this bot's own. It is a parameter because a CROUCHED player is a lower and
+	smaller target than a standing one, and the squad used to look at and shoot
+	at standing chest height regardless -- so crouching behind low cover changed
+	what the player could see and nothing about what could see them.
+]]
+function BotController.canSee(self: Bot, targetPosition: Vector3, aimHeight: number?): boolean
+	local aimPoint = targetPosition + Vector3.new(0, aimHeight or self._aimHeight, 0)
 	local eye = BotController.eye(self)
 	local delta = aimPoint - eye
 	local distance = delta.Magnitude
@@ -597,7 +604,9 @@ function BotController.tick(self: Bot, dt: number, ctx: TickContext)
 	end
 
 	-- 1. Sense.
-	local sees = player.alive and BotController.canSee(self, player.position)
+	--- The player's own centre of mass, which drops when they crouch.
+	local playerAim = player.aimHeight or self._aimHeight
+	local sees = player.alive and BotController.canSee(self, player.position, playerAim)
 	self.hasLineOfSight = sees
 	if sees then
 		self._lastSeenAt = t
@@ -680,7 +689,7 @@ function BotController.tick(self: Bot, dt: number, ctx: TickContext)
 		if self.velocity.Magnitude > 0.1 then
 			return
 		end
-		tryFire(self, t, ctx, player.position + Vector3.new(0, self._aimHeight, 0), player.velocity)
+		tryFire(self, t, ctx, player.position + Vector3.new(0, playerAim, 0), player.velocity)
 	end
 end
 

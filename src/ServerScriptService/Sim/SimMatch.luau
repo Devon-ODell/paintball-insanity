@@ -25,6 +25,7 @@ local MapGeometry = require(ReplicatedStorage.Shared.MapGeometry)
 local Rng = require(ReplicatedStorage.Shared.Rng)
 local Spread = require(ReplicatedStorage.Shared.Spread)
 local Loadout = require(ReplicatedStorage.Shared.Loadout)
+local PlayerState = require(script.Parent.Parent.Match.PlayerState)
 local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
 local Melee = require(ReplicatedStorage.Shared.Melee)
 local Log = require(ReplicatedStorage.Shared.Log)
@@ -407,6 +408,7 @@ local function runRound(ctx: RoundContext): RoundReport
 			end
 
 			player.stance = ctx.spread:stance(player.velocity, intent.crouch)
+			player.aimHeight = (select(2, PlayerState.capsule(player.stance)))
 			ctx.spread:step(dt, t, player.velocity)
 
 			if intent.fire then
@@ -497,6 +499,8 @@ local function runRound(ctx: RoundContext): RoundReport
 			coordinator:updateCrossfire(bots, player.position, t)
 		end
 
+		--- The crouch-shrunk capsule the live match presents too.
+		local capsuleHeight = (PlayerState.capsule(player.stance))
 		local targets = table.clone(botTargets)
 		table.insert(targets, {
 			id = "player",
@@ -504,7 +508,7 @@ local function runRound(ctx: RoundContext): RoundReport
 			position = player.position,
 			velocity = player.velocity,
 			radius = hitbox.bodyWidthMetres * 0.5,
-			height = hitbox.bodyHeightMetres,
+			height = capsuleHeight,
 			alive = player.alive and t >= player.invulnerableUntil,
 		})
 

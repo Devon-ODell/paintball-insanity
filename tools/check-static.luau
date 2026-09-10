@@ -133,10 +133,11 @@ local KNOWN_LONG: { [string]: number } = {
 	["MatchService.start"] = 1188,
 	["PoleBarn.build"] = 742,
 	["Overworld.build"] = 546,
-	--- 413 -> 435 for the same reason, and it HAS to happen here too: a gear stat
-	--- connected live and not in the simulator leaves every difficulty number in
-	--- docs/PUBLISH_READINESS.md describing a different game.
-	["runRound"] = 435,
+	--- 413 -> 438 for the same reason, and it HAS to happen here too: a gear stat
+	--- or a hitbox connected live and not in the simulator leaves every
+	--- difficulty number in docs/PUBLISH_READINESS.md describing a different
+	--- game than the one being played.
+	["runRound"] = 438,
 	--- Was 407 and is now 138: the drill loop was one closure holding every
 	--- piece of its own state in upvalues, and the Range's bugs lived at the
 	--- edges of exactly that. Re-frozen at what it measures, not at what it was

@@ -230,4 +230,27 @@ function PlayerState.muzzle(self: State, ground: Vector3, aim: Vector3, stance: 
 	return muzzle
 end
 
+--[[
+	How tall the player is to the squad, and where their centre of mass is.
+
+	Crouching lowered the camera and the muzzle and changed nothing about the
+	target: the player entity handed to `ProjectileSim` was always the full
+	standing capsule, and `BotController` looked at and shot at standing chest
+	height regardless. So crouching behind low cover changed what the PLAYER
+	could see and nothing at all about what could see them -- which makes it a
+	camera effect wearing the clothes of a cover mechanic.
+
+	Scaled by the same ratio the camera drops by, so what the player feels and
+	what the squad sees are the same decision.
+]]
+function PlayerState.capsule(stance: Types.Stance): (number, number)
+	local hitbox = Config.require("ballistics", "hitbox")
+	if stance ~= "crouching" then
+		return hitbox.bodyHeightMetres, hitbox.chestHeightMetres
+	end
+	local player = Config.require("match", "player")
+	local drop = player.crouchEyeHeightMetres / player.eyeHeightMetres
+	return hitbox.bodyHeightMetres * drop, hitbox.chestHeightMetres * drop
+end
+
 return PlayerState

@@ -159,6 +159,41 @@ local function updateVisibility(world: any, bots: { any }, playerPosition: Vecto
 end
 
 --[[
+	The player, as the squad and the projectile simulation both see them.
+
+	One construction rather than two, because they used to disagree: the bot
+	context said `stance = "standing"` unconditionally and the capsule handed to
+	`ProjectileSim` was always the full standing one, so crouching lowered what
+	the player could see over and changed nothing whatsoever about the target.
+	That is a camera effect wearing the clothes of a cover mechanic.
+
+	`target` rides along on the entity so the two can never be built from
+	different stances again.
+]]
+local function playerEntity(playerState: any, position: Vector3, velocity: Vector3, alive: boolean): any
+	local hitbox = Config.require("ballistics", "hitbox")
+	local stance = PlayerState.stanceFor(playerState, velocity, nil)
+	local capsuleHeight, aimHeight = PlayerState.capsule(stance)
+	return {
+		position = position,
+		velocity = velocity,
+		alive = alive,
+		stance = stance,
+		--- Where the squad looks and aims. Drops when the player crouches.
+		aimHeight = aimHeight,
+		target = {
+			id = "player",
+			team = "player",
+			position = position,
+			velocity = velocity,
+			radius = hitbox.bodyWidthMetres * 0.5,
+			height = capsuleHeight,
+			alive = alive,
+		},
+	}
+end
+
+--[[
 	Puts a finished run on the board it belongs to, and records the player's own
 	best against the SAME board.
 
@@ -1081,12 +1116,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		spread:step(dt, t, velocity)
 		local playerAlive = ground ~= nil and not respawning and t >= invulnerableUntil
 
-		local player_ = {
-			position = playerPosition,
-			velocity = velocity,
-			alive = playerAlive,
-			stance = "standing" :: Types.Stance,
-		}
+		local player_ = playerEntity(playerState, playerPosition, velocity, playerAlive)
 
 		updateVisibility(world, bots, playerPosition, visibleSince, t)
 
@@ -1122,15 +1152,7 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 
 		coordinator:updateCrossfire(bots, playerPosition, t)
 
-		table.insert(targets, {
-			id = "player",
-			team = "player",
-			position = playerPosition,
-			velocity = velocity,
-			radius = hitbox.bodyWidthMetres * 0.5,
-			height = hitbox.bodyHeightMetres,
-			alive = playerAlive,
-		})
+		table.insert(targets, player_.target)
 		lagComp:capture(t, targets)
 
 		for _, event in ipairs(projectiles:step(dt, t, targets)) do

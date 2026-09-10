@@ -168,6 +168,32 @@ return function()
 			expect(math.abs(right.Y - left.Y) < 1e-6).to.equal(true)
 		end)
 
+		--[[
+			Crouching used to be a camera effect wearing the clothes of a cover
+			mechanic: it lowered what the player could see over and changed
+			nothing about the target. The entity handed to `ProjectileSim` was
+			always the full standing capsule, and the squad looked at and shot at
+			standing chest height regardless.
+		]]
+		it("makes a crouched player a shorter target, not just a lower camera", function()
+			local standingHeight, standingAim = PlayerState.capsule("standing")
+			local crouchHeight, crouchAim = PlayerState.capsule("crouching")
+			expect(crouchHeight < standingHeight).to.equal(true)
+			expect(crouchAim < standingAim).to.equal(true)
+			--- The same ratio the camera drops by, so what the player feels and
+			--- what the squad sees are one decision.
+			local player = Config.require("match", "player")
+			local drop = player.crouchEyeHeightMetres / player.eyeHeightMetres
+			expect(math.abs(crouchHeight / standingHeight - drop) < 1e-9).to.equal(true)
+		end)
+
+		it("leaves a moving or standing player their full height", function()
+			local full = Config.require("ballistics", "hitbox.bodyHeightMetres")
+			for _, stance in ipairs({ "standing", "moving", "sprinting" }) do
+				expect((PlayerState.capsule(stance :: any))).to.equal(full)
+			end
+		end)
+
 		it("leans along the player's own right, whichever way they face", function()
 			PlayerState.setIntent(state, false, 1)
 			local facingZ = PlayerState.muzzle(state, ground, Vector3.new(0, 0, 1), "standing")

@@ -138,81 +138,61 @@ cooldown, reload, pod count, hopper capacity and feed rate.
   consume them: a flatter, more consistent arc is less lead to work out, which is
   substituting for aim.
 
-**This changed the difficulty, and the change is real.** Connecting the squad's
-hearing makes the game harder. Measured on `probe-difficulty`, Speedball, six
-seeds, mean outs:
+### The difficulty moved, and it is the user's call what to do about it
 
-| Tier | Before | After |
-| --- | --- | --- |
-| rec | 0.83 | 1.00 |
-| amateur | 2.17 | 2.33 |
-| semipro | 7.17 (6/6 clears) | 9.33 (5/6 clears) |
-| pro | 11.50 | 12.67 |
+Two dead features became live in this pass, and both of them are things the
+difficulty was tuned in the absence of. Measured on `probe-difficulty`,
+Speedball, six seeds, mean outs. Nothing was retuned; these are just the numbers.
 
-That is the consequence of a feature that was advertised and dead becoming
-live, not a tuning change. **It is the user's call whether to retune against it.**
-`SimMatch` was connected at the same time and by the same function, so the
-simulator and the live game cannot describe different games.
+| Tier | Before | + squad hearing | + crouch hitbox |
+| --- | --- | --- | --- |
+| rec | 0.83 | 1.00 | **0.33** |
+| amateur | 2.17 | 2.33 | **0.67** |
+| semipro | 7.17 (6/6) | 9.33 (5/6) | **2.83** (6/6) |
+| pro | 11.50 | 12.67 | **8.17** |
+
+- **Squad hearing** made it harder, which is what you would expect from a squad
+  that previously could not hear an ordinary player at all.
+- **The crouch hitbox** made it much easier, and it dominates. A crouched player
+  is now a 1.17 m capsule instead of a 1.8 m one -- the same ratio the camera
+  drops by, which is physically about right for a crouching person.
+
+**Read the third column with care.** The simulated player policies crouch
+whenever they stop to shoot, which is most of a fight, so the sim gets the
+shorter capsule almost permanently. A human crouches some of the time. The sim
+therefore over-states this benefit, probably by a lot, and the honest reading is
+"crouch is now worth something and the amount is not yet known" rather than "the
+game is a third as hard".
+
+**This is a tuning decision and it has not been made.** The mechanic is correct
+-- the audit named "crouching does not shrink the actual target" as a defect, and
+a cover mechanic that only moves the camera is a lie. What the squad's accuracy,
+reaction and vision numbers should be against a player who can now actually take
+cover is the user's call, with `probe-difficulty` and `probe-trading` as the
+instruments.
+
+`SimMatch` was connected at the same time and by the same functions for both
+changes, so the simulator and the live game cannot describe different games.
 
 ### Where the gates stand, 2026-09-10
 
-`lune run tools/check-all`: **21 of 23 gates pass.** The spec suite is
-**569 passed, 1 failed, 0 skipped across 25 spec files** (the audit measured 526
-passed / 2 failed across 24).
+`lune run tools/check-all`: **22 of 23 gates pass.** The spec suite is
+**572 passed, 0 failed, 0 skipped across 25 spec files.** The audit measured
+**526 passed / 2 failed across 24**, with 20 of 22 gates.
 
-The two failures are both known and neither is new:
+The one remaining failure is **`ship-check`**: `Data/dev.json` still has
+invulnerability, infinite currency and `unlockEverything` on. That is the release
+blocker the audit named and it is deliberately still on for playtesting. Every
+other ship-check item passes, including the new "no purchasable attachment
+reaches spread or velocity".
 
-- **`ship-check`** — `Data/dev.json` still has invulnerability, infinite currency
-  and `unlockEverything` on. This is the release blocker the audit named and it
-  is deliberately still on for playtesting. Every other ship-check item passes,
-  including the new "no purchasable attachment reaches spread or velocity".
-- **`run-tests`** — `the difficulty curve > punishes trading harder than holding
-  angles` still fails, exactly as it did at the audit. The other balance failure
-  the audit reported, `orders Speedball below Woods by a wide margin`, now
-  passes. No assertion was weakened; the difference is the squad being able to
-  hear the player, which is measured above.
-
-### Stance, muzzle and objective movement (finding 09)
-
-The server already owned the thing that matters most: a hit is decided by its
-own swept simulation against its own view of the field, and there is no
-client-reported-hit remote anywhere in this project. Two things it did **not**
-own:
-
-- **Position.** It took the character's replicated root position as fact. That
-  is fine for a hit test -- a player who teleports still has to aim -- and it is
-  not fine for **Capture the Flag**, which scores on proximity to a flag and to
-  a home base. Forging a hit and forging a position are different problems and
-  only the first was solved. `Match/PlayerState` bounds movement by the top
-  speed the player's own kit allows; a refused sample leaves them at the last
-  place they could actually have been, so refused steps cannot accumulate into a
-  walk across the map. A respawn is announced as legitimate rather than inferred.
-- **Stance.** Crouch reached `Spread` as a **boolean on the fire request**, so a
-  client standing still could claim a crouch and collect the 0.72x cone without
-  ever crouching. Lean was not transmitted at all: the camera moved half a metre
-  around a corner while the authoritative muzzle stayed in the middle of the
-  body, so the player saw a clear shot and the ball hit the wall. And crouching
-  lowered the camera while the muzzle stayed at standing chest height, so
-  shooting over low cover cleared the lip on screen and hit it authoritatively.
-
-Stance is now a state the server holds (`ReportStance`, sent on change), granted
-only when the observed speed is slow enough to be a crouch, with the lean clamped
-to the authored offset -- and the muzzle follows it. 14 specs in
-`tests/PlayerState.spec.luau`.
-
-This is a **bound, not a proof.** Roblox's character controller is
-client-authoritative and a replicated position cannot be proven. The tolerance is
-deliberately generous because replication arrives late and in bursts; catching a
-teleport across the map is worth more than fighting ordinary jitter.
-
-### A note on concurrent work
-
-`CLAUDE.md` says Horde is owned by another agent's pass. During this session that
-agent added a `Notice` remote -- a presentation-only event that cannot change
-activity -- which is the correct fix for the delayed-commerce half of finding 11
-and better than replacing the phase on a `MatchStateChanged`. It was preserved
-rather than duplicated. Their changes were swept into this pass's commits by
-`git add -A`; nothing of theirs was reverted.
+**Both balance acceptance tests the audit found failing now pass** -- `punishes
+trading harder than holding angles` and `orders Speedball below Woods by a wide
+margin`. No assertion was weakened and neither test was touched. They pass
+because the simulator is now running the game the design describes: a squad that
+can hear, a player whose kit does something, and crouching that is cover rather
+than a camera effect. That is a reason to look at the difficulty table above
+again, not a reason to stop looking.
 
 ### Still open from Handoff 003
 
@@ -220,10 +200,9 @@ rather than duplicated. Their changes were swept into this pass's commits by
   masks still do not appear on the player's own avatar. `Wardrobe` dresses
   authored NPC and bot outfits; a composable per-slot system attached to a real
   Roblox character is a separate piece of work and cannot be verified headlessly.
-- **Finding 09, the hitbox half.** Crouching now lowers the muzzle and the cone,
-  but it does not shrink the target the squad aims at: `AimModel` still aims at a
-  standing capsule, so crouching behind low cover does not make you harder to
-  hit. That is a promised cover mechanic and it is not implemented.
+- **Tier retuning against the two newly-live mechanics** -- see the difficulty
+  table above. The mechanics are in; the numbers they were balanced without are
+  not adjusted, deliberately, because that is a design decision.
 - **One balance acceptance spec** still fails: `punishes trading harder than
   holding angles`. The other one the audit reported, `orders Speedball below
   Woods by a wide margin`, now passes. No assertion was weakened; the difference
