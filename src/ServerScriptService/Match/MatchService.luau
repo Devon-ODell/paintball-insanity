@@ -77,6 +77,19 @@ export type Match = {
 	tier: Types.BotTier,
 	marker: string,
 	stop: () -> (),
+	--[[
+		Puts a character back on the field after one disappeared for a reason
+		the match did not ask for -- the native reset button, or walking off the
+		edge of the world.
+
+		`Players.CharacterAutoLoads` is off, so nothing reloads a character on
+		its own. The only path that did was elimination by paint; every other
+		way to lose a character left the player with none at all while the round
+		clock kept running. Charged as an out, because it IS one: leaving the
+		field and coming back somewhere safe is exactly what an out costs, and
+		the alternative is a free reset out of any losing fight.
+	]]
+	recover: () -> boolean,
 }
 
 --- Fired when a match finishes, so the hub can walk the player back out into
@@ -1183,6 +1196,27 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		stop = function()
 			finish(false)
 		end,
+		recover = function(): boolean
+			if finished or respawning or player.Parent ~= Players then
+				return false
+			end
+			--- Through the ordinary elimination path, so the out is counted
+			--- once, the invulnerability window is the same, and the squad
+			--- reacts the way it does to any other out. A second route with its
+			--- own respawn rules is a second set of rules to keep in step.
+			local at = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			eliminatePlayer(if at then Units.vectorToMetres((at :: BasePart).Position) else Vector3.zero)
+			--[[
+				The invulnerability dev flag eats the elimination, and with it
+				the respawn. That is right for paint and wrong here: the
+				character is already gone, and refusing the out would leave a
+				developer standing in an empty field with nothing to control.
+			]]
+			if not respawning then
+				spawnPlayer(Squad.respawnPoint({ world = world, vecOf = vecOf } :: any, currentRound, bots))
+			end
+			return true
+		end,
 	}
 	active[player] = match
 	spawnPlayer(MapGeometry.groundPoint(world, vecOf(world.playerSpawn.position)))
@@ -1253,6 +1287,43 @@ end
 
 function MatchService.isActive(player: Player): boolean
 	return active[player] ~= nil
+end
+
+--[[
+	Tears down the field a finished match left standing.
+
+	`finish` deliberately does NOT do this: the venue outlives the final whistle
+	so the player can walk to the supply counter and spend what they just earned.
+	But the map root outlived it too, and nothing ever destroyed it -- Bootstrap
+	restored The Landing at the same world origin 2.5 s later, on top of it.
+
+	The old geometry was disposed of only when THAT SAME player started another
+	match or left the server. So a drill after a match inherited the field, a
+	second player starting after the first finished left two map roots standing,
+	and The Landing was routinely restored inside a Speedball field.
+
+	Returning to the hub is the boundary. Whatever ends the venue calls this
+	first; there is no other correct order.
+]]
+function MatchService.disposeVenue(player: Player)
+	venues[player] = nil
+	if mapWorlds[player] then
+		mapWorlds[player]:Destroy()
+		mapWorlds[player] = nil
+	end
+end
+
+--- Whether this player still has a field standing -- playing on it, or shopping
+--- at its counter after the whistle.
+function MatchService.hasVenue(player: Player): boolean
+	return mapWorlds[player] ~= nil
+end
+
+--- Puts a character back on the field after one was lost outside the match's
+--- own rules. False when there is no live match to put them back into.
+function MatchService.recover(player: Player): boolean
+	local match = active[player]
+	return match ~= nil and match.recover()
 end
 
 --[[

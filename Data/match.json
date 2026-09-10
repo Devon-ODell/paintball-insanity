@@ -44,6 +44,9 @@
   },
   "roundTimeLimitSeconds": 480,
   "respawnDelaySeconds": 2.5,
+
+  "_recoveryDelaySeconds": "How long after a character disappears for reasons the game did not ask for -- the native reset button, falling out of the world, a load that failed -- before the server puts a new one down. Players.CharacterAutoLoads is off, so nothing else will. Longer than respawnDelaySeconds so an activity that wants to own its own respawn, and charge an out for it, gets there first.",
+  "recoveryDelaySeconds": 4,
   "warmupSeconds": 3.0,
   "player": {
     "walkSpeedMps": 4.2,

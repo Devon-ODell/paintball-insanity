@@ -134,7 +134,11 @@ local KNOWN_LONG: { [string]: number } = {
 	["finish"] = 194,
 	["ViewMarker.equip"] = 188,
 	["step"] = 180,
-	["Commerce.new"] = 167,
+	--- 167 -> 197 when a pass stopped being "a bag of cosmetics you either hold
+	--- or do not". A free claim now writes the entitlement, requires it in its
+	--- own save confirmation, and announces the pass changing hands the way a
+	--- purchase does. Re-frozen at what it measures.
+	["Commerce.new"] = 197,
 	["SimMatch.run"] = 166,
 	["BotAvatar.new"] = 162,
 	["ShopUi.open"] = 158,

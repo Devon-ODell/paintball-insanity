@@ -23,6 +23,7 @@ local Profile = require(Server.Economy.Profile)
 local Shop = require(Server.Economy.Shop)
 local Commerce = require(Server.Economy.Commerce)
 local SeasonPass = require(Server.Progression.SeasonPass)
+local Activity = require(Server.World.Activity)
 local Hub = require(Server.World.Hub)
 local RangeService = require(Server.Range.RangeService)
 local DialogueService = require(Server.Dialogue.DialogueService)
@@ -35,9 +36,56 @@ if demo and (demo :: BoolValue).Value and not game:GetService("RunService"):IsSt
 	error("This demo uses temporary progress and runs only in Roblox Studio.")
 end
 local starting: { [Player]: boolean } = {}
-local returnTokens: { [Player]: number } = {}
 local startDrill: (Player, string?) -> boolean
 local offerDrills: (Player) -> ()
+--[[
+	The lease each player currently holds on the world at the origin.
+
+	Kept here rather than only inside Activity because the delayed return
+	callback needs to ask "is the lease I was fired for still the current one",
+	and that question cannot be answered by re-reading mutable service state --
+	which is exactly what `returnTokens` was doing, and why a REJECTED replay
+	request could invalidate a pending automatic return: the token incremented
+	before the mode was validated.
+]]
+local leases: { [Player]: Activity.Lease } = {}
+
+--[[
+	Puts a player back in The Landing, having first taken down whatever was
+	standing at the origin.
+
+	The order is the entire point. `Hub.restore` and `Hub.placePlayer` rebuild
+	the hub at the world origin, and a finished match's map root and a finished
+	drill's range are both still there until something disposes of them. This is
+	the one place that transition happens.
+]]
+local function returnToHub(player: Player, at: Vector3?, keepResults: boolean?)
+	local lease = leases[player]
+	if lease then
+		leases[player] = nil
+		Activity.release(lease)
+	end
+	MatchService.disposeVenue(player)
+	--[[
+		The Landing comes back only when the origin is genuinely idle.
+
+		A second player finishing while the first is still on a field would
+		otherwise restore the hub into that field. They get put back in the hub
+		when the world is theirs to have; until then they are told, not moved.
+	]]
+	if Activity.isHeld() then
+		local holder = select(1, Activity.holder())
+		Remotes.event("MatchStateChanged"):FireClient(player, {
+			phase = "hub",
+			notice = if holder
+				then `{holder.DisplayName} is still on the field. Hold tight.`
+				else "The field is still coming down.",
+		})
+		return
+	end
+	Hub.placePlayer(player, at, keepResults)
+	Hub.refreshBoard()
+end
 
 Remotes.init()
 Dev.announce()
@@ -281,8 +329,18 @@ requestMatch = function(player: Player, payload: any): any
 	if starting[player] then
 		return { ok = false, reason = "Match is already starting." }
 	end
+	--[[
+		Validate the whole request BEFORE claiming anything.
+
+		`returnTokens` used to be incremented right here, at the top, before the
+		mode and map had been checked -- so a REJECTED replay request
+		invalidated the automatic return that was already pending, and a player
+		who asked for something unavailable at the summary screen was left
+		standing on a dead field with nothing coming to collect them. Nothing is
+		claimed, parked or torn down until the request is known to be one the
+		server will honour.
+	]]
 	starting[player] = true
-	returnTokens[player] = (returnTokens[player] or 0) + 1
 	local mapName = DEFAULT_MAP
 	local tier = DEFAULT_TIER
 	--[[
@@ -322,20 +380,63 @@ requestMatch = function(player: Player, payload: any): any
 		the hub out from under whoever stayed behind. Refuse plainly rather than
 		producing that.
 	]]
-	local host = MatchService.currentHost()
-	if host and host ~= player then
+	--[[
+		One scene at the origin, and one owner of it.
+
+		This used to be `MatchService.currentHost()`, which sees ACTIVE matches
+		and nothing else -- not a Range session, not a venue retained after the
+		final whistle so the player could shop, not the window while a character
+		load was yielding. So a match could start on top of somebody's drill, and
+		a drill could start on top of somebody's field.
+
+		Claimed before `MatchService.stop`, before `Hub.park` and before anything
+		that yields. The same player re-claiming is a handover: pressing Play
+		again arrives while they still own the venue they just finished on.
+	]]
+	local lease, heldBy = Activity.claim(player, "match")
+	if not lease then
 		starting[player] = nil
-		return { ok = false, reason = `{host.DisplayName} is on the field. One field at a time.` }
+		return { ok = false, reason = `{(heldBy :: Player).DisplayName} is on the field. One field at a time.` }
+	end
+	leases[player] = lease :: Activity.Lease
+
+	--[[
+		A drill and a match cannot share a player.
+
+		Nothing stopped the Range when a match started. Both loops connect to
+		`FireMarker` and `RequestReload`, so both consumed every trigger pull,
+		and both built geometry at the origin. Releasing the lease above does not
+		reach into RangeService, so it is stopped explicitly here.
+	]]
+	if RangeService.isActive(player) then
+		RangeService.stop(player)
 	end
 	MatchService.stop(player)
+	MatchService.disposeVenue(player)
+
+	Activity.onRelease(lease :: Activity.Lease, function()
+		MatchService.stop(player)
+		MatchService.disposeVenue(player)
+	end)
+
 	local success, result = pcall(startMatch, player, mapName, tier, mode)
 	starting[player] = nil
-	if not success then
-		MatchService.stop(player)
-		-- A half-built match must never leave the player with no world at all.
+	if not success or not result then
+		--[[
+			A half-built match must never leave the player with no world at all.
+
+			Releasing the lease runs the teardown registered above, so the field
+			comes down before The Landing goes back up rather than being
+			restored on top of it.
+		]]
+		leases[player] = nil
+		Activity.release(lease :: Activity.Lease)
 		Hub.restore()
-		log.warn(`match startup failed: {result}`)
-		return { ok = false, reason = "Could not start the match. Check Studio Output." }
+		if not success then
+			log.warn(`match startup failed: {result}`)
+			return { ok = false, reason = "Could not start the match. Check Studio Output." }
+		end
+		return { ok = false, reason = "Could not start the match." }
 	end
 	return { ok = result, map = mapName, tier = tier, mode = mode }
 end
@@ -357,7 +458,7 @@ end
 	trainer would be charging for the game.
 ]]
 function startDrill(player: Player, drillId: string?): boolean
-	if starting[player] or MatchService.isActive(player) or RangeService.isActive(player) then
+	if starting[player] or RangeService.isActive(player) then
 		return false
 	end
 	local wanted = drillId or Config.require("range", "drillOrder")[1]
@@ -367,9 +468,42 @@ function startDrill(player: Player, drillId: string?): boolean
 		})
 		return false
 	end
+
+	--[[
+		The Range is a scene at the origin like any other, so it takes the lease.
+
+		`startDrill` checked activity for THIS player only, so a second player
+		could open the Range during the first player's match -- building a range
+		inside their field, at the same origin, with both loops consuming the
+		same FireMarker events. It also never set `starting`, which is what let
+		Bootstrap's CharacterAdded handler decide a Range player was eligible for
+		the hub and restore The Landing on top of the firing line mid-drill.
+
+		Claimed before `Hub.park` and before `RangeService.start`, which yields
+		on `LoadCharacterAsync`.
+	]]
+	local lease, heldBy = Activity.claim(player, "range")
+	if not lease then
+		Remotes.event("MatchStateChanged"):FireClient(player, {
+			phase = "hub",
+			notice = `{(heldBy :: Player).DisplayName} is on the field. One field at a time.`,
+		})
+		return false
+	end
+	leases[player] = lease :: Activity.Lease
+	Activity.onRelease(lease :: Activity.Lease, function()
+		RangeService.stop(player)
+	end)
+
+	--- A match's field and its retained venue are both still at the origin.
+	MatchService.stop(player)
+	MatchService.disposeVenue(player)
+
 	Hub.park()
 	local ok = RangeService.start(player, wanted)
 	if not ok then
+		leases[player] = nil
+		Activity.release(lease :: Activity.Lease)
 		Hub.restore()
 		Remotes.event("MatchStateChanged"):FireClient(player, {
 			phase = "hub", notice = "The Range could not open. Check Studio Output.",
@@ -423,17 +557,26 @@ function offerDrills(player: Player)
 	Remotes.event("DrillCatalogue"):FireClient(player, { drills = entries })
 end
 
-RangeService.onFinished = function(player: Player, result)
-	Hub.restore()
+RangeService.onFinished = function(player: Player, _result)
 	if player.Parent ~= Players then
+		local lease = leases[player]
+		if lease then
+			leases[player] = nil
+			Activity.release(lease)
+		end
 		return
 	end
-	Remotes.event("MatchStateChanged"):FireClient(player, {
-		phase = "hub",
-		notice = `{result.drill}: {result.hits}/{result.shots} -- {result.score} pts`,
-	})
-	Hub.placePlayer(player, Hub.gateReturnPosition("range"))
-	Hub.refreshBoard()
+	--[[
+		The score panel arrives on its own remote and stays until dismissed.
+
+		This used to send a `hub` phase carrying a one-line notice with the hit
+		count, and the client's hub handling calls `Hud.hideSummary` -- so the
+		result was destroyed by the very message that announced it. The rating,
+		the fundamental and the accuracy were never shown at all. `DrillScore`
+		now carries the whole result and the client renders it; the player walks
+		back to The Landing either way.
+	]]
+	returnToHub(player, Hub.gateReturnPosition("range"))
 end
 
 --- Walking into a trailhead and holding the key starts that map's five rounds.
@@ -514,13 +657,28 @@ end
 	after every match would stop being peaceful and start being a chore.
 ]]
 MatchService.onMatchEnded = function(player: Player, mapName: string)
-	local token = returnTokens[player]
+	--[[
+		The lease this return belongs to.
+
+		Asked for by identity, not by re-reading whatever mutable state happens
+		to be true in two and a half seconds. `returnTokens` incremented at the
+		TOP of `requestMatch`, before the request was validated, so a rejected
+		replay invalidated the pending return and left the player on a dead field
+		with nothing coming for them. A lease that is no longer current means
+		something else already owns the origin, and moving this player would put
+		The Landing on top of it.
+	]]
+	local lease = leases[player]
 	task.delay(2.5, function()
-		if player.Parent ~= Players or returnTokens[player] ~= token or starting[player] or MatchService.isActive(player) then
+		if player.Parent ~= Players or starting[player] or MatchService.isActive(player) then
 			return
 		end
-		Hub.placePlayer(player, Hub.gateReturnPosition(mapName))
-		Hub.refreshBoard()
+		if lease and not Activity.isCurrent(lease) then
+			return
+		end
+		--- The results panel stays up. The player walks back to The Landing
+		--- while still reading what the match told them about their shooting.
+		returnToHub(player, Hub.gateReturnPosition(mapName), true)
 	end)
 end
 Remotes.fn("RequestShopVisit").OnServerInvoke = function(player)
@@ -674,15 +832,123 @@ local function onPlayer(player: Player)
 	if not handle then player:Kick("Your field pass could not load. Please rejoin."); return end
 	task.spawn(function() commerce:playerAdded(player) end)
 	--[[
-		You start in the woods, not in a match. The first thing the game does is
-		put you on a trail and let you walk to a gate.
+		A new character is routed to whoever owns the world, not to the hub.
+
+		This used to wait 0.2 s and then place the player in The Landing unless
+		they had a `starting` flag or an active match. Three things were wrong
+		with inferring hub eligibility from "no match":
+
+		  - `startDrill` never set the flag, so a player whose drill was loading
+		    got The Landing restored on top of the firing line. The exact
+		    ordering against the yielding character load is engine-dependent,
+		    which is a description of a race, not a defence.
+		  - A SECOND player receiving CharacterAdded during someone else's match
+		    restored the entire hub inside that match's field.
+		  - A player whose match was still being built was not "active" yet.
+
+		The lease answers all three with one question. If somebody owns the
+		origin, the hub is not standing and this player does not get put in it --
+		if it is their own activity, that activity places them; if it is
+		somebody else's, they are told to wait rather than being dropped into a
+		field they are not playing on.
 	]]
+	local function routeCharacter()
+		if player.Parent ~= Players or starting[player] then
+			return
+		end
+		local mine = Activity.kindFor(player)
+		if mine ~= nil then
+			--- Their own activity owns their character: RangeService puts them
+			--- on the firing line, MatchService on its spawn. Nothing to do.
+			return
+		end
+		if Activity.isHeld() then
+			local holder = select(1, Activity.holder())
+			Remotes.event("MatchStateChanged"):FireClient(player, {
+				phase = "hub",
+				notice = if holder
+					then `{holder.DisplayName} is on the field. You are up next.`
+					else "The field is busy.",
+			})
+			return
+		end
+		Hub.placePlayer(player)
+	end
+
 	player.CharacterAdded:Connect(function()
 		task.wait(0.2)
-		if player.Parent == Players and not starting[player] and not MatchService.isActive(player) then
-			Hub.placePlayer(player)
+		routeCharacter()
+	end)
+
+	--[[
+		Reset, falling out of the world, and a character that simply vanishes.
+
+		`Players.CharacterAutoLoads` is false in default.project.json, which
+		Roblox documents as meaning the game must load characters itself. The
+		only place that happened was the paintball elimination path calling
+		LoadCharacterAsync -- so the native reset button, walking off the edge of
+		a map and any character removed for any other reason left the player with
+		NO character at all, indefinitely, until a timeout or a rejoin. For
+		non-CTF the gameplay step just returns early each frame while the round
+		clock keeps running; CTF holds the last known position.
+
+		Routed through the activity owner, so a reset during a drill puts the
+		player back on the firing line and a reset in the hub puts them in the
+		hub. An activity that owns the origin and wants to handle its own
+		respawn -- a match charging an out for it -- says so by taking the
+		character back before this fires.
+	]]
+	local reloading = false
+	local function recoverCharacter()
+		if reloading or player.Parent ~= Players or starting[player] then
+			return
+		end
+		reloading = true
+		task.delay(Config.require("match", "recoveryDelaySeconds"), function()
+			reloading = false
+			if player.Parent ~= Players or player.Character then
+				return
+			end
+			--[[
+				Recovery belongs to whoever owns the world.
+
+				Dropping a plain character at the default spawn would put a
+				player who reset mid-match onto a field they are not spawned
+				into, at the origin, without charging the out that leaving a
+				fight and coming back somewhere safe is supposed to cost. The
+				activity that owns them knows where they go and what it costs.
+			]]
+			local kind = Activity.kindFor(player)
+			if kind == "match" and MatchService.recover(player) then
+				return
+			end
+			if kind == "range" and RangeService.recover(player) then
+				return
+			end
+			--[[
+				A load that fails must not leave the player without a world.
+
+				The startup path wraps this in a pcall; the recovery path had no
+				equivalent, so a spawn failure during a delayed respawn was
+				unrecoverable.
+			]]
+			local ok, err = pcall(function()
+				player:LoadCharacter()
+			end)
+			if not ok then
+				log.warn(`could not reload a character for {player.Name}: {err}`)
+			end
+		end)
+	end
+
+	player.CharacterRemoving:Connect(recoverCharacter)
+	player.CharacterAdded:Connect(function(character)
+		local humanoid = character:WaitForChild("Humanoid", 10)
+		if humanoid and humanoid:IsA("Humanoid") then
+			humanoid.Died:Connect(recoverCharacter)
 		end
 	end)
+
 	player:LoadCharacter()
 end
 
@@ -693,7 +959,8 @@ end
 
 Players.PlayerRemoving:Connect(function(player)
 	starting[player] = nil
-	returnTokens[player] = nil
+	leases[player] = nil
+	Activity.releaseFor(player)
 	MatchService.stop(player)
 	commerce:forget(player.UserId)
 	Profile.release(player.UserId)

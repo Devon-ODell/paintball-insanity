@@ -219,7 +219,20 @@ end
 	whole trail again after every single match would stop being peaceful and
 	start being a chore.
 ]]
-function Hub.placePlayer(player: Player, at: Vector3?)
+--[[
+	Puts a player back without taking their results away.
+
+	`keepResults` reaches the client as part of the hub phase message. The client
+	hides the summary panel whenever it enters `hub`, which is correct for
+	joining and for walking out of the barn -- and wrong for the one case that
+	matters most: returning from a match. Bootstrap physically returns the player
+	2.5 s after the summary arrives, so the six fundamental scores, the
+	diagnosis, the payout breakdown and the replay buttons were destroyed two and
+	a half seconds after appearing, without the player dismissing anything. The
+	teaching loop this whole game is built around depends on that panel being
+	READ.
+]]
+function Hub.placePlayer(player: Player, at: Vector3?, keepResults: boolean?)
 	-- Putting a player into a parked hub would drop them through the world.
 	Hub.restore()
 	if not hub then
@@ -240,7 +253,9 @@ function Hub.placePlayer(player: Player, at: Vector3?)
 	root.CFrame = CFrame.lookAt(position, Units.vectorToStuds(hub.lookAt) + Vector3.new(0, position.Y, 0))
 	root.AssemblyLinearVelocity = Vector3.zero
 
-	Remotes.event("MatchStateChanged"):FireClient(player, { phase = "hub", map = "landing" })
+	Remotes.event("MatchStateChanged"):FireClient(player, {
+		phase = "hub", map = "landing", keepResults = keepResults == true,
+	})
 	Hub.refreshPersonal(player)
 end
 

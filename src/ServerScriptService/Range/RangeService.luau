@@ -816,6 +816,26 @@ local function placeOnLine(session: Session): boolean
 end
 
 --[[
+	Puts a player back on the firing line after their character disappeared.
+
+	`Players.CharacterAutoLoads` is off, so nothing reloads a character on its
+	own -- and the Range never had an elimination path to do it, because nothing
+	on the Range shoots back. So the native reset button, or walking off the
+	firing line, left the player with no character at all for the rest of the
+	drill while the schedule kept presenting targets to nobody.
+
+	Costs nothing. There is no payout here and no out to charge; the drill's own
+	clock is the only thing running, and it does not stop.
+]]
+function RangeService.recover(player: Player): boolean
+	local session = sessions[player]
+	if not session or session.finished then
+		return false
+	end
+	return placeOnLine(session)
+end
+
+--[[
 	Runs one drill for one player.
 
 	Returns false when it could not start -- no profile, an unknown drill, or a

@@ -506,7 +506,22 @@ Remotes.event("MatchStateChanged").OnClientEvent:Connect(function(payload)
 	Music.setContext(Config.get("audio").music.context[phase])
 	if phase == "warmup" or phase == "shop" or phase == "hub" then
 		ShopUi.close()
-		Hud.hideSummary()
+		--[[
+			The results panel survives the walk home.
+
+			Bootstrap physically returns the player to The Landing 2.5 s after
+			the summary arrives, and entering `hub` used to destroy the panel
+			unconditionally -- so the six fundamental scores, the diagnosis, the
+			payout breakdown and the replay buttons vanished two and a half
+			seconds after appearing, without anybody dismissing them. That panel
+			IS the teaching loop; the match exists to produce it.
+
+			Joining the server and walking out of the barn still clear it, which
+			is right. Only the post-match return asks to keep it.
+		]]
+		if not payload.keepResults then
+			Hud.hideSummary()
+		end
 		DialogueUi.close()
 		syncPointer()
 	end
