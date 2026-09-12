@@ -170,14 +170,14 @@
         "name": "HelmetShell",
         "anchor": "head",
         "size": [
-          0.42,
-          0.3,
-          0.44
+          0.2839,
+          0.2028,
+          0.2974
         ],
         "at": [
-          0,
-          0.065,
-          0
+          0.0,
+          0.0439,
+          0.0
         ],
         "colorKey": "gearBlack",
         "shape": "Ball",
@@ -187,61 +187,65 @@
         "name": "HelmetBrim",
         "anchor": "head",
         "size": [
-          0.34,
-          0.04,
-          0.1
+          0.2298,
+          0.027,
+          0.0676
         ],
         "at": [
-          0,
-          0.06,
-          -0.19
+          0.0,
+          0.0406,
+          -0.1284
         ],
-        "colorKey": "gearBlack"
+        "colorKey": "gearBlack",
+        "shape": "Ball"
       },
       {
         "name": "RailL",
         "anchor": "head",
         "size": [
-          0.02,
-          0.03,
-          0.26
+          0.0135,
+          0.0203,
+          0.1758
         ],
         "at": [
-          -0.19,
-          0.09,
-          0.01
+          -0.1284,
+          0.0608,
+          0.0068
         ],
-        "colorKey": "gearGrey"
+        "colorKey": "gearGrey",
+        "shape": "Ball"
       },
       {
         "name": "RailR",
         "anchor": "head",
         "size": [
-          0.02,
-          0.03,
-          0.26
+          0.0135,
+          0.0203,
+          0.1758
         ],
         "at": [
-          0.19,
-          0.09,
-          0.01
+          0.1284,
+          0.0608,
+          0.0068
         ],
-        "colorKey": "gearGrey"
+        "colorKey": "gearGrey",
+        "shape": "Ball"
       },
       {
         "name": "ChinStrap",
         "anchor": "head",
         "size": [
-          0.3,
-          0.03,
-          0.03
+          0.2028,
+          0.0203,
+          0.0203
         ],
         "at": [
-          0,
-          -0.14,
-          -0.02
+          0.0,
+          -0.0946,
+          -0.0135
         ],
-        "colorKey": "strap"
+        "colorKey": "strap",
+        "shape": "Ball"
       }
     ],
     "nvgMount": [
@@ -249,31 +253,33 @@
         "name": "NvgShroud",
         "anchor": "head",
         "size": [
-          0.13,
-          0.06,
-          0.05
+          0.0879,
+          0.0406,
+          0.0338
         ],
         "at": [
-          0,
-          0.14,
-          -0.19
+          0.0,
+          0.0946,
+          -0.1284
         ],
-        "colorKey": "gearBlack"
+        "colorKey": "gearBlack",
+        "shape": "Ball"
       },
       {
         "name": "NvgArm",
         "anchor": "head",
         "size": [
-          0.04,
-          0.13,
-          0.04
+          0.027,
+          0.0879,
+          0.027
         ],
         "at": [
-          0,
-          0.08,
-          -0.21
+          0.0,
+          0.0541,
+          -0.142
         ],
-        "colorKey": "gearBlack"
+        "colorKey": "gearBlack",
+        "shape": "Ball"
       }
     ],
     "nvgDown": [
@@ -281,14 +287,14 @@
         "name": "NvgTubeL",
         "anchor": "head",
         "size": [
-          0.11,
-          0.07,
-          0.07
+          0.0744,
+          0.0473,
+          0.0473
         ],
         "at": [
-          -0.05,
-          0.02,
-          -0.23
+          -0.0338,
+          0.0135,
+          -0.1555
         ],
         "colorKey": "gearBlack",
         "shape": "Cylinder",
@@ -302,14 +308,14 @@
         "name": "NvgTubeR",
         "anchor": "head",
         "size": [
-          0.11,
-          0.07,
-          0.07
+          0.0744,
+          0.0473,
+          0.0473
         ],
         "at": [
-          0.05,
-          0.02,
-          -0.23
+          0.0338,
+          0.0135,
+          -0.1555
         ],
         "colorKey": "gearBlack",
         "shape": "Cylinder",
@@ -323,14 +329,14 @@
         "name": "NvgLensL",
         "anchor": "head",
         "size": [
-          0.01,
-          0.055,
-          0.055
+          0.0068,
+          0.0372,
+          0.0372
         ],
         "at": [
-          -0.05,
-          0.02,
-          -0.285
+          -0.0338,
+          0.0135,
+          -0.1927
         ],
         "colorKey": "lensGreen",
         "shape": "Cylinder",
@@ -345,14 +351,14 @@
         "name": "NvgLensR",
         "anchor": "head",
         "size": [
-          0.01,
-          0.055,
-          0.055
+          0.0068,
+          0.0372,
+          0.0372
         ],
         "at": [
-          0.05,
-          0.02,
-          -0.285
+          0.0338,
+          0.0135,
+          -0.1927
         ],
         "colorKey": "lensGreen",
         "shape": "Cylinder",
@@ -367,16 +373,17 @@
         "name": "NvgBridge",
         "anchor": "head",
         "size": [
-          0.06,
-          0.03,
-          0.05
+          0.0406,
+          0.0203,
+          0.0338
         ],
         "at": [
-          0,
-          0.05,
-          -0.22
+          0.0,
+          0.0338,
+          -0.1487
         ],
-        "colorKey": "gearGrey"
+        "colorKey": "gearGrey",
+        "shape": "Ball"
       }
     ],
     "nvgUp": [
@@ -384,21 +391,21 @@
         "name": "NvgTubeL",
         "anchor": "head",
         "size": [
-          0.11,
-          0.07,
-          0.07
+          0.0744,
+          0.0473,
+          0.0473
         ],
         "at": [
-          -0.05,
-          0.165,
-          -0.14
+          -0.0338,
+          0.1115,
+          -0.0946
         ],
         "colorKey": "gearBlack",
         "shape": "Cylinder",
         "rotationDeg": [
-          90,
           0,
-          0
+          0,
+          90
         ],
         "_note": "Tubes dropped from y=0.19 to 0.165 on 2026-09-09, with the bump helmet. Stowed-up night vision sat at 1.805 m against a 1.80 m hit capsule -- five millimetres of a pro's silhouette that paint passed straight through. Nothing on a body should stand outside the shape the server shoots at; tools/probe-hitbox is the check."
       },
@@ -406,37 +413,38 @@
         "name": "NvgTubeR",
         "anchor": "head",
         "size": [
-          0.11,
-          0.07,
-          0.07
+          0.0744,
+          0.0473,
+          0.0473
         ],
         "at": [
-          0.05,
-          0.165,
-          -0.14
+          0.0338,
+          0.1115,
+          -0.0946
         ],
         "colorKey": "gearBlack",
         "shape": "Cylinder",
         "rotationDeg": [
-          90,
           0,
-          0
+          0,
+          90
         ]
       },
       {
         "name": "NvgBridge",
         "anchor": "head",
         "size": [
-          0.06,
-          0.03,
-          0.05
+          0.0406,
+          0.0203,
+          0.0338
         ],
         "at": [
-          0,
-          0.16,
-          -0.16
+          0.0,
+          0.1082,
+          -0.1082
         ],
-        "colorKey": "gearGrey"
+        "colorKey": "gearGrey",
+        "shape": "Ball"
       }
     ],
     "paintballMask": [
@@ -444,14 +452,14 @@
         "name": "MaskShell",
         "anchor": "head",
         "size": [
-          0.38,
-          0.4,
-          0.4
+          0.2569,
+          0.2704,
+          0.2704
         ],
         "at": [
-          0,
-          0,
-          0
+          0.0,
+          0.0,
+          0.0
         ],
         "colorKey": "gearBlack",
         "shape": "Ball"
@@ -460,63 +468,67 @@
         "name": "MaskLens",
         "anchor": "head",
         "size": [
-          0.31,
-          0.15,
-          0.1
+          0.2096,
+          0.1014,
+          0.0676
         ],
         "at": [
-          0,
-          0.01,
-          -0.16
+          0.0,
+          0.0068,
+          -0.1082
         ],
         "colorKey": "lensSmoke",
         "material": "Glass",
-        "reflectance": 0.35
+        "reflectance": 0.35,
+        "shape": "Ball"
       },
       {
         "name": "MaskVentL",
         "anchor": "head",
         "size": [
-          0.05,
-          0.1,
-          0.06
+          0.0338,
+          0.0676,
+          0.0406
         ],
         "at": [
-          -0.16,
-          -0.09,
-          -0.12
+          -0.1082,
+          -0.0608,
+          -0.0811
         ],
-        "colorKey": "gearGrey"
+        "colorKey": "gearGrey",
+        "shape": "Ball"
       },
       {
         "name": "MaskVentR",
         "anchor": "head",
         "size": [
-          0.05,
-          0.1,
-          0.06
+          0.0338,
+          0.0676,
+          0.0406
         ],
         "at": [
-          0.16,
-          -0.09,
-          -0.12
+          0.1082,
+          -0.0608,
+          -0.0811
         ],
-        "colorKey": "gearGrey"
+        "colorKey": "gearGrey",
+        "shape": "Ball"
       },
       {
         "name": "MaskStrap",
         "anchor": "head",
         "size": [
-          0.36,
-          0.06,
-          0.06
+          0.2434,
+          0.0406,
+          0.0406
         ],
         "at": [
-          0,
-          0.02,
-          0.17
+          0.0,
+          0.0135,
+          0.1149
         ],
-        "colorKey": "strap"
+        "colorKey": "strap",
+        "shape": "Ball"
       }
     ],
     "gogglesOnForehead": [
@@ -524,33 +536,35 @@
         "name": "GoggleBand",
         "anchor": "head",
         "size": [
-          0.32,
-          0.09,
-          0.09
+          0.2163,
+          0.0608,
+          0.0608
         ],
         "at": [
-          0,
-          0.15,
-          -0.13
+          0.0,
+          0.1014,
+          -0.0879
         ],
         "colorKey": "lensSmoke",
         "material": "Glass",
-        "reflectance": 0.3
+        "reflectance": 0.3,
+        "shape": "Ball"
       },
       {
         "name": "GoggleStrap",
         "anchor": "head",
         "size": [
-          0.34,
-          0.05,
-          0.05
+          0.2298,
+          0.0338,
+          0.0338
         ],
         "at": [
-          0,
-          0.13,
-          0.14
+          0.0,
+          0.0879,
+          0.0946
         ],
-        "colorKey": "hiVis"
+        "colorKey": "hiVis",
+        "shape": "Ball"
       }
     ],
     "sunglasses": [
@@ -558,18 +572,19 @@
         "name": "Shades",
         "anchor": "head",
         "size": [
-          0.3,
-          0.06,
-          0.04
+          0.2028,
+          0.0406,
+          0.027
         ],
         "at": [
-          0,
-          0.02,
-          -0.17
+          0.0,
+          0.0135,
+          -0.1149
         ],
         "colorKey": "lensSmoke",
         "material": "Glass",
-        "reflectance": 0.45
+        "reflectance": 0.45,
+        "shape": "Ball"
       }
     ],
     "glassesOnHead": [
@@ -577,18 +592,19 @@
         "name": "Readers",
         "anchor": "head",
         "size": [
-          0.28,
-          0.05,
-          0.03
+          0.1893,
+          0.0338,
+          0.0203
         ],
         "at": [
-          0,
-          0.15,
-          -0.12
+          0.0,
+          0.1014,
+          -0.0811
         ],
         "colorKey": "steel",
         "material": "Metal",
-        "reflectance": 0.2
+        "reflectance": 0.2,
+        "shape": "Ball"
       }
     ],
     "capForward": [
@@ -596,14 +612,14 @@
         "name": "CapCrown",
         "anchor": "head",
         "size": [
-          0.36,
-          0.2,
-          0.36
+          0.2434,
+          0.1136,
+          0.2434
         ],
         "at": [
-          0,
-          0.11,
-          0
+          0.0,
+          0.0536,
+          0.0
         ],
         "colorKey": "teamRed",
         "shape": "Ball"
@@ -612,16 +628,17 @@
         "name": "CapBrim",
         "anchor": "head",
         "size": [
-          0.3,
-          0.03,
-          0.16
+          0.2028,
+          0.0171,
+          0.1082
         ],
         "at": [
-          0,
-          0.05,
-          -0.22
+          0.0,
+          0.0243,
+          -0.1487
         ],
-        "colorKey": "teamRed"
+        "colorKey": "teamRed",
+        "shape": "Ball"
       }
     ],
     "capBackward": [
@@ -629,14 +646,14 @@
         "name": "CapCrown",
         "anchor": "head",
         "size": [
-          0.36,
-          0.2,
-          0.36
+          0.2434,
+          0.1136,
+          0.2434
         ],
         "at": [
-          0,
-          0.11,
-          0
+          0.0,
+          0.0536,
+          0.0
         ],
         "colorKey": "gearOlive",
         "shape": "Ball"
@@ -645,16 +662,17 @@
         "name": "CapBrim",
         "anchor": "head",
         "size": [
-          0.3,
-          0.03,
-          0.16
+          0.2028,
+          0.0171,
+          0.1082
         ],
         "at": [
-          0,
-          0.05,
-          0.22
+          0.0,
+          0.0243,
+          0.1487
         ],
-        "colorKey": "gearOlive"
+        "colorKey": "gearOlive",
+        "shape": "Ball"
       }
     ],
     "beanie": [
@@ -662,14 +680,14 @@
         "name": "Beanie",
         "anchor": "head",
         "size": [
-          0.37,
-          0.24,
-          0.37
+          0.2501,
+          0.1362,
+          0.2501
         ],
         "at": [
-          0,
-          0.12,
-          0
+          0.0,
+          0.0584,
+          0.0
         ],
         "colorKey": "flannelRed",
         "shape": "Ball"
@@ -678,14 +696,14 @@
         "name": "BeanieCuff",
         "anchor": "head",
         "size": [
-          0.38,
-          0.07,
-          0.38
+          0.0397,
+          0.2569,
+          0.2569
         ],
         "at": [
-          0,
-          0.04,
-          0
+          0.0,
+          0.0194,
+          0.0
         ],
         "colorKey": "flannelCream",
         "shape": "Cylinder",
@@ -701,14 +719,14 @@
         "name": "LampBand",
         "anchor": "head",
         "size": [
-          0.36,
-          0.05,
-          0.36
+          0.0338,
+          0.2434,
+          0.2434
         ],
         "at": [
-          0,
-          0.12,
-          0
+          0.0,
+          0.0811,
+          0.0
         ],
         "colorKey": "strap",
         "shape": "Cylinder",
@@ -722,32 +740,34 @@
         "name": "LampBody",
         "anchor": "head",
         "size": [
-          0.09,
-          0.06,
-          0.05
+          0.0608,
+          0.0406,
+          0.0338
         ],
         "at": [
-          0,
-          0.13,
-          -0.19
+          0.0,
+          0.0879,
+          -0.1284
         ],
-        "colorKey": "gearGrey"
+        "colorKey": "gearGrey",
+        "shape": "Ball"
       },
       {
         "name": "LampGlow",
         "anchor": "head",
         "size": [
-          0.06,
-          0.05,
-          0.02
+          0.0406,
+          0.0338,
+          0.0135
         ],
         "at": [
-          0,
-          0.13,
-          -0.22
+          0.0,
+          0.0879,
+          -0.1487
         ],
         "colorKey": "hiVis",
-        "material": "Neon"
+        "material": "Neon",
+        "shape": "Ball"
       }
     ],
     "headphones": [
@@ -755,35 +775,36 @@
         "name": "HpBand",
         "anchor": "head",
         "size": [
-          0.4,
-          0.06,
-          0.06
+          0.2704,
+          0.0406,
+          0.0406
         ],
         "at": [
-          0,
-          0.15,
-          0.02
+          0.0,
+          0.1014,
+          0.0135
         ],
-        "colorKey": "gearBlack"
+        "colorKey": "gearBlack",
+        "shape": "Ball"
       },
       {
         "name": "HpCupL",
         "anchor": "head",
         "size": [
-          0.05,
-          0.13,
-          0.13
+          0.0338,
+          0.0879,
+          0.0879
         ],
         "at": [
-          -0.2,
-          0.02,
-          0.02
+          -0.1352,
+          0.0135,
+          0.0135
         ],
         "colorKey": "gearBlack",
         "shape": "Cylinder",
         "rotationDeg": [
           0,
-          90,
+          0,
           0
         ]
       },
@@ -791,20 +812,20 @@
         "name": "HpCupR",
         "anchor": "head",
         "size": [
-          0.05,
-          0.13,
-          0.13
+          0.0338,
+          0.0879,
+          0.0879
         ],
         "at": [
-          0.2,
-          0.02,
-          0.02
+          0.1352,
+          0.0135,
+          0.0135
         ],
         "colorKey": "gearBlack",
         "shape": "Cylinder",
         "rotationDeg": [
           0,
-          90,
+          0,
           0
         ]
       }
@@ -814,14 +835,14 @@
         "name": "NeckWrap",
         "anchor": "chest",
         "size": [
-          0.36,
-          0.16,
-          0.34
+          0.2592,
+          0.1344,
+          0.2448
         ],
         "at": [
-          0,
-          0.3,
-          0
+          0.0,
+          0.216,
+          0.0
         ],
         "colorKey": "gearTan",
         "shape": "Ball"
@@ -830,14 +851,14 @@
         "name": "WrapTail",
         "anchor": "chest",
         "size": [
-          0.14,
-          0.2,
-          0.06
+          0.1008,
+          0.168,
+          0.0432
         ],
         "at": [
-          0.1,
-          0.2,
-          -0.13
+          0.072,
+          0.144,
+          -0.0936
         ],
         "colorKey": "gearTan"
       }
@@ -847,14 +868,14 @@
         "name": "Hair",
         "anchor": "head",
         "size": [
-          0.37,
-          0.2,
-          0.37
+          0.2501,
+          0.1136,
+          0.2501
         ],
         "at": [
-          0,
-          0.11,
-          0
+          0.0,
+          0.0536,
+          0.0
         ],
         "colorKey": "hairDark",
         "shape": "Ball"
@@ -865,14 +886,14 @@
         "name": "Hair",
         "anchor": "head",
         "size": [
-          0.37,
-          0.18,
-          0.37
+          0.2501,
+          0.1022,
+          0.2501
         ],
         "at": [
-          0,
-          0.11,
-          0
+          0.0,
+          0.0536,
+          0.0
         ],
         "colorKey": "hairGrey",
         "shape": "Ball"
@@ -883,14 +904,14 @@
         "name": "Hair",
         "anchor": "head",
         "size": [
-          0.37,
-          0.21,
-          0.37
+          0.2501,
+          0.1193,
+          0.2501
         ],
         "at": [
-          0,
-          0.1,
-          0
+          0.0,
+          0.0487,
+          0.0
         ],
         "colorKey": "hairGinger",
         "shape": "Ball"
@@ -899,14 +920,14 @@
         "name": "Tail",
         "anchor": "head",
         "size": [
-          0.1,
-          0.26,
-          0.1
+          0.0676,
+          0.1477,
+          0.0676
         ],
         "at": [
-          0,
-          0.02,
-          0.2
+          0.0,
+          0.0097,
+          0.1352
         ],
         "colorKey": "hairGinger",
         "shape": "Ball"
@@ -917,14 +938,14 @@
         "name": "Hair",
         "anchor": "head",
         "size": [
-          0.37,
-          0.2,
-          0.37
+          0.2501,
+          0.1136,
+          0.2501
         ],
         "at": [
-          0,
-          0.1,
-          0
+          0.0,
+          0.0487,
+          0.0
         ],
         "colorKey": "hairGrey",
         "shape": "Ball"
@@ -933,14 +954,14 @@
         "name": "Bun",
         "anchor": "head",
         "size": [
-          0.15,
-          0.15,
-          0.15
+          0.1014,
+          0.0852,
+          0.1014
         ],
         "at": [
-          0,
-          0.12,
-          0.19
+          0.0,
+          0.0584,
+          0.1284
         ],
         "colorKey": "hairGrey",
         "shape": "Ball"
@@ -951,14 +972,14 @@
         "name": "Beard",
         "anchor": "head",
         "size": [
-          0.26,
-          0.14,
-          0.18
+          0.1758,
+          0.0946,
+          0.1217
         ],
         "at": [
-          0,
-          -0.11,
-          -0.11
+          0.0,
+          -0.0744,
+          -0.0744
         ],
         "colorKey": "hairDark",
         "shape": "Ball"
@@ -969,14 +990,14 @@
         "name": "CarrierFront",
         "anchor": "chest",
         "size": [
-          0.46,
+          0.3312,
           0.44,
-          0.1
+          0.072
         ],
         "at": [
-          0,
+          0.0,
           0.02,
-          -0.17
+          -0.1224
         ],
         "colorKey": "gearOlive"
       },
@@ -984,14 +1005,14 @@
         "name": "CarrierBack",
         "anchor": "chest",
         "size": [
-          0.46,
+          0.3312,
           0.44,
-          0.09
+          0.0648
         ],
         "at": [
-          0,
+          0.0,
           0.02,
-          0.17
+          0.1224
         ],
         "colorKey": "gearOlive"
       },
@@ -999,14 +1020,14 @@
         "name": "StrapL",
         "anchor": "chest",
         "size": [
-          0.09,
+          0.0648,
           0.3,
-          0.05
+          0.036
         ],
         "at": [
-          -0.17,
+          -0.1224,
           0.22,
-          0
+          0.0
         ],
         "colorKey": "gearOlive"
       },
@@ -1014,14 +1035,14 @@
         "name": "StrapR",
         "anchor": "chest",
         "size": [
-          0.09,
+          0.0648,
           0.3,
-          0.05
+          0.036
         ],
         "at": [
-          0.17,
+          0.1224,
           0.22,
-          0
+          0.0
         ],
         "colorKey": "gearOlive"
       },
@@ -1029,14 +1050,14 @@
         "name": "Cummerbund",
         "anchor": "chest",
         "size": [
-          0.5,
+          0.36,
           0.14,
-          0.36
+          0.2592
         ],
         "at": [
-          0,
+          0.0,
           -0.2,
-          0
+          0.0
         ],
         "colorKey": "gearOlive"
       }
@@ -1046,14 +1067,14 @@
         "name": "PodA",
         "anchor": "chest",
         "size": [
-          0.09,
           0.2,
-          0.09
+          0.0648,
+          0.0648
         ],
         "at": [
-          -0.14,
+          -0.1008,
           0.04,
-          -0.23
+          -0.1656
         ],
         "colorKey": "podYellow",
         "shape": "Cylinder",
@@ -1067,14 +1088,14 @@
         "name": "PodB",
         "anchor": "chest",
         "size": [
-          0.09,
           0.2,
-          0.09
+          0.0648,
+          0.0648
         ],
         "at": [
-          0,
+          0.0,
           0.04,
-          -0.23
+          -0.1656
         ],
         "colorKey": "podTeal",
         "shape": "Cylinder",
@@ -1088,14 +1109,14 @@
         "name": "PodC",
         "anchor": "chest",
         "size": [
-          0.09,
           0.2,
-          0.09
+          0.0648,
+          0.0648
         ],
         "at": [
-          0.14,
+          0.1008,
           0.04,
-          -0.23
+          -0.1656
         ],
         "colorKey": "podYellow",
         "shape": "Cylinder",
@@ -1111,14 +1132,14 @@
         "name": "Belt",
         "anchor": "hips",
         "size": [
-          0.56,
+          0.4032,
           0.1,
-          0.42
+          0.3024
         ],
         "at": [
-          0,
+          0.0,
           0.06,
-          0
+          0.0
         ],
         "colorKey": "strap"
       },
@@ -1126,14 +1147,14 @@
         "name": "PodL",
         "anchor": "hips",
         "size": [
-          0.09,
           0.2,
-          0.09
+          0.0648,
+          0.0648
         ],
         "at": [
-          -0.2,
+          -0.144,
           0.02,
-          0.16
+          0.1152
         ],
         "colorKey": "podTeal",
         "shape": "Cylinder",
@@ -1147,14 +1168,14 @@
         "name": "PodM",
         "anchor": "hips",
         "size": [
-          0.09,
           0.2,
-          0.09
+          0.0648,
+          0.0648
         ],
         "at": [
-          0,
+          0.0,
           0.02,
-          0.21
+          0.1512
         ],
         "colorKey": "podYellow",
         "shape": "Cylinder",
@@ -1168,14 +1189,14 @@
         "name": "PodR",
         "anchor": "hips",
         "size": [
-          0.09,
           0.2,
-          0.09
+          0.0648,
+          0.0648
         ],
         "at": [
-          0.2,
+          0.144,
           0.02,
-          0.16
+          0.1152
         ],
         "colorKey": "podTeal",
         "shape": "Cylinder",
@@ -1191,14 +1212,14 @@
         "name": "Sash",
         "anchor": "chest",
         "size": [
-          0.44,
+          0.3168,
           0.13,
-          0.34
+          0.2448
         ],
         "at": [
-          0,
+          0.0,
           0.04,
-          0
+          0.0
         ],
         "colorKey": "strap",
         "rotationDeg": [
@@ -1211,14 +1232,14 @@
         "name": "SashPodA",
         "anchor": "chest",
         "size": [
-          0.08,
           0.17,
-          0.08
+          0.0576,
+          0.0576
         ],
         "at": [
-          -0.13,
+          -0.0936,
           0.14,
-          -0.19
+          -0.1368
         ],
         "colorKey": "podCoral",
         "shape": "Cylinder",
@@ -1232,14 +1253,14 @@
         "name": "SashPodB",
         "anchor": "chest",
         "size": [
-          0.08,
           0.17,
-          0.08
+          0.0576,
+          0.0576
         ],
         "at": [
-          0.04,
+          0.0288,
           -0.04,
-          -0.21
+          -0.1512
         ],
         "colorKey": "podLime",
         "shape": "Cylinder",
@@ -1255,14 +1276,14 @@
         "name": "ApronBib",
         "anchor": "chest",
         "size": [
-          0.36,
+          0.2592,
           0.3,
-          0.06
+          0.0432
         ],
         "at": [
-          0,
+          0.0,
           0.06,
-          -0.19
+          -0.1368
         ],
         "colorKey": "apron"
       },
@@ -1270,14 +1291,14 @@
         "name": "ApronSkirt",
         "anchor": "hips",
         "size": [
-          0.46,
+          0.3312,
           0.44,
-          0.06
+          0.0432
         ],
         "at": [
-          0,
+          0.0,
           -0.06,
-          -0.2
+          -0.144
         ],
         "colorKey": "apron"
       },
@@ -1285,14 +1306,14 @@
         "name": "ApronNeck",
         "anchor": "chest",
         "size": [
-          0.22,
+          0.1584,
           0.16,
-          0.04
+          0.0288
         ],
         "at": [
-          0,
+          0.0,
           0.28,
-          -0.16
+          -0.1152
         ],
         "colorKey": "apron"
       },
@@ -1300,14 +1321,14 @@
         "name": "ApronPocket",
         "anchor": "hips",
         "size": [
-          0.26,
+          0.1872,
           0.14,
-          0.04
+          0.0288
         ],
         "at": [
-          0,
           0.0,
-          -0.24
+          0.0,
+          -0.1728
         ],
         "colorKey": "apronDark"
       },
@@ -1315,14 +1336,14 @@
         "name": "PenA",
         "anchor": "hips",
         "size": [
-          0.02,
+          0.0144,
           0.1,
-          0.02
+          0.0144
         ],
         "at": [
-          -0.05,
+          -0.036,
           0.08,
-          -0.24
+          -0.1728
         ],
         "colorKey": "teamBlue"
       },
@@ -1330,14 +1351,14 @@
         "name": "PenB",
         "anchor": "hips",
         "size": [
-          0.02,
+          0.0144,
           0.1,
-          0.02
+          0.0144
         ],
         "at": [
-          0.01,
+          0.0072,
           0.08,
-          -0.24
+          -0.1728
         ],
         "colorKey": "flannelRed"
       }
@@ -1347,29 +1368,30 @@
         "name": "FlannelBody",
         "anchor": "chest",
         "size": [
-          0.66,
+          0.4752,
           0.5,
-          0.42
+          0.3024
         ],
         "at": [
+          0.0,
           0,
-          0,
-          0
+          0.0
         ],
-        "colorKey": "flannelRed"
+        "colorKey": "flannelRed",
+        "shape": "Ball"
       },
       {
         "name": "FlannelPlacket",
         "anchor": "chest",
         "size": [
-          0.06,
+          0.0432,
           0.5,
-          0.04
+          0.0288
         ],
         "at": [
+          0.0,
           0,
-          0,
-          -0.22
+          -0.1584
         ],
         "colorKey": "flannelCream"
       },
@@ -1377,14 +1399,14 @@
         "name": "CuffL",
         "anchor": "chest",
         "size": [
+          0.1008,
           0.14,
-          0.14,
-          0.14
+          0.1008
         ],
         "at": [
-          -0.32,
+          -0.2304,
           -0.1,
-          0
+          0.0
         ],
         "colorKey": "flannelCream"
       },
@@ -1392,14 +1414,14 @@
         "name": "CuffR",
         "anchor": "chest",
         "size": [
+          0.1008,
           0.14,
-          0.14,
-          0.14
+          0.1008
         ],
         "at": [
-          0.32,
+          0.2304,
           -0.1,
-          0
+          0.0
         ],
         "colorKey": "flannelCream"
       }
@@ -1409,14 +1431,14 @@
         "name": "CoverallTorso",
         "anchor": "chest",
         "size": [
-          0.64,
+          0.4608,
           0.52,
-          0.42
+          0.3024
         ],
         "at": [
+          0.0,
           0,
-          0,
-          0
+          0.0
         ],
         "colorKey": "coverall"
       },
@@ -1424,14 +1446,14 @@
         "name": "CoverallLegs",
         "anchor": "legs",
         "size": [
-          0.54,
+          0.3888,
           0.8,
-          0.36
+          0.2592
         ],
         "at": [
+          0.0,
           0,
-          0,
-          0
+          0.0
         ],
         "colorKey": "coverall"
       },
@@ -1439,14 +1461,14 @@
         "name": "ZipStrip",
         "anchor": "chest",
         "size": [
-          0.04,
+          0.0288,
           0.48,
-          0.03
+          0.0216
         ],
         "at": [
+          0.0,
           0,
-          0,
-          -0.22
+          -0.1584
         ],
         "colorKey": "steel",
         "material": "Metal",
@@ -1456,14 +1478,14 @@
         "name": "NamePatch",
         "anchor": "chest",
         "size": [
-          0.12,
+          0.0864,
           0.06,
-          0.03
+          0.0216
         ],
         "at": [
-          0.14,
+          0.1008,
           0.16,
-          -0.22
+          -0.1584
         ],
         "colorKey": "flannelCream"
       }
@@ -1473,59 +1495,62 @@
         "name": "JerseyBody",
         "anchor": "chest",
         "size": [
-          0.66,
+          0.4752,
           0.5,
-          0.44
+          0.3168
         ],
         "at": [
+          0.0,
           0,
-          0,
-          0
+          0.0
         ],
-        "colorKey": "teamRed"
+        "colorKey": "teamRed",
+        "shape": "Ball"
       },
       {
         "name": "JerseyPanelL",
         "anchor": "chest",
         "size": [
-          0.1,
+          0.072,
           0.48,
-          0.42
+          0.3024
         ],
         "at": [
-          -0.28,
+          -0.2016,
           0,
-          0
+          0.0
         ],
-        "colorKey": "teamCream"
+        "colorKey": "teamCream",
+        "shape": "Ball"
       },
       {
         "name": "JerseyPanelR",
         "anchor": "chest",
         "size": [
-          0.1,
+          0.072,
           0.48,
-          0.42
+          0.3024
         ],
         "at": [
-          0.28,
+          0.2016,
           0,
-          0
+          0.0
         ],
-        "colorKey": "teamCream"
+        "colorKey": "teamCream",
+        "shape": "Ball"
       },
       {
         "name": "JerseyNumber",
         "anchor": "chest",
         "size": [
-          0.14,
+          0.1008,
           0.16,
-          0.03
+          0.0216
         ],
         "at": [
-          0,
+          0.0,
           0.04,
-          0.23
+          0.1656
         ],
         "colorKey": "teamCream"
       }
@@ -1535,14 +1560,14 @@
         "name": "Armband",
         "anchor": "chest",
         "size": [
-          0.1,
+          0.072,
           0.14,
-          0.24
+          0.1728
         ],
         "at": [
-          0.29,
+          0.2088,
           0.14,
-          0
+          0.0
         ],
         "colorKey": "white"
       }
@@ -1552,14 +1577,14 @@
         "name": "PatchA",
         "anchor": "chest",
         "size": [
-          0.07,
+          0.0504,
           0.05,
-          0.03
+          0.0216
         ],
         "at": [
-          -0.13,
+          -0.0936,
           0.18,
-          -0.22
+          -0.1584
         ],
         "colorKey": "gearTan"
       },
@@ -1567,14 +1592,14 @@
         "name": "PatchB",
         "anchor": "chest",
         "size": [
+          0.0432,
           0.06,
-          0.06,
-          0.03
+          0.0216
         ],
         "at": [
-          -0.04,
+          -0.0288,
           0.18,
-          -0.22
+          -0.1584
         ],
         "colorKey": "camoDark"
       },
@@ -1582,14 +1607,14 @@
         "name": "PatchC",
         "anchor": "chest",
         "size": [
-          0.08,
+          0.0576,
           0.04,
-          0.03
+          0.0216
         ],
         "at": [
-          0.07,
+          0.0504,
           0.18,
-          -0.22
+          -0.1584
         ],
         "colorKey": "hiVis"
       }
@@ -1599,14 +1624,14 @@
         "name": "ShoulderMic",
         "anchor": "chest",
         "size": [
-          0.06,
+          0.0432,
           0.08,
-          0.04
+          0.0288
         ],
         "at": [
-          -0.22,
+          -0.1584,
           0.24,
-          -0.14
+          -0.1008
         ],
         "colorKey": "gearBlack"
       },
@@ -1614,14 +1639,14 @@
         "name": "MicCord",
         "anchor": "chest",
         "size": [
-          0.02,
+          0.0144,
           0.16,
-          0.02
+          0.0144
         ],
         "at": [
-          -0.22,
+          -0.1584,
           0.14,
-          -0.12
+          -0.0864
         ],
         "colorKey": "gearBlack"
       },
@@ -1629,14 +1654,14 @@
         "name": "Antenna",
         "anchor": "chest",
         "size": [
-          0.015,
+          0.0108,
           0.26,
-          0.015
+          0.0108
         ],
         "at": [
-          0.22,
+          0.1584,
           0.3,
-          0.12
+          0.0864
         ],
         "colorKey": "gearBlack"
       }
@@ -1646,14 +1671,14 @@
         "name": "Cord",
         "anchor": "chest",
         "size": [
-          0.24,
+          0.1728,
           0.22,
-          0.04
+          0.0288
         ],
         "at": [
-          0,
+          0.0,
           0.24,
-          -0.15
+          -0.108
         ],
         "colorKey": "strap"
       },
@@ -1661,14 +1686,14 @@
         "name": "WhistleBody",
         "anchor": "chest",
         "size": [
-          0.06,
+          0.0432,
           0.04,
-          0.09
+          0.0648
         ],
         "at": [
-          0,
+          0.0,
           0.12,
-          -0.21
+          -0.1512
         ],
         "colorKey": "brass",
         "material": "Metal",
@@ -1677,61 +1702,50 @@
     ],
     "clipboard": [
       {
-        "name": "Board",
-        "anchor": "chest",
+        "name": "BoardR",
+        "anchor": "hands",
         "size": [
-          0.26,
-          0.34,
-          0.03
+          0.187,
+          0.022,
+          0.262
         ],
         "at": [
-          0.3,
-          -0.06,
-          -0.08
+          0.0,
+          -0.052,
+          -0.062
         ],
-        "colorKey": "apronDark",
-        "rotationDeg": [
-          0,
-          0,
-          14
-        ]
+        "colorKey": "gearTan",
+        "_note": "Held, so it hangs off the hand anchor and swings with the arm."
       },
       {
-        "name": "Paper",
-        "anchor": "chest",
+        "name": "PaperR",
+        "anchor": "hands",
         "size": [
-          0.22,
-          0.28,
-          0.02
+          0.158,
+          0.014,
+          0.216
         ],
         "at": [
-          0.3,
-          -0.08,
-          -0.1
+          0.0,
+          -0.042,
+          -0.068
         ],
-        "colorKey": "white",
-        "rotationDeg": [
-          0,
-          0,
-          14
-        ]
+        "colorKey": "white"
       },
       {
-        "name": "Clip",
-        "anchor": "chest",
+        "name": "ClipR",
+        "anchor": "hands",
         "size": [
-          0.1,
-          0.04,
-          0.03
+          0.072,
+          0.022,
+          0.04
         ],
         "at": [
-          0.31,
-          0.09,
-          -0.1
+          0.0,
+          -0.036,
+          -0.176
         ],
-        "colorKey": "steel",
-        "material": "Metal",
-        "reflectance": 0.25
+        "colorKey": "steel"
       }
     ],
     "stopwatch": [
@@ -1739,14 +1753,14 @@
         "name": "WatchCord",
         "anchor": "chest",
         "size": [
-          0.2,
+          0.144,
           0.18,
-          0.03
+          0.0216
         ],
         "at": [
-          0,
+          0.0,
           0.25,
-          -0.14
+          -0.1008
         ],
         "colorKey": "strap"
       },
@@ -1754,14 +1768,14 @@
         "name": "WatchBody",
         "anchor": "chest",
         "size": [
+          0.0504,
           0.07,
-          0.07,
-          0.03
+          0.0216
         ],
         "at": [
-          0,
+          0.0,
           0.14,
-          -0.21
+          -0.1512
         ],
         "colorKey": "steel",
         "material": "Metal",
@@ -1770,64 +1784,49 @@
     ],
     "droneController": [
       {
-        "name": "CtrlBody",
-        "anchor": "hips",
+        "name": "CtrlBodyL",
+        "anchor": "hands",
         "size": [
-          0.22,
-          0.11,
-          0.05
+          0.158,
+          0.036,
+          0.11
         ],
         "at": [
-          -0.24,
-          0.02,
-          -0.1
+          0.0,
+          -0.056,
+          -0.048
         ],
-        "colorKey": "gearBlack",
-        "rotationDeg": [
-          0,
-          0,
-          18
-        ]
+        "colorKey": "gearBlack"
       },
       {
-        "name": "CtrlStickL",
-        "anchor": "hips",
+        "name": "CtrlStickA",
+        "anchor": "hands",
         "size": [
-          0.03,
-          0.05,
-          0.03
+          0.022,
+          0.042,
+          0.022
         ],
         "at": [
-          -0.29,
-          0.08,
-          -0.11
+          -0.036,
+          -0.08,
+          -0.052
         ],
-        "colorKey": "hiVis",
-        "rotationDeg": [
-          0,
-          0,
-          18
-        ]
+        "colorKey": "gearGrey"
       },
       {
-        "name": "CtrlStickR",
-        "anchor": "hips",
+        "name": "CtrlStickB",
+        "anchor": "hands",
         "size": [
-          0.03,
-          0.05,
-          0.03
+          0.022,
+          0.042,
+          0.022
         ],
         "at": [
-          -0.19,
-          0.06,
-          -0.11
+          0.036,
+          -0.08,
+          -0.052
         ],
-        "colorKey": "hiVis",
-        "rotationDeg": [
-          0,
-          0,
-          18
-        ]
+        "colorKey": "gearGrey"
       }
     ],
     "toolRoll": [
@@ -1835,14 +1834,14 @@
         "name": "Roll",
         "anchor": "legs",
         "size": [
-          0.14,
+          0.1008,
           0.3,
-          0.1
+          0.072
         ],
         "at": [
-          0.2,
+          0.144,
           0.1,
-          -0.04
+          -0.0288
         ],
         "colorKey": "gearTan"
       },
@@ -1850,14 +1849,14 @@
         "name": "RollStrapA",
         "anchor": "legs",
         "size": [
-          0.15,
+          0.108,
           0.03,
-          0.11
+          0.0792
         ],
         "at": [
-          0.2,
+          0.144,
           0.18,
-          -0.04
+          -0.0288
         ],
         "colorKey": "strap"
       },
@@ -1865,14 +1864,14 @@
         "name": "RollStrapB",
         "anchor": "legs",
         "size": [
-          0.15,
+          0.108,
           0.03,
-          0.11
+          0.0792
         ],
         "at": [
-          0.2,
+          0.144,
           0.02,
-          -0.04
+          -0.0288
         ],
         "colorKey": "strap"
       },
@@ -1880,14 +1879,14 @@
         "name": "SpannerHead",
         "anchor": "legs",
         "size": [
-          0.04,
+          0.0288,
           0.07,
-          0.02
+          0.0144
         ],
         "at": [
-          0.2,
+          0.144,
           0.27,
-          -0.04
+          -0.0288
         ],
         "colorKey": "steel",
         "material": "Metal",
@@ -1899,14 +1898,14 @@
         "name": "KneeL",
         "anchor": "legs",
         "size": [
-          0.17,
-          0.16,
-          0.12
+          0.148,
+          0.152,
+          0.108
         ],
         "at": [
-          -0.13,
-          -0.16,
-          -0.14
+          0.0,
+          -0.012,
+          -0.052
         ],
         "colorKey": "gearBlack",
         "shape": "Ball"
@@ -1915,14 +1914,14 @@
         "name": "KneeR",
         "anchor": "legs",
         "size": [
-          0.17,
-          0.16,
-          0.12
+          0.148,
+          0.152,
+          0.108
         ],
         "at": [
-          0.13,
-          -0.16,
-          -0.14
+          0.0,
+          -0.012,
+          -0.052
         ],
         "colorKey": "gearBlack",
         "shape": "Ball"
@@ -1933,29 +1932,30 @@
         "name": "BraceStrapTop",
         "anchor": "legs",
         "size": [
-          0.19,
-          0.05,
-          0.19
+          0.158,
+          0.044,
+          0.152
         ],
         "at": [
-          0.13,
-          -0.06,
-          0
+          0.092,
+          0.086,
+          0.0
         ],
-        "colorKey": "gearGrey"
+        "colorKey": "strap",
+        "shape": "Ball"
       },
       {
         "name": "BracePad",
         "anchor": "legs",
         "size": [
-          0.18,
-          0.18,
-          0.13
+          0.156,
+          0.162,
+          0.116
         ],
         "at": [
-          0.13,
-          -0.16,
-          -0.13
+          0.092,
+          -0.008,
+          -0.056
         ],
         "colorKey": "gearGrey",
         "shape": "Ball"
@@ -1964,47 +1964,48 @@
         "name": "BraceStrapLow",
         "anchor": "legs",
         "size": [
-          0.19,
-          0.05,
-          0.19
+          0.158,
+          0.044,
+          0.152
         ],
         "at": [
-          0.13,
-          -0.26,
-          0
+          0.092,
+          -0.096,
+          0.0
         ],
-        "colorKey": "gearGrey"
+        "colorKey": "strap",
+        "shape": "Ball"
       }
     ],
     "elbowPads": [
       {
         "name": "ElbowL",
-        "anchor": "chest",
+        "anchor": "elbows",
         "size": [
-          0.14,
-          0.14,
-          0.13
+          0.112,
+          0.118,
+          0.104
         ],
         "at": [
-          -0.31,
-          -0.14,
-          0
+          0.0,
+          -0.018,
+          -0.032
         ],
         "colorKey": "gearBlack",
         "shape": "Ball"
       },
       {
         "name": "ElbowR",
-        "anchor": "chest",
+        "anchor": "elbows",
         "size": [
-          0.14,
-          0.14,
-          0.13
+          0.112,
+          0.118,
+          0.104
         ],
         "at": [
-          0.31,
-          -0.14,
-          0
+          0.0,
+          -0.018,
+          -0.032
         ],
         "colorKey": "gearBlack",
         "shape": "Ball"
@@ -2013,32 +2014,33 @@
     "gloves": [
       {
         "name": "GloveL",
-        "anchor": "chest",
+        "anchor": "hands",
         "size": [
-          0.13,
-          0.13,
-          0.15
+          0.104,
+          0.062,
+          0.196
         ],
         "at": [
-          -0.33,
-          -0.26,
-          -0.04
+          0.0,
+          -0.062,
+          0.0
         ],
         "colorKey": "gearBlack",
-        "shape": "Ball"
+        "shape": "Ball",
+        "_note": "Was anchored to the chest at x=-0.33, so it hung where an arm used to be while the arm swung out from under it."
       },
       {
         "name": "GloveR",
-        "anchor": "chest",
+        "anchor": "hands",
         "size": [
-          0.13,
-          0.13,
-          0.15
+          0.104,
+          0.062,
+          0.196
         ],
         "at": [
-          0.33,
-          -0.26,
-          -0.04
+          0.0,
+          -0.062,
+          0.0
         ],
         "colorKey": "gearBlack",
         "shape": "Ball"
@@ -2049,91 +2051,97 @@
         "name": "BootL",
         "anchor": "feet",
         "size": [
-          0.16,
-          0.16,
-          0.3
+          0.116,
+          0.128,
+          0.268
         ],
         "at": [
-          -0.12,
-          0.06,
-          -0.03
+          0.0,
+          -0.028,
+          -0.062
         ],
-        "colorKey": "boot"
+        "colorKey": "boot",
+        "shape": "Ball"
       },
       {
         "name": "BootR",
         "anchor": "feet",
         "size": [
-          0.16,
-          0.16,
-          0.3
+          0.116,
+          0.128,
+          0.268
         ],
         "at": [
-          0.12,
-          0.06,
-          -0.03
+          0.0,
+          -0.028,
+          -0.062
         ],
-        "colorKey": "boot"
+        "colorKey": "boot",
+        "shape": "Ball"
       },
       {
         "name": "SoleL",
         "anchor": "feet",
         "size": [
-          0.17,
-          0.04,
-          0.31
+          0.124,
+          0.044,
+          0.276
         ],
         "at": [
-          -0.12,
-          -0.02,
-          -0.03
+          0.0,
+          -0.062,
+          -0.062
         ],
-        "colorKey": "rubber"
+        "colorKey": "rubber",
+        "shape": "Ball"
       },
       {
         "name": "SoleR",
         "anchor": "feet",
         "size": [
-          0.17,
-          0.04,
-          0.31
+          0.124,
+          0.044,
+          0.276
         ],
         "at": [
-          0.12,
-          -0.02,
-          -0.03
+          0.0,
+          -0.062,
+          -0.062
         ],
-        "colorKey": "rubber"
+        "colorKey": "rubber",
+        "shape": "Ball"
       },
       {
         "name": "LaceL",
         "anchor": "feet",
         "size": [
-          0.1,
-          0.03,
-          0.12
+          0.072,
+          0.022,
+          0.086
         ],
         "at": [
-          -0.12,
-          0.13,
-          -0.08
+          0.0,
+          0.028,
+          -0.112
         ],
-        "colorKey": "gearTan"
+        "colorKey": "strap",
+        "shape": "Ball"
       },
       {
         "name": "LaceR",
         "anchor": "feet",
         "size": [
-          0.1,
-          0.03,
-          0.12
+          0.072,
+          0.022,
+          0.086
         ],
         "at": [
-          0.12,
-          0.13,
-          -0.08
+          0.0,
+          0.028,
+          -0.112
         ],
-        "colorKey": "gearTan"
+        "colorKey": "strap",
+        "shape": "Ball"
       }
     ],
     "bootsUntied": [
@@ -2141,91 +2149,97 @@
         "name": "BootL",
         "anchor": "feet",
         "size": [
-          0.16,
-          0.16,
-          0.3
+          0.116,
+          0.128,
+          0.268
         ],
         "at": [
-          -0.12,
-          0.06,
-          -0.03
+          0.0,
+          -0.028,
+          -0.062
         ],
-        "colorKey": "boot"
+        "colorKey": "boot",
+        "shape": "Ball"
       },
       {
         "name": "BootR",
         "anchor": "feet",
         "size": [
-          0.16,
-          0.16,
-          0.3
+          0.116,
+          0.128,
+          0.268
         ],
         "at": [
-          0.12,
-          0.06,
-          -0.03
+          0.0,
+          -0.028,
+          -0.062
         ],
-        "colorKey": "boot"
+        "colorKey": "boot",
+        "shape": "Ball"
       },
       {
         "name": "SoleL",
         "anchor": "feet",
         "size": [
-          0.17,
-          0.04,
-          0.31
+          0.124,
+          0.044,
+          0.276
         ],
         "at": [
-          -0.12,
-          -0.02,
-          -0.03
+          0.0,
+          -0.062,
+          -0.062
         ],
-        "colorKey": "rubber"
+        "colorKey": "rubber",
+        "shape": "Ball"
       },
       {
         "name": "SoleR",
         "anchor": "feet",
         "size": [
-          0.17,
-          0.04,
-          0.31
+          0.124,
+          0.044,
+          0.276
         ],
         "at": [
-          0.12,
-          -0.02,
-          -0.03
+          0.0,
+          -0.062,
+          -0.062
         ],
-        "colorKey": "rubber"
+        "colorKey": "rubber",
+        "shape": "Ball"
       },
       {
         "name": "LaceL",
         "anchor": "feet",
         "size": [
-          0.1,
-          0.03,
-          0.12
+          0.072,
+          0.022,
+          0.086
         ],
         "at": [
-          -0.12,
-          0.13,
-          -0.08
+          0.0,
+          0.028,
+          -0.112
         ],
-        "colorKey": "gearTan"
+        "colorKey": "strap",
+        "shape": "Ball"
       },
       {
-        "name": "LooseLace",
+        "name": "LooseLaceR",
         "anchor": "feet",
         "size": [
-          0.03,
-          0.02,
-          0.18
+          0.024,
+          0.018,
+          0.136
         ],
         "at": [
-          0.16,
-          0.02,
-          -0.14
+          0.038,
+          -0.006,
+          -0.156
         ],
-        "colorKey": "gearTan"
+        "colorKey": "strap",
+        "shape": "Ball"
       }
     ],
     "sneakers": [
@@ -2233,61 +2247,65 @@
         "name": "ShoeL",
         "anchor": "feet",
         "size": [
-          0.15,
-          0.11,
-          0.28
+          0.108,
+          0.092,
+          0.252
         ],
         "at": [
-          -0.12,
-          0.05,
-          -0.03
+          0.0,
+          -0.028,
+          -0.062
         ],
-        "colorKey": "hiVis"
+        "colorKey": "white",
+        "shape": "Ball"
       },
       {
         "name": "ShoeR",
         "anchor": "feet",
         "size": [
-          0.15,
-          0.11,
-          0.28
+          0.108,
+          0.092,
+          0.252
         ],
         "at": [
-          0.12,
-          0.05,
-          -0.03
+          0.0,
+          -0.028,
+          -0.062
         ],
-        "colorKey": "hiVis"
+        "colorKey": "white",
+        "shape": "Ball"
       },
       {
         "name": "SoleL",
         "anchor": "feet",
         "size": [
-          0.16,
-          0.04,
-          0.29
+          0.118,
+          0.038,
+          0.262
         ],
         "at": [
-          -0.12,
-          -0.01,
-          -0.03
+          0.0,
+          -0.062,
+          -0.062
         ],
-        "colorKey": "flannelCream"
+        "colorKey": "rubber",
+        "shape": "Ball"
       },
       {
         "name": "SoleR",
         "anchor": "feet",
         "size": [
-          0.16,
-          0.04,
-          0.29
+          0.118,
+          0.038,
+          0.262
         ],
         "at": [
-          0.12,
-          -0.01,
-          -0.03
+          0.0,
+          -0.062,
+          -0.062
         ],
-        "colorKey": "flannelCream"
+        "colorKey": "rubber",
+        "shape": "Ball"
       }
     ],
     "camoTorsoWoodland": [
@@ -2295,14 +2313,14 @@
         "name": "CamoT0",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.106,
+          -0.0763,
           -0.154,
-          0.066
+          0.1152
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2311,14 +2329,14 @@
         "name": "CamoT1",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.257,
+          -0.1296,
           0.016,
-          -0.059
+          -0.1152
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2327,14 +2345,14 @@
         "name": "CamoT2",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.265,
+          -0.1296,
           0.003,
-          -0.204
+          -0.1152
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2343,14 +2361,14 @@
         "name": "CamoT3",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.04,
+          -0.0288,
           -0.189,
-          -0.18
+          -0.1152
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2359,14 +2377,14 @@
         "name": "CamoT4",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.045,
+          -0.0324,
           0.144,
-          -0.166
+          -0.1152
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2375,14 +2393,14 @@
         "name": "CamoT5",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.166,
+          -0.1195,
           0.056,
-          0.197
+          0.1152
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2391,14 +2409,14 @@
         "name": "CamoT6",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          0.046,
+          0.0331,
           -0.045,
-          0.21
+          0.1152
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2409,14 +2427,14 @@
         "name": "CamoL0",
         "anchor": "legs",
         "size": [
-          0.15,
+          0.108,
           0.13,
-          0.15
+          0.108
         ],
         "at": [
-          -0.023,
+          -0.0166,
           0.041,
-          0.153
+          0.1102
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2425,14 +2443,14 @@
         "name": "CamoL1",
         "anchor": "legs",
         "size": [
-          0.15,
+          0.108,
           0.13,
-          0.15
+          0.108
         ],
         "at": [
-          -0.016,
+          -0.0115,
           0.005,
-          0.031
+          0.0223
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2441,14 +2459,14 @@
         "name": "CamoL2",
         "anchor": "legs",
         "size": [
-          0.15,
+          0.108,
           0.13,
-          0.15
+          0.108
         ],
         "at": [
-          -0.151,
+          -0.1087,
           0.008,
-          0.047
+          0.0338
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2457,14 +2475,14 @@
         "name": "CamoL3",
         "anchor": "legs",
         "size": [
-          0.15,
+          0.108,
           0.13,
-          0.15
+          0.108
         ],
         "at": [
-          0.141,
+          0.1015,
           -0.276,
-          -0.071
+          -0.0511
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2473,14 +2491,14 @@
         "name": "CamoL4",
         "anchor": "legs",
         "size": [
-          0.15,
+          0.108,
           0.13,
-          0.15
+          0.108
         ],
         "at": [
-          -0.196,
+          -0.1411,
           0.211,
-          0.07
+          0.0504
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2489,14 +2507,14 @@
         "name": "CamoL5",
         "anchor": "legs",
         "size": [
-          0.15,
+          0.108,
           0.13,
-          0.15
+          0.108
         ],
         "at": [
-          -0.22,
+          -0.1584,
           0.328,
-          0.167
+          0.1202
         ],
         "colorKey": "camoDark",
         "shape": "Ball"
@@ -2507,14 +2525,14 @@
         "name": "CamoDT0",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.106,
+          -0.0763,
           -0.154,
-          0.066
+          0.1152
         ],
         "colorKey": "camoDesertMid",
         "shape": "Ball"
@@ -2523,14 +2541,14 @@
         "name": "CamoDT1",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.257,
+          -0.1296,
           0.016,
-          -0.059
+          -0.1152
         ],
         "colorKey": "camoDesertMid",
         "shape": "Ball"
@@ -2539,14 +2557,14 @@
         "name": "CamoDT2",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.265,
+          -0.1296,
           0.003,
-          -0.204
+          -0.1152
         ],
         "colorKey": "camoDesertMid",
         "shape": "Ball"
@@ -2555,14 +2573,14 @@
         "name": "CamoDT3",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.04,
+          -0.0288,
           -0.189,
-          -0.18
+          -0.1152
         ],
         "colorKey": "camoDesertMid",
         "shape": "Ball"
@@ -2571,14 +2589,14 @@
         "name": "CamoDT4",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.045,
+          -0.0324,
           0.144,
-          -0.166
+          -0.1152
         ],
         "colorKey": "camoDesertMid",
         "shape": "Ball"
@@ -2587,14 +2605,14 @@
         "name": "CamoDT5",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          -0.166,
+          -0.1195,
           0.056,
-          0.197
+          0.1152
         ],
         "colorKey": "camoDesertMid",
         "shape": "Ball"
@@ -2603,14 +2621,14 @@
         "name": "CamoDT6",
         "anchor": "chest",
         "size": [
-          0.16,
-          0.13,
-          0.16
+          0.072,
+          0.11,
+          0.0108
         ],
         "at": [
-          0.046,
+          0.0331,
           -0.045,
-          0.21
+          0.1152
         ],
         "colorKey": "camoDesertMid",
         "shape": "Ball"
@@ -2857,5 +2875,165 @@
         ]
       }
     }
-  }
+  },
+  "humanStyle": {
+    "headSizeMetres": [
+      0.185,
+      0.245,
+      0.215
+    ],
+    "headAnchorBelowTopMetres": 0.126,
+    "earSizeMetres": [
+      0.0338,
+      0.0624,
+      0.0468
+    ],
+    "earOffsetMetres": [
+      0.101,
+      -0.0052,
+      0.0
+    ],
+    "noseSizeMetres": [
+      0.0338,
+      0.0442,
+      0.039
+    ],
+    "noseOffsetMetres": [
+      0.0,
+      -0.0078,
+      -0.1066
+    ],
+    "mouthSizeMetres": [
+      0.052,
+      0.012,
+      0.014
+    ],
+    "mouthOffsetMetres": [
+      0.0,
+      -0.052,
+      -0.1009
+    ],
+    "eyeOffsetMetres": [
+      0.0478,
+      0.0229,
+      -0.0957
+    ],
+    "browSizeMetres": [
+      0.0416,
+      0.0094,
+      0.013
+    ],
+    "browOffsetMetres": [
+      0.0478,
+      0.0546,
+      -0.0936
+    ]
+  },
+  "_skeleton": "Where the joints are, as fractions of ballistics.hitbox.bodyHeightMetres so the whole figure scales with a wearer's build. Joint HEIGHTS rather than bone lengths: a bone is the gap between two joints, so the two can never disagree. Canonical adult proportions -- 7.5 heads, shoulders at 0.80, hip at 0.53, knee at 0.28 -- because the previous figure was 3.9 heads of stacked ellipsoids that translated without ever rotating, which is the precise recipe for a blob.",
+  "skeleton": {
+    "joints": {
+      "_note": "Fractions of body height. Ankle is the pivot; the sole sits below it.",
+      "shoulderFraction": 0.8,
+      "elbowFraction": 0.611,
+      "wristFraction": 0.467,
+      "neckBaseFraction": 0.797,
+      "hipFraction": 0.528,
+      "kneeFraction": 0.283,
+      "ankleFraction": 0.042
+    },
+    "widths": {
+      "_note": "Half-widths in metres, scaled by build.shoulders for the upper body. The hitbox capsule radius is bodyWidthMetres/2 = 0.31, and every one of these plus its segment radius stays inside it -- geometry outside the capsule is paint that visibly lands and does not register. tools/probe-hitbox measures it.",
+      "shoulderHalfMetres": 0.196,
+      "hipHalfMetres": 0.092
+    },
+    "segments": {
+      "_note": "Thickness of each bone, in metres, as width x depth. Ellipsoids oriented along the bone, sized to overlap at the joint so a limb reads continuous without a separate joint part for every elbow and knee.",
+      "upperArm": [
+        0.098,
+        0.104
+      ],
+      "forearm": [
+        0.083,
+        0.088
+      ],
+      "hand": [
+        0.088,
+        0.045,
+        0.185
+      ],
+      "thigh": [
+        0.148,
+        0.156
+      ],
+      "shin": [
+        0.112,
+        0.118
+      ],
+      "foot": [
+        0.098,
+        0.068,
+        0.255
+      ],
+      "neck": [
+        0.108,
+        0.112
+      ],
+      "deltoid": [
+        0.132,
+        0.128,
+        0.132
+      ]
+    },
+    "torso": {
+      "_note": "Three masses, because a human torso is broad at the ribs, narrow at the waist and broad again at the pelvis. One ellipsoid cannot say that, and the figure this replaces used two concentric ones that said nothing at all.",
+      "chestSizeMetres": [
+        0.352,
+        0.33,
+        0.238
+      ],
+      "chestFraction": 0.718,
+      "waistSizeMetres": [
+        0.286,
+        0.235,
+        0.208
+      ],
+      "waistFraction": 0.624,
+      "pelvisSizeMetres": [
+        0.322,
+        0.232,
+        0.228
+      ],
+      "pelvisFraction": 0.545,
+      "_anchors": "Where CLOTHING hangs, as distinct from where the body's masses are. A jersey is not centred on the ribcage -- it covers the ribs and the waist -- and the chest pieces were authored as one coherent set against a fixed height. Naming the anchor separately is what lets the ribcage sit where a ribcage sits without dragging every plate carrier and bandolier off the body with it.",
+      "chestAnchorFraction": 0.678,
+      "hipsAnchorFraction": 0.545
+    },
+    "gait": {
+      "_note": "The walk, in degrees. The hip swings, the knee FLEXES -- which is the whole difference between a walk and two poles sliding fore and aft. Knee flexion peaks in mid-swing (a quarter cycle after the hip's rearmost point) and a little flexion is carried through stance, which is what stops the legs reading as stilts.",
+      "hipSwingDeg": 26.0,
+      "kneeSwingDeg": 52.0,
+      "kneeStanceDeg": 9.0,
+      "ankleSwingDeg": 16.0,
+      "shoulderSwingDeg": 17.0,
+      "elbowBaseDeg": 12.0,
+      "elbowSwingDeg": 30.0,
+      "_carry": "Both hands on the marker: the arms stop swinging and hold a shouldered pose instead, which is what makes a bot's facing readable across a field. The upper arm stays close to vertical and the ELBOW does the work -- at 46 degrees of shoulder the forearm swung past horizontal and threw the hands half a metre clear of the chest, which is a man presenting a tray, not a man holding a marker.",
+      "carryShoulderDeg": 13.0,
+      "carryElbowDeg": 99.0,
+      "carryInwardDeg": 15.0,
+      "_ankleRange": "An ankle levels the foot against the leg swinging under it, but only so far: counter-rotating the full knee flexion would put the sole through 100 degrees, which is not a joint, it is a hinge failure. Clamped, so the foot tucks in mid-swing the way a real one does.",
+      "ankleLimitDeg": 26.0,
+      "kneeLeadDeg": 34.0,
+      "kneeSharpness": 2.0
+    },
+    "posture": {
+      "_note": "Idle postures, in degrees at the hip and the knee. These used to be a TRANSLATION: 'crouched' dropped the whole figure 0.63 m, which buried its legs in the ground and left a torso sitting on the floor. A figure with knees can simply bend them. The root lifts by however much the bent legs shortened it, so the feet stay on the ground whatever the posture asks for.",
+      "crouchHipDeg": 62.0,
+      "crouchKneeDeg": 104.0,
+      "sitHipDeg": 84.0,
+      "sitKneeDeg": 88.0,
+      "_lean": "A lean bends at the WAIST, not the ankles. Rotating the whole figure tips the feet off the ground and reads as a falling statue."
+    }
+  },
+  "_cylinders": "A Cylinder's length is its LOCAL X; the other two components are the circular cross-section and must match each other. Undocumented by Roblox and corroborated instead by the two call sites in this repo that render correctly -- see docs/PLATFORM_NOTES.md. Every cylinder in here was authored with the length in Y, so a 20 cm pod came out a 6 cm ellipse on its side. check-characters asserts the cross-section is round, which is what makes the mistake impossible to repeat quietly."
 }

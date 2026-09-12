@@ -74,7 +74,10 @@ env.globals.task = {
 		if not coroutine.isyieldable() then return n or 0 end
 		table.insert(pending, {
 			at = clock + (n or 0),
-			fn = function() coroutine.resume(thread) end,
+			fn = function()
+				local ok, err = coroutine.resume(thread)
+				if not ok then error(err) end
+			end,
 			args = table.pack(),
 		})
 		coroutine.yield()
@@ -238,6 +241,7 @@ local function newPlayer(userId: number, name: string)
 		Parent = Players,
 		Character = nil,
 		CharacterAdded = added,
+		CharacterAppearanceLoaded = signal(),
 		CharacterRemoving = removing,
 		--- Set to true to make a load fail the way a real one can.
 		failLoad = false,
@@ -447,6 +451,10 @@ replace(env.Server.World.Hub, {
 --- Bootstrap assigns the callbacks above; read them back off the same table.
 local hub = env.require(env.Server.World.Hub)
 
+local dressed = {}
+replace(env.Server.World.PlayerAppearance, { apply = function(character, loadout)
+	dressed[character] = table.clone(loadout)
+end })
 env.require(env.Server.Bootstrap)
 assert(fn("RequestMatchStart").OnServerInvoke, "Bootstrap did not bind RequestMatchStart")
 assert(fn("RequestRangeDrill").OnServerInvoke, "Bootstrap did not bind RequestRangeDrill")
@@ -470,6 +478,7 @@ advance(1)
 assert(#placements > 0 and placements[#placements].player == alice,
 	"a joining player must be put in The Landing")
 assert(hubOpen, "The Landing must be standing for a player who is only standing in it")
+assert(dressed[alice.Character], "joining character must receive the saved equipment appearance")
 assert(Activity.kindFor(alice) == nil, "standing in the hub is not an activity")
 print("  join            Alice is in The Landing, nothing owns the origin")
 
@@ -527,6 +536,12 @@ print("  drill           owns the origin; a character load does not restore the 
 
 resetSent()
 placements = {}
+join(bob)
+assert(bob.kicked, "shipping solo cap must reject a second seat")
+-- Continue exercising future multi-seat routing under an explicit test override.
+env.require(env.ReplicatedStorage.Shared.Config).get("match").server.maxPlayers = 2
+bob.kicked = nil
+table.remove(roster) -- Kick removes the rejected connection in the real engine.
 join(bob)
 advance(1)
 --[[

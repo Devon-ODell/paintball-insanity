@@ -3,9 +3,10 @@
   "default": "factory",
   "autoEquipFirstUnlock": true,
   "headshot": {
-    "centerBelowHeadTopMetres": 0.17,
-    "horizontalRadiusMetres": 0.205,
-    "verticalRadiusMetres": 0.2
+    "_note": "The scoring ellipsoid has to sit on the VISIBLE head, and it did: on a skull 0.46 m across, which was 3.9 heads to a body. Now the figure is built at canonical human proportions the head is 0.245 m tall, so this follows it down. That makes a headshot genuinely harder and camo progress with it -- but the alternative is a quarter-metre bubble of empty air around a head that scores as a headshot, which teaches the player that their aim is not what decides it.",
+    "centerBelowHeadTopMetres": 0.126,
+    "horizontalRadiusMetres": 0.15,
+    "verticalRadiusMetres": 0.142
   },
   "order": [
     "factory",

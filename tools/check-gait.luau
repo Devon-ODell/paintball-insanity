@@ -109,7 +109,7 @@ for i = 0, 40 do
     regular:setPosition(at, roblox.Vector3.new(0, 0, -1), 1 / 60)
     now = 200 + i * 0.00001
     catchup:setPosition(at, roblox.Vector3.new(0, 0, -1), 1 / 60)
-    for _, name in ipairs({ "ThighL", "ThighR", "Torso", "Marker" }) do
+    for _, name in ipairs({ "ThighL", "ThighR", "ShinR", "Chest", "HandR", "Marker" }) do
         assert((regular.model[name].CFrame.Position - catchup.model[name].CFrame.Position).Magnitude < 0.0001,
             name .. ": animation used CPU elapsed time instead of simulation time")
     end

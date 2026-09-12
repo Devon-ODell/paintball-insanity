@@ -1,0 +1,713 @@
+{
+  "_comment": "Player kit overlays. Sizes and offsets are fractions of the attached native body part; R6 and R15 use named anchors. Presentation only; never collision or hitboxes.",
+  "anchors": {
+    "head": [
+      "Head"
+    ],
+    "torso": [
+      "UpperTorso",
+      "Torso"
+    ],
+    "hips": [
+      "LowerTorso",
+      "Torso"
+    ],
+    "leftLeg": [
+      "LeftLowerLeg",
+      "Left Leg"
+    ],
+    "rightLeg": [
+      "RightLowerLeg",
+      "Right Leg"
+    ]
+  },
+  "templates": {
+    "jersey": [
+      {
+        "anchor": "torso",
+        "size": [
+          1.03,
+          1.02,
+          1.04
+        ],
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      }
+    ],
+    "cap": [
+      {
+        "anchor": "head",
+        "size": [
+          1.04,
+          0.3,
+          1.04
+        ],
+        "at": [
+          0,
+          0.43,
+          0
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      },
+      {
+        "anchor": "head",
+        "size": [
+          0.8,
+          0.08,
+          0.5
+        ],
+        "at": [
+          0,
+          0.34,
+          0.65
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      }
+    ],
+    "boonie": [
+      {
+        "anchor": "head",
+        "size": [
+          1.12,
+          0.4,
+          1.12
+        ],
+        "at": [
+          0,
+          0.4,
+          0
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      },
+      {
+        "anchor": "head",
+        "size": [
+          1.5,
+          0.08,
+          1.5
+        ],
+        "at": [
+          0,
+          0.28,
+          0
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      }
+    ],
+    "helmet": [
+      {
+        "anchor": "head",
+        "size": [
+          1.1,
+          0.65,
+          1.12
+        ],
+        "at": [
+          0,
+          0.35,
+          0
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Ball"
+      }
+    ],
+    "shoulders": [
+      {
+        "anchor": "torso",
+        "size": [
+          0.3,
+          0.3,
+          1.15
+        ],
+        "at": [
+          -0.44,
+          0.42,
+          0
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      },
+      {
+        "anchor": "torso",
+        "size": [
+          0.3,
+          0.3,
+          1.15
+        ],
+        "at": [
+          0.44,
+          0.42,
+          0
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      }
+    ],
+    "straps": [
+      {
+        "anchor": "torso",
+        "size": [
+          0.12,
+          1.05,
+          0.08
+        ],
+        "at": [
+          -0.32,
+          0,
+          -0.55
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      },
+      {
+        "anchor": "torso",
+        "size": [
+          0.12,
+          1.05,
+          0.08
+        ],
+        "at": [
+          0.32,
+          0,
+          -0.55
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      }
+    ],
+    "rig": [
+      {
+        "anchor": "torso",
+        "size": [
+          0.3,
+          0.3,
+          1.15
+        ],
+        "at": [
+          -0.44,
+          0.42,
+          0
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      },
+      {
+        "anchor": "torso",
+        "size": [
+          0.3,
+          0.3,
+          1.15
+        ],
+        "at": [
+          0.44,
+          0.42,
+          0
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      },
+      {
+        "anchor": "torso",
+        "size": [
+          0.8,
+          0.8,
+          0.12
+        ],
+        "at": [
+          0,
+          0,
+          -0.58
+        ],
+        "material": "Fabric",
+        "shape": "Block"
+      }
+    ],
+    "pads": [
+      {
+        "anchor": "leftLeg",
+        "size": [
+          0.85,
+          0.35,
+          0.18
+        ],
+        "at": [
+          0,
+          0,
+          -0.57
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Block"
+      },
+      {
+        "anchor": "rightLeg",
+        "size": [
+          0.85,
+          0.35,
+          0.18
+        ],
+        "at": [
+          0,
+          0,
+          -0.57
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Block"
+      }
+    ],
+    "mask": [
+      {
+        "anchor": "head",
+        "size": [
+          0.93,
+          0.4,
+          0.12
+        ],
+        "at": [
+          0,
+          -0.22,
+          -0.54
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Block"
+      },
+      {
+        "anchor": "head",
+        "size": [
+          0.46,
+          0.28,
+          0.09
+        ],
+        "at": [
+          -0.235,
+          0.12,
+          -0.58
+        ],
+        "material": "Glass",
+        "shape": "Block"
+      },
+      {
+        "anchor": "head",
+        "size": [
+          0.46,
+          0.28,
+          0.09
+        ],
+        "at": [
+          0.235,
+          0.12,
+          -0.58
+        ],
+        "material": "Glass",
+        "shape": "Block"
+      }
+    ],
+    "pods": [
+      {
+        "anchor": "hips",
+        "size": [
+          0.13,
+          0.65,
+          0.34
+        ],
+        "at": [
+          -0.38,
+          -0.1,
+          0.64
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Block"
+      },
+      {
+        "anchor": "hips",
+        "size": [
+          0.13,
+          0.65,
+          0.34
+        ],
+        "at": [
+          -0.23,
+          -0.1,
+          0.64
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Block"
+      },
+      {
+        "anchor": "hips",
+        "size": [
+          0.13,
+          0.65,
+          0.34
+        ],
+        "at": [
+          -0.08,
+          -0.1,
+          0.64
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Block"
+      },
+      {
+        "anchor": "hips",
+        "size": [
+          0.13,
+          0.65,
+          0.34
+        ],
+        "at": [
+          0.08,
+          -0.1,
+          0.64
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Block"
+      },
+      {
+        "anchor": "hips",
+        "size": [
+          0.13,
+          0.65,
+          0.34
+        ],
+        "at": [
+          0.23,
+          -0.1,
+          0.64
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Block"
+      },
+      {
+        "anchor": "hips",
+        "size": [
+          0.13,
+          0.65,
+          0.34
+        ],
+        "at": [
+          0.38,
+          -0.1,
+          0.64
+        ],
+        "material": "SmoothPlastic",
+        "shape": "Block"
+      }
+    ],
+    "empty": []
+  },
+  "slots": {
+    "jersey": {
+      "houseWhite": {
+        "template": "jersey",
+        "color": [
+          238,
+          236,
+          228
+        ]
+      },
+      "paddedTwill": {
+        "template": "jersey",
+        "color": [
+          86,
+          96,
+          68
+        ]
+      },
+      "slickComp": {
+        "template": "jersey",
+        "color": [
+          228,
+          176,
+          58
+        ]
+      },
+      "hazard": {
+        "template": "jersey",
+        "color": [
+          228,
+          176,
+          58
+        ]
+      },
+      "deepwater": {
+        "template": "jersey",
+        "color": [
+          58,
+          148,
+          153
+        ]
+      },
+      "sunbleach": {
+        "template": "jersey",
+        "color": [
+          224,
+          118,
+          96
+        ]
+      },
+      "nightRange": {
+        "template": "jersey",
+        "color": [
+          68,
+          65,
+          117
+        ]
+      }
+    },
+    "helmet": {
+      "capBackwards": {
+        "template": "cap",
+        "color": [
+          48,
+          52,
+          58
+        ]
+      },
+      "boonie": {
+        "template": "boonie",
+        "color": [
+          86,
+          96,
+          68
+        ]
+      },
+      "crownGuard": {
+        "template": "helmet",
+        "color": [
+          48,
+          52,
+          58
+        ]
+      },
+      "marshalPlate": {
+        "template": "helmet",
+        "color": [
+          48,
+          52,
+          58
+        ]
+      },
+      "gildedCrown": {
+        "template": "helmet",
+        "color": [
+          206,
+          169,
+          66
+        ]
+      }
+    },
+    "shoulders": {
+      "bare": {
+        "template": "empty",
+        "color": [
+          64,
+          70,
+          66
+        ]
+      },
+      "harnessStraps": {
+        "template": "straps",
+        "color": [
+          64,
+          70,
+          66
+        ]
+      },
+      "scenarioRig": {
+        "template": "rig",
+        "color": [
+          64,
+          70,
+          66
+        ]
+      },
+      "breachPads": {
+        "template": "shoulders",
+        "color": [
+          64,
+          70,
+          66
+        ]
+      },
+      "gildedShoulders": {
+        "template": "shoulders",
+        "color": [
+          206,
+          169,
+          66
+        ]
+      }
+    },
+    "pads": {
+      "none": {
+        "template": "empty",
+        "color": [
+          48,
+          52,
+          58
+        ]
+      },
+      "kneeSliders": {
+        "template": "pads",
+        "color": [
+          88,
+          94,
+          100
+        ]
+      },
+      "fullWrap": {
+        "template": "pads",
+        "color": [
+          48,
+          52,
+          58
+        ]
+      },
+      "lowProfile": {
+        "template": "pads",
+        "color": [
+          86,
+          96,
+          68
+        ]
+      }
+    },
+    "pods": {
+      "twoPack": {
+        "template": "pods",
+        "color": [
+          232,
+          196,
+          62
+        ],
+        "count": 2
+      },
+      "fourPack": {
+        "template": "pods",
+        "color": [
+          232,
+          196,
+          62
+        ],
+        "count": 4
+      },
+      "sixPack": {
+        "template": "pods",
+        "color": [
+          232,
+          196,
+          62
+        ],
+        "count": 6
+      },
+      "harness": {
+        "template": "pods",
+        "color": [
+          232,
+          196,
+          62
+        ],
+        "count": 3
+      }
+    },
+    "mask": {
+      "stockMask": {
+        "template": "mask",
+        "color": [
+          48,
+          52,
+          58
+        ],
+        "lensColors": [
+          [
+            110,
+            224,
+            146
+          ],
+          [
+            110,
+            224,
+            146
+          ]
+        ]
+      },
+      "chromeLens": {
+        "template": "mask",
+        "color": [
+          48,
+          52,
+          58
+        ],
+        "lensColors": [
+          [
+            205,
+            216,
+            225
+          ],
+          [
+            205,
+            216,
+            225
+          ]
+        ]
+      },
+      "smokeLens": {
+        "template": "mask",
+        "color": [
+          48,
+          52,
+          58
+        ],
+        "lensColors": [
+          [
+            38,
+            46,
+            54
+          ],
+          [
+            38,
+            46,
+            54
+          ]
+        ]
+      },
+      "splitLens": {
+        "template": "mask",
+        "color": [
+          48,
+          52,
+          58
+        ],
+        "lensColors": [
+          [
+            110,
+            224,
+            146
+          ],
+          [
+            224,
+            118,
+            96
+          ]
+        ]
+      }
+    }
+  },
+  "defaults": {
+    "jersey": "houseWhite",
+    "pads": "none",
+    "pods": "twoPack",
+    "helmet": "capBackwards",
+    "shoulders": "bare",
+    "mask": "stockMask"
+  }
+}

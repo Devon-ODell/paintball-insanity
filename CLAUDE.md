@@ -117,7 +117,8 @@ can be tuned without touching logic.
 ### Solo PvE on a multiplayer platform
 
 **Gauntlet, Shoothouse, Horde and Capture the Flag have live solo integrations.**
-Set the published place's `MaxPlayers = 2`. Holdfast's primary gate starts CTF;
+For the solo QC/release candidate, set the published place's `MaxPlayers = 1`.
+The server enforces `match.server.maxPlayers = 1` until shared co-op is built. Holdfast's primary gate starts CTF;
 its other prompt still starts Shoothouse. CTF opens after Back Forty, or temporarily
 through the existing dev `unlockEverything` override. Horde is owned by the other
 agent's current pass; preserve its changes. See `docs/CHANGE_REPORT.md` for tests.

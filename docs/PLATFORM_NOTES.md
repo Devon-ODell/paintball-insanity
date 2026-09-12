@@ -107,6 +107,25 @@ The related `Ball` claim from the brief — that a sphere renders off the smalle
 a hopper and an air tank should not be spheres under any interpretation, so the
 fix (cylinders with explicit rotations) is right either way.
 
+**Resolved, 2026-09-10.** `Ball` parts take a non-uniform `Size` and render as
+ellipsoids. The `X = Y = Z` lock was lifted in [Improvements to Part Shape &
+Size](https://devforum.roblox.com/t/improvements-to-part-shape-size/2443389),
+and there is a later [Studio bug report about spheres being snapped back to
+uniform](https://devforum.roblox.com/t/ball-parts-with-different-sizes-being-resized-back-to-a-normal-sphere-including-specialmesh-spheres/4602613)
+that only makes sense if non-uniform is the intended behaviour. Neither is a
+documentation page, so this is corroborated rather than specified — but the whole
+human figure in `World/Wardrobe` is built from oriented ellipsoids and would be
+visibly, unmissably wrong if it were not true.
+
+**The cylinder convention had already cost something.** Every paintball pod in
+`Data/wardrobe.json` was authored as `Size = (dia, length, dia)` with a
+`[0, 0, 90]` rotation, which under the rule above is a cylinder 6 cm long with a
+20 × 6 cm elliptical cross-section — a squashed disc lying on its side where a
+20 cm tube belonged. The same mistake stood the beanie cuff and the headlamp band
+on their edges. `tools/check-characters` now asserts that a cylinder's two
+cross-section axes match, because an elliptical cylinder is almost never what
+anyone meant and the failure is invisible in every other check.
+
 **Not verified, and needs Studio.** Nothing in this pass has been rendered. The
 roof, gable infill, sign brackets, viewmodel framing and all shop stock are
 arithmetic-checked and spec-covered only. Screenshots remain owed.
@@ -260,3 +279,12 @@ Verified Roblox's [BillboardGui reference](https://create.roblox.com/docs/refere
 CTF adds no package, uploaded asset ID or new remote. The existing `MatchStateChanged` wire carries bounded objective snapshots; the client handles those without replaying round-start effects. Existing `Humanoid.WalkSpeed` input handling applies the server's carrier modifier and restores normal speed on drop/end.
 
 The CTF-only prepared Holdfast data is shared by `WorldBuilder` and `MapGeometry`. It adds 152 physical stair/landing parts for the keep decks and bridge and marks the terrain solids as projectile blockers. The original map data is not mutated, preserving the existing Shoothouse field.
+
+
+## 2026-09-10 — QC follow-up: native player appearance and recovery
+
+Verified against the Roblox Creator Hub references for [WeldConstraint](https://create.roblox.com/docs/reference/engine/classes/WeldConstraint), [BasePart](https://create.roblox.com/docs/reference/engine/classes/BasePart), [Player](https://create.roblox.com/docs/reference/engine/classes/Player) and [Humanoid](https://create.roblox.com/docs/reference/engine/classes/Humanoid).
+
+`PlayerAppearance` places cosmetic parts relative to native body parts before joining them with `WeldConstraint.Part0` / `Part1`. Parts are unanchored, massless, non-colliding, non-touching and non-queryable. `CharacterAppearanceLoaded` triggers a fresh application after Roblox appearance loading; identity checks reject a stale character callback. R6/R15 assembly and property validity are checked in Lune; fit, first-person transparency, physics and replication still require Studio.
+
+`Humanoid.Died` need not clear `Player.Character`. Recovery compares character identity so a retained old model does not cancel the reload. `CharacterAutoLoads=false` requires explicit loading; `LoadCharacterAsync` is the current API (`LoadCharacter` is deprecated). These are character lifecycle events, not a health-based paintball combat system.

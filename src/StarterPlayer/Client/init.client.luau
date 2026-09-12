@@ -15,6 +15,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Ballistics = require(ReplicatedStorage.Shared.Ballistics)
 local Units = require(ReplicatedStorage.Shared.Units)
 local Loadout = require(ReplicatedStorage.Shared.Loadout)
+local CombatPose = require(ReplicatedStorage.Shared.CombatPose)
 local MarkerState = require(ReplicatedStorage.Shared.MarkerState)
 local Spread = require(ReplicatedStorage.Shared.Spread)
 local Melee = require(ReplicatedStorage.Shared.Melee)
@@ -149,7 +150,11 @@ local function muzzleMetres(): Vector3
 	end
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	local feet = (root :: BasePart).Position - Vector3.new(0, (root :: BasePart).Size.Y / 2 + (if humanoid then humanoid.HipHeight else 1.5), 0)
-	return Units.vectorToMetres(feet) + Vector3.new(0, ballisticsData.hitbox.chestHeightMetres, 0)
+	local intent = Input.state()
+	local velocity = Units.vectorToMetres((root :: BasePart).AssemblyLinearVelocity)
+	local flat = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
+	local crouching = (intent.crouching == true or intent.sliding == true) and flat <= 0.3
+	return CombatPose.muzzle(Units.vectorToMetres(feet), camera.CFrame.LookVector, crouching, intent.lean or 0)
 end
 
 local function requestReload()
@@ -160,10 +165,10 @@ local function requestReload()
 		Audio.play("reloadStart")
 		Remotes.event("RequestReload"):FireServer()
 	elseif markerState:isDry() then
-		--- Out of paint for this round. Reloads are finite now, so "nothing
+		--- Out of paint for this life. Reloads are finite now, so "nothing
 		--- happened" needs to be a sentence rather than a dead key.
 		Audio.play("dryFire")
-		Hud.showBanner("OUT OF PAINT · FINISH THE ROUND", 2)
+		Hud.showBanner("OUT OF PAINT · RESET TO REFILL", 2)
 	end
 end
 
@@ -351,6 +356,12 @@ Remotes.event("PlayerEliminated").OnClientEvent:Connect(function(payload)
 	local cfg = Config.require("economy", "deathPenalty")
 	local multiplier = cfg.floor + (1 - cfg.floor) * math.exp(-cfg.decay * deaths)
 	Hud.setDeaths(deaths, multiplier)
+end)
+
+Remotes.event("MarkerRefilled").OnClientEvent:Connect(function(payload)
+	kit = payload.kit
+	markerState = MarkerState.new(markerData, kit)
+	respawning = false
 end)
 
 Remotes.event("ChatterLine").OnClientEvent:Connect(function(line)

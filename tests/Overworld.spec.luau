@@ -717,14 +717,37 @@ return function()
 							expect(string.find(string.lower(field), word)).to.equal(nil)
 						end
 					end
-					-- Every piece hangs off a real anchor on the body.
+					--[[
+						Every piece hangs off a real anchor on the body.
+
+						`elbows` and `hands` joined the list when the figure got
+						joints to hang them from: gloves and elbow pads used to
+						be pinned to the CHEST at a fixed sideways offset, so
+						they stayed where an arm had been while the arm swung out
+						from under them.
+					]]
 					local anchor = part.anchor
 					local known = anchor == "head" or anchor == "chest" or anchor == "hips"
 						or anchor == "legs" or anchor == "feet"
+						or anchor == "elbows" or anchor == "hands"
 					expect(known).to.equal(true)
 					expect(#part.size).to.equal(3)
 					expect(#part.at).to.equal(3)
 					expect(pieceName).to.be.a("string")
+
+					--[[
+						A cylinder's cross-section has to be round.
+
+						Its length is the local X and the other two components
+						are the circle. Every cylinder in this file was authored
+						with the length in Y instead, so a 20 cm paintball pod
+						rendered as a 6 cm ellipse lying on its side, and the
+						beanie cuff and headlamp band stood on their edges like
+						chimneys. Nothing else in the suite could see it.
+					]]
+					if part.shape == "Cylinder" then
+						expect(math.abs(part.size[2] - part.size[3]) < 1e-6).to.equal(true)
+					end
 				end
 			end
 		end)

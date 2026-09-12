@@ -52,7 +52,6 @@
   "movementValidation": {
     "speedTolerance": 2.5,
     "slackMetres": 4,
-    "minimumWindowSeconds": 0.05,
     "_logEvery": "A player falling through the world refuses a step every frame; a log line per frame buries everything else.",
     "logEvery": 30
   },
@@ -98,10 +97,10 @@
     "_spawnAway": "Scaled with the fields when they shrank to 88%. Left at 18 m it was asking for more clearance than a 30 m wide Speedball can offer, which would have quietly forced respawns into the same corner every time."
   },
   "server": {
-    "_maxPlayers": "The match place is MaxPlayers = 2 in Studio's Game Settings: one for every mode, two only so the Shoothouse can be run as a pair. Reserved servers via TeleportService:ReserveServerAsync remain the fallback. Verified 2026-09-06, see docs/PLATFORM_NOTES.md.",
+    "_maxPlayers": "Launch cap: set published MaxPlayers = 1. Shared two-player matches are not implemented; the hub is removed during activities, so a waiting second seat is unsafe. Raise only after shared-world co-op is verified.",
     "tickRateHz": 60,
     "telemetryFlushSeconds": 15,
-    "maxPlayers": 2
+    "maxPlayers": 1
   },
   "_squadSize": "Twelve, doubled from six on 2026-09-07. Every map was given twelve authored bot spawns in the same pass -- MatchService cycles the spawn list modulo its length, so a squad larger than the spawn list would have started two bots inside each other."
 }

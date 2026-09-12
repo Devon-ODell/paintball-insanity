@@ -162,43 +162,41 @@ local function buildCan(model: Model, size: Vector3, colour: Color3)
 end
 
 --[[
-	DORITO -- the triangular bunker. Rounded vertical edges and a rounded apex;
-	the flat faces are what make it read as a wedge from across the field.
+	DORITO -- a four-sided pyramid with one apex and rounded welded edges.
 ]]
-local function buildDorito(model: Model, size: Vector3, colour: Color3)
-	local width, height, depth = size.X, size.Y, size.Z
-	local edge = math.min(width, height, depth) * tuning.edgeFraction
-	local innerWidth, innerHeight = width - edge, height - edge
-	-- Two opposing wedges meet at a ridge. Unlike the old rectangular core,
-	-- this silhouette narrows all the way up to the inflatable crown.
-	for _, side in ipairs({ -1, 1 }) do
-		local panel = newPart(`Panel{side}`, model)
+-- Split a triangular face at its base midpoint into two right triangles.
+-- A Roblox wedge rises at local +Z; the two halves share the same apex.
+local function pyramidFace(model: Model, a: Vector3, b: Vector3, apex: Vector3, thickness: number, colour: Color3)
+	local middle = (a + b) / 2
+	local up = (apex - middle).Unit
+	for _, corner in ipairs({ a, b }) do
+		local back = (middle - corner).Unit
+		local panel = newPart("PyramidPanel", model)
 		panel.Shape = Enum.PartType.Wedge
-		panel.Size = Vector3.new(depth * tuning.panelDepthFraction, innerHeight, innerWidth / 2)
+		panel.Size = Vector3.new(thickness, (apex - middle).Magnitude, (corner - middle).Magnitude)
 		panel.Color = colour
-		panel.CFrame = CFrame.new(side * innerWidth / 4, 0, 0) * CFrame.Angles(0, -side * math.pi / 2, 0)
+		panel.CFrame = CFrame.fromMatrix((apex + corner) / 2, up:Cross(back), up, back)
 	end
-	-- Soft sloping welds and rounded corners, contained in the authored box.
-	for _, z in ipairs({ -(depth - edge) / 2, (depth - edge) / 2 }) do
-		local apex = Vector3.new(0, innerHeight / 2, z)
-		for _, side in ipairs({ -1, 1 }) do
-			local base = Vector3.new(side * innerWidth / 2, -innerHeight / 2, z)
-			local middle = (base + apex) / 2
-			trim(tube(model, "SlopedWeld", CFrame.lookAt(middle, apex), (apex - base).Magnitude, edge, colour, "z"))
-			trim(blob(model, "BaseCorner", CFrame.new(base), Vector3.new(edge, edge, edge), colour))
-		end
-		trim(blob(model, "Apex", CFrame.new(apex), Vector3.new(edge, edge, edge), colour))
-		trim(tube(model, "BaseWeld", CFrame.new(0, -innerHeight / 2, z), innerWidth, edge, shade(colour, SEAM_DARKEN), "x"))
+end
+
+local function buildDorito(model: Model, size: Vector3, colour: Color3)
+	local edge = math.min(size.X, size.Y, size.Z) * tuning.edgeFraction
+	local halfX, halfZ = (size.X - edge) / 2, (size.Z - edge) / 2
+	local halfY = (size.Y - edge) / 2
+	local apex = Vector3.new(0, halfY, 0)
+	local corners = {
+		Vector3.new(-halfX, -halfY, -halfZ), Vector3.new(halfX, -halfY, -halfZ),
+		Vector3.new(halfX, -halfY, halfZ), Vector3.new(-halfX, -halfY, halfZ),
+	}
+	for index, corner in ipairs(corners) do
+		local nextCorner = corners[index % #corners + 1]
+		pyramidFace(model, corner, nextCorner, apex, edge * tuning.pyramidPanelThicknessFraction, colour)
+		trim(tube(model, "SlopedWeld", CFrame.lookAt((corner + apex) / 2, apex), (apex - corner).Magnitude, edge, colour, "z"))
+		trim(tube(model, "BaseWeld", CFrame.lookAt((corner + nextCorner) / 2, nextCorner), (nextCorner - corner).Magnitude, edge, shade(colour, SEAM_DARKEN), "z"))
+		trim(blob(model, "BaseCorner", CFrame.new(corner), Vector3.new(edge, edge, edge), colour))
 	end
-	--[[
-		The two wedge panels are the dorito's silhouette and they still cast. The
-		rounding around them is trim: at edgeFraction of the smallest dimension it
-		is a few centimetres proud of a panel that is already casting. Leaving all
-		of it casting put Speedball 24 shadow casters over budget the day the
-		tapered wedges landed.
-	]]
-	trim(tube(model, "Crown", CFrame.new(0, innerHeight / 2, 0), depth - edge, edge, colour, "z"))
-	anchorStrap(model, CFrame.new(0, -height / 2 + Units.metresToStuds(0.04), 0), width * 0.9, colour)
+	trim(blob(model, "Apex", CFrame.new(apex), Vector3.new(edge, edge, edge), colour))
+	anchorStrap(model, CFrame.new(0, -size.Y / 2 + Units.metresToStuds(0.04), 0), size.X * 0.9, colour)
 end
 
 --[[

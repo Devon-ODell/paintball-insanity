@@ -27,6 +27,23 @@ return function()
 	end)
 
 	describe("where the server thinks you are", function()
+		it("cannot renew replication slack every frame", function()
+			PlayerState.observe(state, Vector3.zero, 0)
+			for frame = 1, 60 do
+				local at = PlayerState.believedPosition(state)
+				PlayerState.observe(state, at + Vector3.new(3, 0, 0), frame / 60)
+			end
+			expect(PlayerState.believedPosition(state).Magnitude < 40).to.equal(true)
+			expect(state.rejections > 0).to.equal(true)
+		end)
+
+		it("refuses nonfinite character positions", function()
+			PlayerState.observe(state, Vector3.zero, 0)
+			local at, ok = PlayerState.observe(state, Vector3.new(0/0, 0, 0), 1)
+			expect(ok).to.equal(false)
+			expect(at).to.equal(Vector3.zero)
+		end)
+
 		it("believes the first position it is given", function()
 			local at = Vector3.new(3, 0, 4)
 			local believed, accepted = PlayerState.observe(state, at, 0)

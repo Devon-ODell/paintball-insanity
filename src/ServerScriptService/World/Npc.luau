@@ -40,19 +40,25 @@ local function shade(colour: Color3, factor: number): Color3
 end
 
 --[[
-	Idle poses.
+	Idle poses. What stops six people standing in identical T-poses around a
+	field: Marge leans on her counter, Denny sits on a bench, Wheels is crouched
+	over something.
 
-	Purely a set of vertical and rotational offsets, but it is what stops six
-	people standing in identical T-poses around a field. Marge leans on her
-	counter; Denny sits on a bench; Wheels is crouched over something.
+	These used to be a vertical TRANSLATION of the whole figure, which was the
+	only thing a body of rigid ellipsoids could do -- `crouched` dropped Wheels
+	0.63 m and buried his legs under the yard, leaving a torso on the floor, and
+	`sitting` did the same to Denny. Now the figure has knees: a crouch bends
+	them and `Wardrobe.body` lifts the root by however much the bent legs
+	shortened, so the feet stay on the ground. A lean bends at the waist rather
+	than tipping the soles off it.
 ]]
-local POSES: { [string]: { lift: number, lean: number, crouch: number } } = {
-	standing = { lift = 0, lean = 0, crouch = 0 },
-	leaning = { lift = -0.06, lean = 0.14, crouch = 0 },
-	bouncing = { lift = 0.04, lean = -0.05, crouch = 0 },
-	crouched = { lift = -0.42, lean = 0.3, crouch = 0.42 },
-	armsFolded = { lift = 0, lean = -0.04, crouch = 0 },
-	sitting = { lift = -0.48, lean = 0.08, crouch = 0.5 },
+local POSES: { [string]: Wardrobe.Posture } = {
+	standing = {},
+	leaning = { lean = 0.20 },
+	bouncing = { crouch = 0.06, lean = -0.05 },
+	crouched = { crouch = 0.82, lean = 0.34 },
+	armsFolded = { lean = -0.05 },
+	sitting = { sit = 0.94, lean = 0.10 },
 }
 
 function Npc.build(id: string, cfg: any, palette: { [string]: Color3 }, parent: Instance): Handle
@@ -96,15 +102,12 @@ function Npc.build(id: string, cfg: any, palette: { [string]: Color3 }, parent: 
 	})
 	local worn = Wardrobe.dress(outfitName, model, build.height)
 
-	-- The idle pose is a lift, a lean and a crouch applied to the whole figure.
-	local posed = base
-		* CFrame.new(0, Units.metresToStuds(pose.lift - pose.crouch * 0.5), 0)
-		* CFrame.Angles(pose.lean, 0, 0)
-	figure.pose(posed)
-	Wardrobe.place(worn, figure.anchors(posed))
+	--- The posture is bent into the figure rather than applied on top of it, so
+	--- a crouching person's legs are crouched and still standing on the ground.
+	Wardrobe.place(worn, figure.anchors(base, pose))
 
 	local head = figure.byName.Head
-	local torso = figure.byName.Torso
+	local torso = figure.byName.Chest
 
 	--- A silent NPC gets no nameplate role line -- the Marshal does not
 	--- introduce herself and that is the whole character.

@@ -284,6 +284,8 @@ end
 queued = { hit("bot", "player"), hit("bot", "player") }
 advance(0.1)
 assert(#event("PlayerEliminated").sent == 1, "one batch must only charge one player elimination")
+assert(#event("MarkerRefilled").sent == 1, "respawn must replenish paint and notify prediction")
+assert(event("MarkerRefilled").sent[1].kit.podCount > 0, "respawn kit must restore finite pods")
 print("Live MatchService checks passed: warmup, reload, duplicate bot hits, duplicate player hits (mock engine boundaries).")
 
 assert(not service.canShop(player), "cannot purchase while a match is live")
@@ -307,6 +309,12 @@ advance(matchData.warmupSeconds + 0.1)
 event("FireMarker").OnServerEvent:fire(player, payload)
 assert(fired == firedBefore + 1)
 event("RequestReload").OnServerEvent:fire(player)
+queued = { hit("bot", "player") }
+advance(0.1)
+advance(matchData.respawn.invulnerabilitySeconds + 0.1)
+event("FireMarker").OnServerEvent:fire(player, payload)
+assert(fired == firedBefore + 2, "respawn must refill an empty hopper and cancel a 999-second reload")
+event("RequestReload").OnServerEvent:fire(player)
 for i = 1, matchData.rounds.schedule[1].bots do
     table.insert(queued, hit("player", "r1_bot" .. i))
 end
@@ -315,7 +323,7 @@ advance(matchData.rounds.intermissionSeconds + 0.1)
 local latest = event("MatchStateChanged").sent[#event("MatchStateChanged").sent]
 assert(latest.phase == "live" and latest.round == 2, "test must reach round two")
 event("FireMarker").OnServerEvent:fire(player, payload)
-assert(fired == firedBefore + 2, "new round must refill the server hopper and cancel the old reload")
+assert(fired == firedBefore + 3, "new round must refill the server hopper and cancel the old reload")
 service.stop(player)
 assert(not (profile.data.gauntletClears and profile.data.gauntletClears.speedball), "quitting after one round must not grant a campaign clear")
 assert(not table.find(profile.data.chaptersCompleted or {}, "walkOn"), "partial matches must not complete chapters")
@@ -507,3 +515,14 @@ end
 
 require("./CtfLiveChecks")({ env = env, service = service, event = event, advance = advance,
     player = player, root = root, madeBots = madeBots, hit = hit, queueHits = function(hits) queued = hits end })
+
+-- A failed asynchronous character load cannot leave a live match stuck respawning.
+assert(service.start(player, "speedball", "rec", 991))
+advance(matchData.warmupSeconds + matchData.respawn.invulnerabilitySeconds + 0.1)
+local originalLoad = player.LoadCharacterAsync
+player.LoadCharacterAsync = function() error("injected respawn load failure") end
+queued = { hit("bot", "player") }
+advance(0.1)
+player.LoadCharacterAsync = originalLoad
+assert(not service.isActive(player), "failed respawn must terminate the stuck activity")
+print("Respawn failure releases the active match instead of leaving it stuck.")

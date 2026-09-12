@@ -154,7 +154,10 @@ local KNOWN_LONG: { [string]: number } = {
 	--- purchase does. Re-frozen at what it measures.
 	["Commerce.new"] = 197,
 	["SimMatch.run"] = 166,
-	["BotAvatar.new"] = 162,
+	--- 162 -> 173 when the marker stopped being placed off the chest at a
+	--- constant and started being held in the hand. The constant it was measured
+	--- against stopped existing when the arms began to articulate.
+	["BotAvatar.new"] = 173,
 	["ShopUi.open"] = 158,
 	--- 157 -> 217 when the board stopped having exactly one personal page and
 	--- exactly one board per map. Times were separated by mode when WRITTEN and

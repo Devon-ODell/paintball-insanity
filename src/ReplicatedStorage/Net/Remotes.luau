@@ -105,6 +105,7 @@ local DEFINITIONS = {
 	ShotResolved = "Event",
 	MarkerFired = "Event",
 	PlayerEliminated = "Event",
+	MarkerRefilled = "Event",
 	BotEliminated = "Event",
 	MatchStateChanged = "Event",
 	MatchSummary = "Event",

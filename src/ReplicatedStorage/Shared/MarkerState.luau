@@ -2,7 +2,7 @@
 --[[
 	Clock-driven ammo state shared by server authority and client prediction.
 
-	A round now has a finite amount of paint in it. `podCount` was authored on
+	Each life has a finite amount of paint; a respawn replenishes it. `podCount` was authored on
 	every pod harness in the shop, priced, described as the tradeoff the harness
 	exists for -- and nothing read it, so a reload was free and infinite and the
 	four-pack and the six-pack were the same item at different prices.
@@ -77,8 +77,7 @@ function MarkerState.reload(self: State, now: number): boolean
 	return true
 end
 
---- Whether there is any paint left to reload with. False means this round is
---- over for this player unless they can finish it on what is in the hopper.
+--- Whether the hopper and spare pods are both exhausted. Respawning refills them.
 function MarkerState.isDry(self: State): boolean
 	return self.pods ~= nil and (self.pods :: number) <= 0 and self.ammo <= 0 and self.reloadUntil == nil
 end

@@ -793,6 +793,15 @@ Remotes.fn("RequestPurchase").OnServerInvoke = function(player: Player, category
 	return result
 end
 
+local PlayerAppearance = require(script.Parent.World.PlayerAppearance)
+
+local function dressPlayer(player: Player, character: Model?)
+	local handle = Profile.get(player.UserId)
+	if handle and character and character == player.Character then
+		PlayerAppearance.apply(character, handle.data.loadout)
+	end
+end
+
 Remotes.fn("RequestEquip").OnServerInvoke = function(player: Player, category: any, id: any): any
 	if starting[player] then
 		return { ok = false, reason = "Wait for the field to open." }
@@ -809,6 +818,7 @@ Remotes.fn("RequestEquip").OnServerInvoke = function(player: Player, category: a
 	end
 	local result = Shop.equip(handle, category :: Shop.Category, id)
 	if result.ok then
+		dressPlayer(player, player.Character)
 		Remotes.event("LoadoutChanged"):FireClient(player, handle.data.loadout, Loadout.resolve(handle.data))
 	end
 	return result
@@ -863,20 +873,7 @@ Remotes.fn("RequestRangeDrill").OnServerInvoke = function(player: Player, drillI
 	return { ok = started, drills = Config.require("range", "drillOrder") }
 end
 
---[[
-	Seats on this server.
-
-	It used to admit exactly one player and kick the second, which was correct
-	while the place was MaxPlayers = 1 and made MaxPlayers = 2 meaningless. The
-	Shoothouse is authorized for two, so the seat exists.
-
-	What a second player CANNOT yet do is join a run: the shared-match plumbing
-	is unbuilt and requestMatch refuses a second concurrent match. So the second
-	seat is a real seat -- the hub, the barn, the shop, the notice board -- and
-	the field is one at a time until co-op lands. Kicking them would be worse
-	than telling them to wait, and letting them start their own match would build
-	a second map on top of the first.
-]]
+-- A launch seat is capped independently of future mode capacity.
 local function seatLimit(): number
 	local modes = Config.get("gamemodes").modes
 	local most = 1
@@ -885,7 +882,7 @@ local function seatLimit(): number
 			most = mode.maxPlayers
 		end
 	end
-	return most
+	return math.min(most, Config.require("match", "server.maxPlayers"))
 end
 
 local function onPlayer(player: Player)
@@ -940,9 +937,14 @@ local function onPlayer(player: Player)
 		Hub.placePlayer(player)
 	end
 
-	player.CharacterAdded:Connect(function()
+	player.CharacterAdded:Connect(function(character)
 		task.wait(0.2)
+		dressPlayer(player, character)
 		routeCharacter()
+	end)
+
+	player.CharacterAppearanceLoaded:Connect(function(character)
+		dressPlayer(player, character)
 	end)
 
 	--[[

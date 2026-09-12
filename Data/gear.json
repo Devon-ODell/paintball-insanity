@@ -231,7 +231,7 @@
     }
   },
   "paintAndAir": {
-    "_note": "Pods are spare paint on your belt. They set how many times you can refill the hopper before you are dry for the round -- which is a capacity and tempo decision, not an aim one. Run the electronic marker on two pods and find out.",
+    "_note": "Pods are spare paint on your belt. They set how many times you can refill the hopper before you are dry for the life (respawning replenishes them) -- which is a capacity and tempo decision, not an aim one. Run the electronic marker on two pods and find out.",
     "pods": {
       "order": [
         "twoPack",

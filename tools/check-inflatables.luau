@@ -20,7 +20,14 @@ for _, piece in ipairs(Config.map("speedball").geometry) do
 			if part.Shape == roblox.Enum.PartType.Wedge then wedges += 1 end
 		end
 		if piece.shape == "inflatable_dorito" then
-			assert(wedges == 2 and not model:FindFirstChild("Core"), "dorito retained its rectangular silhouette")
+			assert(wedges == 8 and not model:FindFirstChild("Crown"), "pyramid must have four triangular faces and one apex, not a ridge")
+			local apex = model:FindFirstChild("Apex").CFrame.Position
+			for _, panel in ipairs(model:GetChildren()) do
+				if panel.Name == "PyramidPanel" then
+					local tip = panel.CFrame:PointToWorldSpace(roblox.Vector3.new(0, panel.Size.Y / 2, panel.Size.Z / 2))
+					assert((tip - apex).Magnitude < 0.001, "a pyramid face does not meet the common apex")
+				end
+			end
 		end
 		if piece.shape == "inflatable_can" then
 			local top = model:FindFirstChild("TopCap")
@@ -31,4 +38,4 @@ for _, piece in ipairs(Config.map("speedball").geometry) do
 		count += 1
 	end
 end
-print(`Built {count} speedball bunker definitions: tapered doritos, bounded can caps, collision-free visuals, part budgets passed`)
+print(`Built {count} speedball bunker definitions: four-sided pyramids, bounded can caps, collision-free visuals, part budgets passed`)

@@ -33,6 +33,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Log = require(ReplicatedStorage.Shared.Log)
 local Types = require(ReplicatedStorage.Shared.Types)
+local CombatPose = require(ReplicatedStorage.Shared.CombatPose)
 
 local log = Log.scope("LiveRound.PlayerState")
 
@@ -46,6 +47,8 @@ export type State = typeof(setmetatable({} :: {
 	position: Vector3?,
 	--- Server time of that acceptance.
 	at: number,
+	budgetAt: number,
+	slack: number,
 	--- Server-held stance. Crouch is a STATE here, not a packet field.
 	crouching: boolean,
 	--- -1, 0 or 1. Which way the player is leaning, as the server understands it.
@@ -62,6 +65,8 @@ function PlayerState.new(kit: any): State
 		kit = kit,
 		position = nil :: Vector3?,
 		at = 0,
+		budgetAt = 0,
+		slack = Config.require("match", "movementValidation.slackMetres"),
 		crouching = false,
 		lean = 0,
 		rejections = 0,
@@ -103,20 +108,28 @@ end
 	inferred.
 ]]
 function PlayerState.observe(self: State, position: Vector3, t: number, respawned: boolean?): (Vector3, boolean)
+	if position.X ~= position.X or position.Y ~= position.Y or position.Z ~= position.Z
+		or math.abs(position.X) == math.huge or math.abs(position.Y) == math.huge or math.abs(position.Z) == math.huge then
+		self.rejections += 1
+		return self.position or Vector3.zero, false
+	end
 	if respawned or self.position == nil then
+		self.slack = Config.require("match", "movementValidation.slackMetres")
+		self.budgetAt = t
 		self.position = position
 		self.at = t
 		return position, true
 	end
-	local elapsed = math.max(t - self.at, 0)
 	local rules = Config.require("match", "movementValidation")
-	--- A floor on the window, so a sample arriving in the same frame as the last
-	--- one does not divide a real displacement by nearly zero.
-	local window = math.max(elapsed, rules.minimumWindowSeconds)
+	local window = math.max(t - self.budgetAt, 0)
+	self.budgetAt = math.max(self.budgetAt, t)
 	local moved = (position - (self.position :: Vector3)).Magnitude
-	local allowed = speedLimit(self) * window + rules.slackMetres
+	-- Replication slack is a replenishing budget, not a fresh teleport
+	-- allowance on every frame. Rejected samples cannot bank unlimited credit.
+	local allowed = self.slack + speedLimit(self) * window
 
 	if moved > allowed then
+		self.slack = math.min(rules.slackMetres, allowed)
 		self.rejections += 1
 		if moved > self.worstMetres then
 			self.worstMetres = moved
@@ -137,6 +150,7 @@ function PlayerState.observe(self: State, position: Vector3, t: number, respawne
 		return self.position :: Vector3, false
 	end
 
+	self.slack = math.min(rules.slackMetres, allowed - moved)
 	self.position = position
 	self.at = t
 	return position, true
@@ -230,29 +244,7 @@ end
 	`right` is the player's own right in world axes, from their aim.
 ]]
 function PlayerState.muzzle(self: State, ground: Vector3, aim: Vector3, stance: Types.Stance): Vector3
-	local player = Config.require("match", "player")
-	local hitbox = Config.require("ballistics", "hitbox")
-	local height = if stance == "crouching"
-		then hitbox.chestHeightMetres * (player.crouchEyeHeightMetres / player.eyeHeightMetres)
-		else hitbox.chestHeightMetres
-	local muzzle = ground + Vector3.new(0, height, 0)
-	if self.lean ~= 0 then
-		local flat = Vector3.new(aim.X, 0, aim.Z)
-		if flat.Magnitude > 1e-6 then
-			local right = flat.Unit:Cross(Vector3.new(0, 1, 0))
-			--[[
-				`forward x up` is Roblox's own RightVector: the identity CFrame
-				looks down -Z with +X to the right, and (0,0,-1) x (0,1,0) is
-				(1,0,0). The client sets `Humanoid.CameraOffset.X` to
-				`+leanOffset` for `lean = 1`, and CameraOffset is in the
-				character's local space where +X is its right -- so a positive
-				lean moves the camera to the player's right and the muzzle has
-				to follow it there.
-			]]
-			muzzle += right * (self.lean * player.leanOffsetMetres)
-		end
-	end
-	return muzzle
+	return CombatPose.muzzle(ground, aim, stance == "crouching", self.lean)
 end
 
 --[[

@@ -309,6 +309,18 @@ local function submitRun(params: any)
 	end)
 end
 
+local function placeLoadedCharacter(player: Player, world: any, at: Vector3)
+	local character = player.Character
+	if not character then error("Character failed to load") end
+	local root_ = character:WaitForChild("HumanoidRootPart", 10) :: BasePart
+	local humanoid = character:WaitForChild("Humanoid", 10) :: Humanoid
+	if not root_ or not humanoid then error("Character rig failed to load") end
+	local spawn = Units.vectorToStuds(at) + Vector3.new(0, root_.Size.Y / 2 + humanoid.HipHeight, 0)
+	local toward = vecOf(world.playerSpawn.lookAt) - vecOf(world.playerSpawn.position)
+	root_.CFrame = CFrame.lookAt(spawn, spawn + Vector3.new(toward.X, 0, toward.Z))
+	root_.AssemblyLinearVelocity = Vector3.zero
+end
+
 function MatchService.start(player: Player, mapName: string, tier: Types.BotTier, seed: number?, mode: string?): Match?
 	if active[player] then
 		log.warn(`{player.Name} already has a match running`)
@@ -575,28 +587,11 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 	local finished = false
 
 	local function spawnPlayer(at: Vector3)
-		--[[
-			The server is about to move the player, on purpose.
-
-			Declared before the move rather than inferred after it: the
-			`respawning` flag is cleared synchronously once the character is
-			placed, so no heartbeat ever saw it set at the new position, and the
-			jump from the death site to the spawn was refused as a teleport --
-			pinning the believed position, and therefore the squad's aim, at the
-			place the player had just died.
-		]]
-		PlayerState.teleported(playerState)
 		player:LoadCharacterAsync()
 		if finished or player.Parent ~= Players then return end
-		local character = player.Character
-		if not character then error("Character failed to load") end
-		local root_ = character:WaitForChild("HumanoidRootPart", 10) :: BasePart
-		local humanoid = character:WaitForChild("Humanoid", 10) :: Humanoid
-		if not root_ or not humanoid then error("Character rig failed to load") end
-		local spawn = Units.vectorToStuds(at) + Vector3.new(0, root_.Size.Y / 2 + humanoid.HipHeight, 0)
-		local toward = vecOf(world.playerSpawn.lookAt) - vecOf(world.playerSpawn.position)
-		root_.CFrame = CFrame.lookAt(spawn, spawn + Vector3.new(toward.X, 0, toward.Z))
-		root_.AssemblyLinearVelocity = Vector3.zero
+		placeLoadedCharacter(player, world, at)
+		-- Loading yields; seed the accepted position only after actual placement.
+		PlayerState.observe(playerState, at, t, true)
 	end
 
 	local function aliveBots(): number
@@ -1066,7 +1061,16 @@ function MatchService.start(player: Player, mapName: string, tier: Types.BotTier
 		} :: any, currentRound, bots)
 		task.delay(respawnDelay, function()
 			if not finished then
-				spawnPlayer(respawnAt)
+				local ok, err = pcall(spawnPlayer, respawnAt)
+				if not ok then
+					respawning = false
+					log.warn(`respawn failed for {player.Name}: {err}`)
+					finish(false)
+					return
+				end
+				if finished then return end
+				markerState = MarkerState.new(markerData, kit)
+				Remotes.event("MarkerRefilled"):FireClient(player, { kit = kit })
 				respawning = false
 				invulnerableUntil = t + matchData.respawn.invulnerabilitySeconds
 			end

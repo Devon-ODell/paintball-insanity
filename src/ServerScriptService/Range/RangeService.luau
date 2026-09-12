@@ -40,6 +40,7 @@ local Spread = require(ReplicatedStorage.Shared.Spread)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Units = require(ReplicatedStorage.Shared.Units)
 
+local PlayerState = require(script.Parent.Parent.Match.PlayerState)
 local ProjectileSim = require(script.Parent.Parent.Ballistics.ProjectileSim)
 local Profile = require(script.Parent.Parent.Economy.Profile)
 local ShotMeasure = require(script.Parent.Parent.Telemetry.ShotMeasure)
@@ -263,6 +264,7 @@ type Session = {
 	]]
 	lastEliminationAt: number?,
 	connections: { RBXScriptConnection },
+	playerState: PlayerState.State,
 }
 
 function RangeService.isActive(player: Player): boolean
@@ -496,7 +498,8 @@ local function handleFire(session: Session, payload: any)
 	if not ground then
 		return
 	end
-	local muzzle = (ground :: Vector3) + Vector3.new(0, session.hitbox.chestHeightMetres, 0)
+	local stance = PlayerState.stanceFor(session.playerState, playerVelocity(session), session.player)
+	local muzzle = PlayerState.muzzle(session.playerState, ground, request.direction, stance)
 
 	if session.markerState.ammo <= 0 then
 		session.markerState:reload(session.t)
@@ -505,8 +508,7 @@ local function handleFire(session: Session, payload: any)
 		return
 	end
 
-	local stance = session.spread:stance(playerVelocity(session), request.stance == "crouching") :: Types.Stance
-	local shotDirection = session.spread:fire(request.direction, session.t, stance)
+		local shotDirection = session.spread:fire(request.direction, session.t, stance)
 
 	--[[
 		Candidates are the live targets, and their positions already carry the
@@ -901,6 +903,7 @@ function RangeService.start(player: Player, drillId: string, seed: number?): boo
 		targetColour = Color3.fromRGB(targetRgb[1], targetRgb[2], targetRgb[3]),
 		projectiles = ProjectileSim.new(collisionWorld(cfg), ballisticsData),
 		markerState = MarkerState.new(markerData, kit),
+		playerState = PlayerState.new(kit),
 		spread = Spread.new(markerData, Config.get("match").player, rng:fork(500)),
 		--[[
 			Where the crosshair has been, on the drill's own clock.
@@ -934,6 +937,11 @@ function RangeService.start(player: Player, drillId: string, seed: number?): boo
 	table.insert(session.connections, Remotes.event("RequestReload").OnServerEvent:Connect(function(who)
 		if who == player and not session.finished then
 			session.markerState:reload(session.t)
+		end
+	end))
+	table.insert(session.connections, Remotes.event("ReportStance").OnServerEvent:Connect(function(who, crouching, lean)
+		if who == player and not session.finished then
+			PlayerState.setIntent(session.playerState, crouching, lean)
 		end
 	end))
 	table.insert(session.connections, Remotes.event("ReportAim").OnServerEvent:Connect(function(who, direction)

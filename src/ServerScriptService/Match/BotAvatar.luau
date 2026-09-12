@@ -181,7 +181,7 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 	})
 	local worn = Wardrobe.dress(outfitName, model, build.height)
 
-	local root = body.byName.Torso
+	local root = body.byName.Chest
 	local head = body.byName.Head
 
 	local marker, barrel, hopperPart, tank = buildMarkerRig(model, markerColour)
@@ -237,13 +237,23 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 			end
 			local base = CFrame.new(studs) * CFrame.lookAt(Vector3.zero, flat.Unit).Rotation
 
-			body.pose(base)
-			Wardrobe.place(worn, body.anchors(base))
+			--- Poses the figure and hands back the frames its clothes hang on.
+			local frames = body.anchors(base)
+			Wardrobe.place(worn, frames)
 
 			--[[
-				The marker rides across the chest, hopper up, barrel forward --
-				and because both hands are on it, a bot's facing is readable at a
-				glance. That is the information that makes peeking a decision
+				The marker is held IN THE HANDS.
+
+				It used to be placed off the chest at a constant, which meant it
+				floated at a fixed spot near the torso while the arms were
+				somewhere else entirely -- and when the arms started articulating
+				the constant it was measured against stopped existing. The grip
+				hand is where a marker is: taking the POSITION from the hand and
+				the ORIENTATION from the body is what keeps it level while still
+				travelling with the arm.
+
+				Both hands are on it, which is what makes a bot's facing readable
+				at a glance -- the information that makes peeking a decision
 				rather than a coin flip.
 			]]
 			--[[
@@ -257,8 +267,9 @@ function BotAvatar.new(id: string, displayName: string, parent: Instance, tier: 
 				warning nobody can see is not a warning.
 			]]
 			local swingPose = if self.swing then CombatMotion.swing(self.swing) else nil
-			marker.CFrame = root.CFrame
-				* CFrame.new(Units.metresToStuds(0.14), Units.metresToStuds(0.04), -Units.metresToStuds(0.30))
+			local grip = frames.handsR or frames.hands
+			marker.CFrame = CFrame.new(grip.Position) * base.Rotation
+				* CFrame.new(0, Units.metresToStuds(0.06), -Units.metresToStuds(0.06))
 				* (if swingPose
 					then CFrame.new(Units.vectorToStuds(swingPose.marker.Position)) * swingPose.marker.Rotation
 					else CFrame.identity)

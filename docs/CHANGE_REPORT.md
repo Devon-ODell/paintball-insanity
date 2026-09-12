@@ -2,6 +2,126 @@
 
 Updated 2026-09-10. This is the single current update list and AI handoff. It supersedes the previous world-pass, publish-prep, Shoothouse, agent, progress and debug handoffs, including the historical paintball-insanity review. Older narratives and their superseded numbers remain in Git history; they are not current instructions.
 
+## QC follow-up, 2026-09-10 — independent review of Claude's final changes
+
+**Current release candidate is solo.** Set the published place's **MaxPlayers to 1**; the server also enforces the authored one-player cap. All development switches are off. This section supersedes the historical results and remaining-work lists below. No place has been published by this review.
+
+Claude's changes addressed the Range coordinate/scoring/scheduling defects, world ownership, entitlement and progression checks, mode results, equipment mechanics, and stance/hearing integration. The previous review's join-kit, Range-kit, loudness, delayed-commerce Notice and retained-character recovery fixes survived Claude's commits. The review did find further gaps:
+
+| Finding | Follow-up change and evidence |
+| --- | --- |
+| A second player was told to wait, but the hub floor was unparented during activities. A message cannot make that a safe seat. | Launch cap is one, independent of the future two-player course rules. `check-activity` requires rejection under shipping configuration, then explicitly enables a second seat to retain the ownership regression coverage. Shared co-op remains unimplemented. |
+| Finite pods were never replenished on a live respawn, although the simulator replenished them. | Each life now starts with a fresh hopper and pods. `MarkerRefilled` explicitly resets client prediction. A live regression empties a one-ball hopper, begins a 999-second reload, triggers an out and proves firing works after respawn. Range still has unlimited refills. |
+| Movement slack was added afresh on every sample, permitting repeated small teleports. NaN positions were accepted. | Slack now replenishes at the kit's speed limit and is consumed by displacement. Rejected samples cannot accumulate arbitrary movement credit. New specs cover repeated jumps and nonfinite coordinates. This remains a generous replicated-motion bound, not proof of collision-respecting movement. |
+| Server muzzle moved with crouch/lean while client tracers still began at standing chest height. Range also retained the old muzzle path. | Shared `CombatPose.muzzle` is used by prediction and server `PlayerState`; Range now records stance intent and uses that same server geometry. Existing muzzle direction/height specs and the five-drill live gate pass. |
+| Purchased avatar equipment had no rendering caller. | `PlayerAppearance` composes authored per-slot overlays for jerseys, pads, headwear, shoulders, pods and masks. Applied after equip, CharacterAdded and CharacterAppearanceLoaded; stale character callbacks are ignored. `check-characters` constructs every item on R6/R15, checks welds and collision/mass settings, and checks repeated equip does not accumulate overlays. These are procedural visuals; aesthetic fit still needs rendered QC. |
+| Character loading can yield or fail during respawn. | Accepted position is seeded after placement, so a sample during the yielding load cannot pin the player at the previous location. Delayed respawn errors clear the respawning flag and end the activity instead of leaving an immortal stuck session. |
+
+### Verification and artifacts
+
+**23 of 23 automated gates passed**, including the full spec suite and release configuration. Final targeted reruns after the respawn follow-up passed source compilation, static/config checks, activity routing, live modes, all five Range drills and PlayerState specs. Both `build/paintball-release.rbxlx` and `build/paintball-demo.rbxlx` built successfully. Full gate output and focused evidence are saved in `build/qc-results.txt`. The original `Claude Handoff 003.md` remains the audit record; this section is the current response to it. The activity scheduler also now propagates errors from resumed callbacks instead of swallowing them. Gates use controlled engine boundaries and do not constitute a rendered or published-services acceptance test.
+
+### Your focused QC pass
+
+1. Open `build/paintball-release.rbxlx`; publish into the intended test experience with **MaxPlayers = 1**. Use the release build for service validation; the demo intentionally has temporary progress.
+2. With a fresh test profile, enter Gauntlet and all five Range drills; use earned progression to reach Shoothouse, Horde and CTF. Check re-entry, summary/replay, shop return, reset and falling off the map. Existing profiles are not wiped or stripped of earlier development grants.
+3. Equip jerseys, headwear, masks, shoulders and pods; verify their appearance on an R6/R15 character, first-person visibility, reload timing and capacity. Crouch/lean near low cover and corners and compare tracers with confirmed impacts. Crouch-walking still uses the moving stance; this pass did not retune that rule.
+4. In a published server, confirm save/rejoin, session ownership and leaderboard writes. Studio uses ProfileStore.Mock and cannot establish published persistence. Commerce remains free with paid transactions disabled; unused paid attachment velocity axes remain inert.
+5. Check mouse/controller input, menus, mesh permissions, avatar fit and device frame pacing. Audio cue IDs/playlists remain unassigned, so silence is expected until owner-supplied audio is configured. No measured in-engine FPS claim is made.
+
+**Still deferred:** shared co-op, consumable activation, production lag compensation, audio asset assignment, and human difficulty acceptance. Balance assertions were not weakened and tier tuning was not changed. The earlier five optional performance/quality improvements remain in the original handoff; feature wiring was not clean enough to treat those as the main task.
+
+## Eleventh pass, 2026-09-10 — The people were blobs
+
+**"They all resemble blocks and blobs."** That was accurate, and it was not a
+rendering problem. `World/Wardrobe` built every person in the game — the six at
+The Landing and all five enemy tiers — out of thirteen ellipsoids stacked in a
+column that **translated fore and aft and never rotated once**. A thigh that
+slides instead of pivoting is a floating sausage. The figure was also **3.9 heads
+tall**, which is a bobblehead, and a gate in `check-characters` was actively
+enforcing that: `Head.Size.X / Torso.Size.X > 0.75`, commented "the requested
+large-head silhouette". A gate that enforces the defect is worse than no gate,
+because it makes the defect look reviewed.
+
+### What the figure is now
+
+A skeleton, in `Data/wardrobe.json` under `skeleton`, at canonical human
+proportions — 7.5 heads, shoulders at 0.80 of height, hip at 0.53, knee at 0.28 —
+posed by **forward kinematics down each limb**. Joint HEIGHTS are authored rather
+than bone lengths, so a bone is the gap between two joints and the two cannot
+drift apart. Each bone is an ellipsoid whose local Y *is* the bone, so orienting
+the joint frame orients the limb, and each segment is sized 16% longer than its
+bone so it overlaps its neighbour and reads continuous without a separate ball
+at every elbow.
+
+| | before | now |
+| --- | --- | --- |
+| Proportion | 3.9 heads (skull 46 cm) | 7.3 heads (skull 24 cm) |
+| Limbs | translate only | hip 26°, knee to 70° through a stride |
+| Torso | two concentric balls | ribcage / waist / pelvis, broad-narrow-broad |
+| Missing | no feet, no deltoids, no jaw | all three |
+| Squad cost | 900 parts | 924 of a 1000 budget |
+
+Ears moved inside the `face` flag with the rest of the face — a bot in a full
+mask had two of them under the strap, twelve bots' worth, rebuilt every round.
+That paid for most of the new anatomy.
+
+### Things that were wrong and are now visible
+
+- **Every paintball pod was a squashed disc.** A `Cylinder`'s length is its local
+  X and the other two axes are the circular cross-section. All eighteen cylinders
+  in the wardrobe were authored with the length in Y, so a 20 cm pod rendered as
+  a 6 cm ellipse lying on its side, and the beanie cuff and headlamp band stood
+  on the skull like chimneys. Wheels was 1.845 m tall because of the band alone.
+- **Gloves and elbow pads were pinned to the chest** at a fixed sideways offset,
+  so they hung where an arm used to be while the arm swung out from under them.
+  They hang off `elbows` and `hands` anchors now, which are live joint frames, as
+  do Marge's clipboard and Tildy's controller.
+- **The bot's marker was placed off the chest at a constant** derived from a
+  proportion that no longer exists. It is held in the grip hand — position from
+  the hand, orientation from the body.
+- **The carry stance flung the hands 46 cm forward** and rolled both arms
+  *outward* (`* sign` where it needed `* -sign`). The upper arm now stays near
+  vertical and the elbow does the work, which is how a marker is actually held.
+- **Idle postures were a translation.** `crouched` dropped Wheels 0.63 m and
+  buried his legs under the yard, leaving a torso on the floor; `sitting` did the
+  same to Denny. A figure with knees bends them, and the root lifts by whatever
+  the bent legs shortened, so the feet stay on the ground. A lean bends at the
+  waist rather than tipping the soles off it.
+- **Thirty garments were cut for a torso 0.56 m across.** The new chest is
+  0.35 m, so they were taken in — a jersey 0.66 m wide on a 0.35 m chest is not a
+  cosmetic problem: paint landing on a sleeve outside the hit capsule teaches a
+  player that their aim is not what decides the hit.
+
+### The headshot zone moved, and it matters
+
+`camos.headshot` was a scoring ellipsoid 54 cm across, sized for the old skull.
+It follows the new one: 30 cm across, centred 12.6 cm below the crown. **That
+makes headshots genuinely harder and camo progress with it.** The alternative was
+a quarter-metre bubble of empty air that scores as a headshot, which is the same
+lie in the other direction. Flagged rather than absorbed — retuning
+`camos.headshot` is a design call.
+
+### What now guards it
+
+`check-characters` replaces the bobblehead assertion with three that matter, all
+checkable without a renderer: **proportion** (6.5–8.5 heads), **articulation**
+(every bone must rotate more than 8° through a stride, which a sliding figure
+cannot do), and **containment** (nothing outside the hit capsule standing, and
+the torso and head never outside it mid-stride either). Plus a clothing pass over
+all 269 worn parts across 11 outfits, which is what caught the thirty misfits,
+and a cylinder cross-section check that catches the pod bug for good.
+
+Two API facts `docs/PLATFORM_NOTES.md` had flagged as unverified are resolved
+there: non-uniform `Ball` parts do render as ellipsoids, and the cylinder length
+axis is corroborated by the pod bug it caused.
+
+**`tools/build-character-review` builds `build/character-review.rbxlx`** — the six
+at The Landing in their real postures, the five enemy tiers, and one figure frozen
+at eight points through a single stride against a half-metre height rule. The
+gates can prove a figure is 7.5 heads tall; they cannot tell you whether it looks
+like a person. Open it and say what is still wrong.
+
 ## Tenth pass, 2026-09-10 — Handoff 003 repairs
 
 Working against `Claude Handoff 003.md`, which found that the gates were green
@@ -223,10 +343,7 @@ again, not a reason to stop looking.
 - **Tier retuning against the two newly-live mechanics** -- see the difficulty
   table above. The mechanics are in; the numbers they were balanced without are
   not adjusted, deliberately, because that is a design decision.
-- **One balance acceptance spec** still fails: `punishes trading harder than
-  holding angles`. The other one the audit reported, `orders Speedball below
-  Woods by a wide margin`, now passes. No assertion was weakened; the difference
-  is the squad being able to hear the player, which is measured above.
+- **Historical intermediate result:** one balance acceptance spec still failed after hearing alone; the subsequent crouch pass made both pass, as reported above.
 - **Rendered validation remains open** exactly as the audit left it: meshes,
   audio delivery, first-person sight picture, frame time, safe areas, real
   DataStore persistence.
